@@ -1,13 +1,61 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>smart-barber</title>
+    <!-- Meta tags recomendadas para la PWA -->
+    <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
+    <meta name="description" content="Gestión inteligente de turnos, inventario y registro de cortes." />
+    <!-- Si tienes el manifest para la PWA, descomenta la siguiente línea -->
+    <!-- <link rel="manifest" href="/manifest.json" /> -->
+    <title>Smart Barber - Panel de Control</title>
   </head>
   <body>
-    <div id="app"></div>
+    <div id="app">
+      <!-- Encabezado y Navegación principal -->
+      <header class="app-header">
+        <div class="logo">
+          <h1>✂️ Smart Barber</h1>
+        </div>
+        <nav class="app-nav">
+          <button class="nav-btn active" id="nav-agenda">📅 Agenda</button>
+          <button class="nav-btn" id="nav-inventory">📦 Inventario</button>
+          <button class="nav-btn" id="nav-records">📝 Cortes</button>
+        </nav>
+      </header>
+
+      <!-- Contenedor principal donde Vanilla JS / TS inyectará o manejará las vistas -->
+      <main class="app-content" id="main-content">
+        
+        <!-- Vista inicial de ejemplo (Dashboard) -->
+        <section class="dashboard-section" id="view-dashboard">
+          <div class="welcome-header">
+            <h2>Resumen del Día</h2>
+            <p>Bienvenido al sistema de gestión de tu barbería.</p>
+          </div>
+          
+          <div class="dashboard-cards">
+            <div class="card">
+              <h3>Turnos Pendientes</h3>
+              <p class="counter" id="turnos-counter">0</p>
+            </div>
+            <div class="card">
+              <h3>Cortes Realizados (Hoy)</h3>
+              <p class="counter" id="cortes-counter">0</p>
+            </div>
+            <div class="card">
+              <h3>Alertas de Inventario</h3>
+              <p class="counter" id="stock-counter">0</p>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+    
+    <!-- Script principal de TypeScript -->
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
