@@ -25,16 +25,15 @@
         </nav>
       </header>
 
-      <!-- Contenedor principal donde Vanilla JS / TS inyectará o manejará las vistas -->
+<!-- Contenedor principal donde Vanilla JS / TS inyectará o manejará las vistas -->
       <main class="app-content" id="main-content">
         
-        <!-- Vista inicial de ejemplo (Dashboard) -->
-        <section class="dashboard-section" id="view-dashboard">
+        <!-- VISTA 1: DASHBOARD (Por defecto) -->
+        <section class="view active" id="view-dashboard">
           <div class="welcome-header">
             <h2>Resumen del Día</h2>
             <p>Bienvenido al sistema de gestión de tu barbería.</p>
           </div>
-          
           <div class="dashboard-cards">
             <div class="card">
               <h3>Turnos Pendientes</h3>
@@ -48,6 +47,22 @@
               <h3>Alertas de Inventario</h3>
               <p class="counter" id="stock-counter">0</p>
             </div>
+          </div>
+        </section>
+
+        <!-- VISTA 2: AGENDA -->
+        <section class="view" id="view-agenda" style="display: none;">
+          <h2>📅 Agenda del Día</h2>
+          <div id="agenda-container" class="list-container">
+            <!-- Renderizado dinámico desde agenda.ts -->
+          </div>
+        </section>
+
+        <!-- VISTA 3: HISTORIAL DE CORTES -->
+        <section class="view" id="view-records" style="display: none;">
+          <h2>📝 Historial de Cortes y Fichas Clínicas</h2>
+          <div id="cortes-container" class="list-container">
+            <!-- Renderizado dinámico desde cortes.ts -->
           </div>
         </section>
 
