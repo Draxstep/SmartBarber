@@ -4,6 +4,7 @@ import { initRouter } from './router';
 import { CitasRepository } from './db/citasRepository';
 import { CortesRepository } from './db/cortesRepository';
 import { encryptSensitiveField } from './crypto/webCrypto';
+import { initPwaUX } from './pwa-ux';
 
 // Función para poblar la DB local si está vacía (Solo para propósitos de prueba)
 async function inicializarDatosPrueba() {
@@ -59,6 +60,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   initRouter();
   
   // 2. Crear datos de prueba si la DB está vacía
+  await inicializarDatosPrueba();
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+  initPwaUX(); // Inicia la lógica de la PWA
+  initRouter();
   await inicializarDatosPrueba();
 });
 
