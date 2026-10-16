@@ -1,11 +1,7 @@
-export interface EncryptedPayload {
-  cipherText: string; 
-  iv: string;         
-  salt: string;       
-}
+// src/crypto/webCrypto.js
 
 // Conversión segura para ArrayBuffer y TypedArrays
-function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
+function bufferToBase64(buffer) {
   const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
   let binary = '';
   for (let i = 0; i < bytes.byteLength; i++) {
@@ -14,19 +10,19 @@ function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
   return btoa(binary);
 }
 
-function base64ToBuffer(base64: string): ArrayBuffer {
+function base64ToBuffer(base64) {
   const binary = atob(base64);
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i++) {
     bytes[i] = binary.charCodeAt(i);
   }
-  return bytes.buffer as ArrayBuffer;
+  return bytes.buffer;
 }
 
 /**
  * Deriva una CryptoKey AES-GCM a partir de una contraseña y una sal usando PBKDF2
  */
-async function deriveEncryptionKey(password: string, salt: Uint8Array): Promise<CryptoKey> {
+async function deriveEncryptionKey(password, salt) {
   const encoder = new TextEncoder();
   const passwordKeyMaterial = await crypto.subtle.importKey(
     'raw',
@@ -39,7 +35,7 @@ async function deriveEncryptionKey(password: string, salt: Uint8Array): Promise<
   return crypto.subtle.deriveKey(
     {
       name: 'PBKDF2',
-      salt: salt as BufferSource, 
+      salt: salt,
       iterations: 100000,
       hash: 'SHA-256'
     },
@@ -52,16 +48,19 @@ async function deriveEncryptionKey(password: string, salt: Uint8Array): Promise<
 
 /**
  * Cifra un texto plano usando una contraseña de usuario
+ * @param {string} plainText
+ * @param {string} masterPassword
+ * @returns {Promise<{cipherText: string, iv: string, salt: string}>}
  */
-export async function encryptSensitiveField(plainText: string, masterPassword: string): Promise<EncryptedPayload> {
+export async function encryptSensitiveField(plainText, masterPassword) {
   const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12)); 
+  const iv = crypto.getRandomValues(new Uint8Array(12));
 
   const key = await deriveEncryptionKey(masterPassword, salt);
   const encodedData = new TextEncoder().encode(plainText);
 
   const encryptedBuffer = await crypto.subtle.encrypt(
-    { name: 'AES-GCM', iv: iv as BufferSource },
+    { name: 'AES-GCM', iv: iv },
     key,
     encodedData
   );
@@ -75,8 +74,11 @@ export async function encryptSensitiveField(plainText: string, masterPassword: s
 
 /**
  * Descifra el payload usando la misma contraseña
+ * @param {{cipherText: string, iv: string, salt: string}} payload
+ * @param {string} masterPassword
+ * @returns {Promise<string>}
  */
-export async function decryptSensitiveField(payload: EncryptedPayload, masterPassword: string): Promise<string> {
+export async function decryptSensitiveField(payload, masterPassword) {
   const salt = new Uint8Array(base64ToBuffer(payload.salt));
   const iv = new Uint8Array(base64ToBuffer(payload.iv));
   const encryptedBytes = base64ToBuffer(payload.cipherText);
@@ -84,7 +86,7 @@ export async function decryptSensitiveField(payload: EncryptedPayload, masterPas
   const key = await deriveEncryptionKey(masterPassword, salt);
 
   const decryptedBuffer = await crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: iv as BufferSource },
+    { name: 'AES-GCM', iv: iv },
     key,
     encryptedBytes
   );
