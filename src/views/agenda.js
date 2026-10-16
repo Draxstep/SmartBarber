@@ -34,10 +34,10 @@ export async function renderizarAgenda() {
       </div>
       <div class="agenda-actions">
         <button id="btn-toggle-sensores" class="btn-secondary" title="Activa acelerómetro para agitar y deshacer">
-          📳 ${sensoresActivos ? 'Sensores: ACTIVOS' : 'Activar Agitar para Deshacer'}
+          📳 ${sensoresActivos ? 'Sensores: ACTIVOS' : 'Activar: Agitar para Deshacer'}
         </button>
         <button id="btn-nueva-cita" class="btn-primary">➕ Agendar Cita</button>
-        <button id="btn-walkin" class="btn-secondary">🚶 Cliente de Paso (Walk-in)</button>
+        <button id="btn-walkin" class="btn-secondary">🚶 Cliente de Paso </button>
       </div>
     </div>
 

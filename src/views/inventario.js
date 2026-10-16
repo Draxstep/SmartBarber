@@ -12,14 +12,14 @@ export async function renderizarInventario() {
   container.innerHTML = `
     <div class="inventory-header">
       <div>
-        <h2>📦 Control de Inventario y Kardex</h2>
+        <h2>📦 Control de Inventario </h2>
         <p>Insumos internos, productos de venta, conteo físico y trazabilidad.</p>
       </div>
       <div class="inventory-actions">
         <button id="btn-nuevo-producto" class="btn-primary">➕ Nuevo Ítem</button>
-        <button id="btn-nuevo-movimiento" class="btn-secondary">🔄 Movimiento / Ajuste</button>
-        <button id="btn-ver-kardex" class="btn-secondary">📜 Ver Kardex</button>
-        <button id="btn-exportar-csv" class="btn-secondary">📥 Exportar CSV</button>
+        <button id="btn-nuevo-movimiento" class="btn-secondary">🔄 Movimiento</button>
+        <button id="btn-ver-kardex" class="btn-secondary">📜 Ver historial</button>
+        <button id="btn-exportar-csv" class="btn-secondary">📥 Exportar</button>
       </div>
     </div>
 

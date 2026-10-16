@@ -33,12 +33,10 @@ export async function renderizarHistorialCortes(clienteId = 'cliente-101') {
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
       <div>
         <h3 style="margin: 0; font-size: 1.3em;">💈 Expediente Técnico y Registro de Cortes</h3>
-        <p style="margin: 4px 0 0 0; color: var(--text); font-size: 0.9em;">
-          Fichas técnicas con cifrado WebCrypto, fotos de cortes y geolocalización.
         </p>
       </div>
       <div>
-        <button id="btn-nuevo-corte-camara" class="btn-primary">📸 Registrar Corte (Cámara y GPS)</button>
+        <button id="btn-nuevo-corte-camara" class="btn-primary">📸 Registrar Corte</button>
       </div>
     </div>
 
