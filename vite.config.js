@@ -4,43 +4,47 @@ import { VitePWA } from 'vite-plugin-pwa';
 export default defineConfig({
   plugins: [
     VitePWA({
-      registerType: 'prompt', 
-      includeAssets: ['favicon.svg'],
+      registerType: 'prompt',
+      manifestFilename: 'manifest.json',
+      includeAssets: ['favicon.svg', 'icons/*.png', 'manifest.json'],
       manifest: {
-        name: 'Smart Barber',
+        name: 'Smart Barber - Gestión Integral',
         short_name: 'SmartBarber',
         description: 'Gestión inteligente de turnos, inventario y registro de cortes.',
         theme_color: '#111827',
         background_color: '#ffffff',
         display: 'standalone',
+        orientation: 'portrait',
         icons: [
           {
-            src: '/icon-192.png',
+            src: '/icons/launchericon-192x192.png',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/png',
+            purpose: 'any'
           },
           {
-            src: '/icon-512.png',
+            src: '/icons/launchericon-512x512.png',
             sizes: '512x512',
             type: 'image/png',
-            purpose: 'any maskable' 
+            purpose: 'any maskable'
           }
         ]
       },
       workbox: {
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,json}'],
         runtimeCaching: [
           {
-            // Cache First (Imágenes e iconos)
+            // Cache First (Imágenes, logos e iconos) - Sesión 23 Workbox
             urlPattern: /\.(?:png|jpg|jpeg|svg|gif|ico)$/,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'images-cache',
-              expiration: { maxEntries: 50, maxAgeSeconds: 30 * 24 * 60 * 60 }
+              cacheName: 'imagenes-cache',
+              expiration: { maxEntries: 60, maxAgeSeconds: 30 * 24 * 60 * 60 }
             }
           },
           {
-            // Network First (Citas y API)
-            urlPattern: /\/api\/|\/citas\//,
+            // Network First (Citas, Inventario y API)
+            urlPattern: /\/api\/|\/citas\/|\/inventario\//,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
