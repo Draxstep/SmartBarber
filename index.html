@@ -8,7 +8,7 @@
     <meta name="theme-color" content="#111827" media="(prefers-color-scheme: dark)" />
     <meta name="theme-color" content="#f9fafb" media="(prefers-color-scheme: light)" />
     <meta name="description" content="Gestión inteligente de turnos, inventario y registro de cortes." />
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="/manifest.json" />
     <title>Smart Barber - Panel de Control</title>
   </head>
   <body>
@@ -19,22 +19,22 @@
           <h1>✂️ Smart Barber</h1>
         </div>
         <nav class="app-nav">
-          <button class="nav-btn active" id="nav-agenda">📅 Agenda</button>
+          <button class="nav-btn active" id="nav-dashboard">📊 Dashboard</button>
+          <button class="nav-btn" id="nav-agenda">📅 Agenda</button>
           <button class="nav-btn" id="nav-inventory">📦 Inventario</button>
           <button class="nav-btn" id="nav-records">📝 Cortes</button>
         </nav>
       </header>
 
-      <!-- Contenedor principal donde Vanilla JS / TS inyectará o manejará las vistas -->
+      <!-- Contenedor principal donde Vanilla JS inyectará y manejará las vistas -->
       <main class="app-content" id="main-content">
         
-        <!-- Vista inicial de ejemplo (Dashboard) -->
-        <section class="dashboard-section" id="view-dashboard">
+        <!-- VISTA 1: DASHBOARD (Por defecto) -->
+        <section class="view active" id="view-dashboard">
           <div class="welcome-header">
             <h2>Resumen del Día</h2>
-            <p>Bienvenido al sistema de gestión de tu barbería.</p>
+            <p>Bienvenido al sistema de gestión integral SmartBarber.</p>
           </div>
-          
           <div class="dashboard-cards">
             <div class="card">
               <h3>Turnos Pendientes</h3>
@@ -51,10 +51,28 @@
           </div>
         </section>
 
+        <!-- VISTA 2: AGENDA -->
+        <section class="view" id="view-agenda" style="display: none;">
+          <!-- Renderizado dinámico desde agenda.js -->
+        </section>
+
+        <!-- VISTA 3: INVENTARIO Y KARDEX -->
+        <section class="view" id="view-inventory" style="display: none;">
+          <!-- Renderizado dinámico desde inventario.js -->
+        </section>
+
+        <!-- VISTA 4: HISTORIAL DE CORTES -->
+        <section class="view" id="view-records" style="display: none;">
+          <h2>📝 Historial de Cortes y Fichas Clínicas</h2>
+          <div id="cortes-container" class="list-container">
+            <!-- Renderizado dinámico desde cortes.js -->
+          </div>
+        </section>
+
       </main>
     </div>
     
-    <!-- Script principal de TypeScript -->
-    <script type="module" src="/src/main.ts"></script>
+    <!-- Script principal de JavaScript -->
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>
