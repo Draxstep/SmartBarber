@@ -1,9 +1,9 @@
-import { openSmartBarberDB } from './database';
-import type { RegistroCorte } from './database';
+// src/db/cortesRepository.js
+import { openSmartBarberDB } from './database.js';
 
 export class CortesRepository {
   // CREATE: Guardar ficha técnica de servicio realizado
-  async create(registro: RegistroCorte): Promise<string> {
+  async create(registro) {
     const db = await openSmartBarberDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('cortes_realizados', 'readwrite');
@@ -16,7 +16,7 @@ export class CortesRepository {
   }
 
   // READ: Obtener registro por ID
-  async getById(id: string): Promise<RegistroCorte | undefined> {
+  async getById(id) {
     const db = await openSmartBarberDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('cortes_realizados', 'readonly');
@@ -29,10 +29,7 @@ export class CortesRepository {
   }
 
   // CURSOR: Recorrer el historial de cortes de un cliente específico (RF-COR-07)
-  async getHistorialClienteConCursor(
-    clienteId: string,
-    onRecordFound?: (registro: RegistroCorte) => void
-  ): Promise<RegistroCorte[]> {
+  async getHistorialClienteConCursor(clienteId, onRecordFound) {
     const db = await openSmartBarberDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction('cortes_realizados', 'readonly');
@@ -41,12 +38,12 @@ export class CortesRepository {
 
       const range = IDBKeyRange.only(clienteId);
       const request = index.openCursor(range);
-      const resultados: RegistroCorte[] = [];
+      const resultados = [];
 
-      request.onsuccess = (event: Event) => {
-        const cursor = (event.target as IDBRequest<IDBCursorWithValue>).result;
+      request.onsuccess = (event) => {
+        const cursor = event.target.result;
         if (cursor) {
-          const registro = cursor.value as RegistroCorte;
+          const registro = cursor.value;
           resultados.push(registro);
 
           if (onRecordFound) {
