@@ -16,6 +16,10 @@ export class IUsuarioRepository {
     throw new Error('Método findById no implementado');
   }
 
+  async findAll(sedeId, options = {}) {
+    throw new Error('Método findAll no implementado');
+  }
+
   /**
    * @param {string} correo
    * @param {object} [options]

@@ -250,4 +250,45 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
       throw mapDatabaseError(error, 'Error al calcular resumen de ingresos de caja');
     }
   }
+
+  async getLiquidacionBarberos({ sedeId, fechaInicio, fechaFin, barberoId = null }, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      let query = `
+        SELECT 
+          rc.barbero_id,
+          b.nombre_completo as barbero_nombre,
+          b.porcentaje_comision as porcentaje_comision_actual,
+          COUNT(rc.registro_corte_id)::int as total_cortes,
+          COALESCE(SUM(rc.precio_cobrado_cop), 0)::numeric as total_facturado_cop,
+          COALESCE(SUM(rc.comision_calculada_cop), 0)::numeric as total_comision_cop
+        FROM registros_cortes rc
+        JOIN barberos b ON rc.barbero_id = b.barbero_id
+        WHERE rc.sede_id = $1 
+          AND rc.estado = 'activo'
+          AND rc.fecha_hora_atencion >= $2::timestamptz
+          AND rc.fecha_hora_atencion <= $3::timestamptz
+      `;
+      const params = [sedeId, fechaInicio, fechaFin];
+
+      if (barberoId) {
+        query += ' AND rc.barbero_id = $4';
+        params.push(barberoId);
+      }
+
+      query += ' GROUP BY rc.barbero_id, b.nombre_completo, b.porcentaje_comision ORDER BY b.nombre_completo ASC';
+
+      const result = await executor.query(query, params);
+      return result.rows.map((row) => ({
+        barberoId: row.barbero_id,
+        barberoNombre: row.barbero_nombre,
+        porcentajeComisionActual: Number(row.porcentaje_comision_actual) || 0,
+        totalCortes: row.total_cortes,
+        totalFacturadoCop: Number(row.total_facturado_cop),
+        totalComisionCop: Number(row.total_comision_cop)
+      }));
+    } catch (error) {
+      throw mapDatabaseError(error, 'Error al consultar liquidación de comisiones de barberos');
+    }
+  }
 }

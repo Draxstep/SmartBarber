@@ -21,14 +21,14 @@ export const createBarberoSchema = z.object({
 export const updateBarberoSchema = createBarberoSchema.partial();
 
 export const createBloqueoSchema = z.object({
-  sedeId: z.string().uuid('ID de sede inválido'),
-  barberoId: z.string().uuid('ID de barbero inválido'),
+  sedeId: z.string().uuid('ID de sede inválido').optional(),
+  barberoId: z.string().uuid('ID de barbero inválido').optional(),
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha YYYY-MM-DD inválido'),
   diaCompleto: z.boolean().default(false),
-  horaInicio: z.string().regex(/^\d{2}:(00|30):00$/, 'Hora de inicio debe ser múltiplo de 30 min (HH:MM:00)').nullable().optional(),
-  horaFin: z.string().regex(/^\d{2}:(00|30):00$/, 'Hora de fin debe ser múltiplo de 30 min (HH:MM:00)').nullable().optional(),
-  inicioEn: z.string().datetime(),
-  finEn: z.string().datetime(),
+  horaInicio: z.string().regex(/^\d{2}:(00|30)(:00)?$/, 'Hora de inicio debe ser múltiplo de 30 min (HH:MM)').nullable().optional(),
+  horaFin: z.string().regex(/^\d{2}:(00|30)(:00)?$/, 'Hora de fin debe ser múltiplo de 30 min (HH:MM)').nullable().optional(),
+  inicioEn: z.string().optional(),
+  finEn: z.string().optional(),
   motivo: z.string().trim().min(3, 'El motivo debe tener al menos 3 caracteres').max(200),
-  creadoPorUsuarioId: z.string().uuid('ID de usuario autor inválido')
+  creadoPorUsuarioId: z.string().uuid('ID de usuario autor inválido').optional()
 });

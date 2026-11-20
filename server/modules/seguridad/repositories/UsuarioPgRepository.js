@@ -26,6 +26,19 @@ export class UsuarioPgRepository extends IUsuarioRepository {
     }
   }
 
+  async findAll(sedeId, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      const result = await executor.query(
+        'SELECT * FROM usuarios WHERE sede_id = $1 ORDER BY creado_en DESC',
+        [sedeId]
+      );
+      return result.rows.map(SeguridadMapper.usuarioToDomain);
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al listar usuarios de la sede ${sedeId}`);
+    }
+  }
+
   async findByCorreo(correo, { client } = {}) {
     const executor = client || this.pool;
     try {

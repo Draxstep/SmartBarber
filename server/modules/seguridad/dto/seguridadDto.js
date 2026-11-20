@@ -17,3 +17,14 @@ export const createUsuarioSchema = z.object({
   rol: z.enum([RolUsuario.ADMINISTRADOR, RolUsuario.BARBERO]),
   estado: z.enum([EstadoRegistro.ACTIVO, EstadoRegistro.INACTIVO]).default(EstadoRegistro.ACTIVO)
 });
+
+export const updateUsuarioSchema = z.object({
+  correo: z.string().trim().email('Correo electrónico inválido').max(150).optional(),
+  rol: z.enum([RolUsuario.ADMINISTRADOR, RolUsuario.BARBERO]).optional(),
+  estado: z.enum([EstadoRegistro.ACTIVO, EstadoRegistro.INACTIVO]).optional()
+});
+
+export const cambiarContrasenaSchema = z.object({
+  contrasenaActual: z.string().min(1, 'La contraseña actual es requerida').optional(),
+  nuevaContrasena: z.string().min(8, 'La nueva contraseña debe tener al menos 8 caracteres')
+});

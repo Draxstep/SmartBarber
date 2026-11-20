@@ -26,6 +26,19 @@ export class BarberoPgRepository extends IBarberoRepository {
     }
   }
 
+  async findByUsuarioId(usuarioId, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      const result = await executor.query(
+        'SELECT * FROM barberos WHERE usuario_id = $1 LIMIT 1',
+        [usuarioId]
+      );
+      return BarberoMapper.barberoToDomain(result.rows[0]);
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al buscar barbero con usuario ID ${usuarioId}`);
+    }
+  }
+
   async findBySede(sedeId, { activosSolo = true } = {}, { client } = {}) {
     const executor = client || this.pool;
     try {
@@ -172,6 +185,66 @@ export class BarberoPgRepository extends IBarberoRepository {
       return BarberoMapper.barberoToDomain(result.rows[0]);
     } catch (error) {
       throw mapDatabaseError(error, `Error al desactivar al barbero ${barberoId}`);
+    }
+  }
+
+  async saveHorarios(barberoId, horarios, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      await executor.query('DELETE FROM horarios_barberos WHERE barbero_id = $1', [barberoId]);
+
+      const inserted = [];
+      for (const h of horarios) {
+        const res = await executor.query(
+          `INSERT INTO horarios_barberos (
+            barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin
+          ) VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING *;`,
+          [
+            barberoId,
+            h.diaSemana,
+            h.numeroFranja || 1,
+            Boolean(h.esDescanso),
+            h.esDescanso ? null : h.horaInicio,
+            h.esDescanso ? null : h.horaFin
+          ]
+        );
+        inserted.push(BarberoMapper.horarioToDomain(res.rows[0]));
+      }
+      return inserted;
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al guardar plantilla de horarios del barbero ${barberoId}`);
+    }
+  }
+
+  async deleteBloqueo(bloqueoId, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      const result = await executor.query(
+        'UPDATE bloqueos_horarios SET activo = false WHERE bloqueo_id = $1 RETURNING *',
+        [bloqueoId]
+      );
+      return result.rowCount > 0;
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al cancelar bloqueo de horario ${bloqueoId}`);
+    }
+  }
+
+  async findCitasFuturasActivas(barberoId, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      const result = await executor.query(
+        `SELECT cita_id, codigo_reserva, fecha, hora_inicio, hora_fin, estado
+         FROM citas
+         WHERE barbero_id = $1 
+           AND estado IN ('pendiente', 'confirmada')
+           AND inicio_en >= NOW()
+         ORDER BY inicio_en ASC`,
+        [barberoId]
+      );
+      return result.rows;
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al consultar citas futuras activas del barbero ${barberoId}`);
     }
   }
 }

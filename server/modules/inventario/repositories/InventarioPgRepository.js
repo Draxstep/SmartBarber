@@ -235,4 +235,40 @@ export class InventarioPgRepository extends IInventarioRepository {
       throw mapDatabaseError(error, `Error al obtener Kardex del producto ${productoId}`);
     }
   }
+
+  async findMovimientosWithFilters({ sedeId, productoId = null, fechaInicio = null, fechaFin = null, tipo = null }, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      let query = 'SELECT m.*, p.nombre as producto_nombre FROM movimientos_inventario m JOIN productos_inventario p ON m.producto_id = p.producto_id WHERE m.sede_id = $1';
+      const params = [sedeId];
+      let paramIndex = 2;
+
+      if (productoId) {
+        query += ` AND m.producto_id = $${paramIndex++}`;
+        params.push(productoId);
+      }
+      if (fechaInicio) {
+        query += ` AND m.creado_en >= $${paramIndex++}::timestamptz`;
+        params.push(fechaInicio);
+      }
+      if (fechaFin) {
+        query += ` AND m.creado_en <= $${paramIndex++}::timestamptz`;
+        params.push(fechaFin);
+      }
+      if (tipo) {
+        query += ` AND m.tipo = $${paramIndex++}`;
+        params.push(tipo);
+      }
+
+      query += ' ORDER BY m.creado_en DESC';
+
+      const result = await executor.query(query, params);
+      return result.rows.map((row) => ({
+        ...InventarioMapper.movimientoToDomain(row),
+        productoNombre: row.producto_nombre
+      }));
+    } catch (error) {
+      throw mapDatabaseError(error, 'Error al consultar movimientos de inventario');
+    }
+  }
 }

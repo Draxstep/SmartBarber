@@ -54,8 +54,8 @@ export async function runSeed() {
     }
 
     // 2. Usuario Administrador
-    // Hash simulado bcrypt seguro para pruebas ($2b$10$... longitud >= 50 requerida por CHECK)
-    const adminHash = '$2b$10$abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQR';
+    // Hash bcrypt real para 'Admin123456!'
+    const adminHash = '$2b$10$c/YXW.wc6h7JrJoG3M.YZeogERXz2Njlr9Vq0b0DgjpuU1kAMFyUO';
     const adminUserResult = await client.query(`
       INSERT INTO usuarios (
         sede_id,

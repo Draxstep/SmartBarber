@@ -7,10 +7,13 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "start": "node server/server.js",
+    "dev:server": "node server/server.js",
     "db:migrate": "node server/database/migrator.js",
     "db:seed": "node server/database/seed.js",
     "db:smoke": "node server/scripts/smoke-test.js",
-    "db:health": "node server/scripts/health-check.js"
+    "db:health": "node server/scripts/health-check.js",
+    "test:integration": "node server/scripts/integration-test.js"
   },
   "devDependencies": {
     "eslint": "^10.10.0",
@@ -21,7 +24,11 @@
     "workbox-window": "^7.4.1"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.5",
     "dotenv": "^18.0.10",
+    "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.1",
     "zod": "^4.6.7"
   }

@@ -98,8 +98,26 @@ export class ImmutableRecordError extends DomainError {
   }
 }
 
+export class UnauthorizedError extends DomainError {
+  constructor(message = 'No autorizado. Se requiere token de autenticación válido.', details = null) {
+    super(message, 'UNAUTHORIZED', 401, details);
+  }
+}
+
+export class ForbiddenError extends DomainError {
+  constructor(message = 'Acceso denegado. No posee los permisos necesarios para realizar esta acción.', details = null) {
+    super(message, 'FORBIDDEN', 403, details);
+  }
+}
+
+export class TooManyRequestsError extends DomainError {
+  constructor(message = 'Demasiadas solicitudes. Por favor intente más tarde.', details = null) {
+    super(message, 'TOO_MANY_REQUESTS', 429, details);
+  }
+}
+
 export class DatabaseConnectionError extends DomainError {
-  constructor(message, details = null) {
+  constructor(message = 'Error de conectividad con el almacén de datos PostgreSQL.', details = null) {
     super(message, 'DATABASE_CONNECTION_ERROR', 503, details);
   }
 }

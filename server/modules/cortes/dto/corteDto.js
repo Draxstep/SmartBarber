@@ -47,7 +47,35 @@ export const createCorteSchema = z.object({
   }
 );
 
+export const walkInSchema = z.object({
+  barberoId: z.string().uuid('ID de barbero inválido').optional(), // Se autocompleta para barberos
+  servicioIds: z.array(z.string().uuid()).min(1, 'Debe seleccionar al menos un servicio'),
+  metodoPago: z.enum([
+    MetodoPago.EFECTIVO,
+    MetodoPago.TRANSFERENCIA_BANCARIA,
+    MetodoPago.TARJETA_DEBITO_CREDITO,
+    MetodoPago.NEQUI,
+    MetodoPago.DAVIPLATA
+  ]),
+  precioCobradoCop: z.number().int().nonnegative().optional(), // Solo ajustable por admin
+  nombreCliente: z.string().trim().max(100).nullable().optional(),
+  notas: z.string().trim().max(300).nullable().optional()
+});
+
+export const convertirCitaSchema = z.object({
+  servicioIds: z.array(z.string().uuid()).min(1, 'Debe incluir al menos un servicio').optional(),
+  metodoPago: z.enum([
+    MetodoPago.EFECTIVO,
+    MetodoPago.TRANSFERENCIA_BANCARIA,
+    MetodoPago.TARJETA_DEBITO_CREDITO,
+    MetodoPago.NEQUI,
+    MetodoPago.DAVIPLATA
+  ]),
+  precioCobradoCop: z.number().int().nonnegative().optional(), // Ajuste de precio
+  notas: z.string().trim().max(300).nullable().optional()
+});
+
 export const anularCorteSchema = z.object({
-  motivoAnulacion: z.string().trim().min(10, 'El motivo de anulación debe tener al menos 10 caracteres').max(250),
-  anuladoPorUsuarioId: z.string().uuid('ID de usuario administrador inválido')
+  motivoAnulacion: z.string().trim().min(10, 'El motivo de anulación debe tener al menos 10 caracteres (RF-COR-05)').max(250),
+  revertirEstadoCita: z.boolean().default(false)
 });

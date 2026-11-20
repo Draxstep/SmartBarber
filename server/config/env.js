@@ -35,7 +35,12 @@ const envSchema = z.object({
   DB_POOL_MIN: z.coerce.number().int().nonnegative().default(2),
   DB_POOL_MAX: z.coerce.number().int().positive().default(20),
   DB_CONNECTION_TIMEOUT_MS: z.coerce.number().int().positive().default(10000),
-  DB_IDLE_TIMEOUT_MS: z.coerce.number().int().positive().default(30000)
+  DB_IDLE_TIMEOUT_MS: z.coerce.number().int().positive().default(30000),
+
+  // Configuración de Seguridad y JWT (RNF-09, RNF-10)
+  JWT_SECRET: z.string().min(16).default('smartbarber_jwt_secret_super_secure_key_2026_dev_mvp_key!#$'),
+  JWT_EXPIRES_IN: z.string().default('8h'),
+  CORS_ORIGIN: z.string().default('*')
 });
 
 let parsedEnv;

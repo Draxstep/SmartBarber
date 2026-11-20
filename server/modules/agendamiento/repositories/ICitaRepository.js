@@ -30,4 +30,8 @@ export class ICitaRepository {
   async countCitasActivasClienteFecha(clienteId, fecha, options = {}) {
     throw new Error('Método countCitasActivasClienteFecha no implementado');
   }
+
+  async countCitasFuturasActivasCliente(clienteId, options = {}) {
+    throw new Error('Método countCitasFuturasActivasCliente no implementado');
+  }
 }

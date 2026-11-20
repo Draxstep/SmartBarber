@@ -30,4 +30,8 @@ export class IInventarioRepository {
   async getKardexByProducto(productoId, options = {}) {
     throw new Error('Método getKardexByProducto no implementado');
   }
+
+  async findMovimientosWithFilters(filters, options = {}) {
+    throw new Error('Método findMovimientosWithFilters no implementado');
+  }
 }

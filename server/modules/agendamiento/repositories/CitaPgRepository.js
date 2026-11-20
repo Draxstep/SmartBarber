@@ -277,4 +277,21 @@ export class CitaPgRepository extends ICitaRepository {
       throw mapDatabaseError(error, 'Error al contar citas activas del cliente');
     }
   }
+
+  async countCitasFuturasActivasCliente(clienteId, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      const result = await executor.query(
+        `SELECT COUNT(*)::int as total
+         FROM citas
+         WHERE cliente_id = $1 
+           AND estado IN ('pendiente', 'confirmada')
+           AND inicio_en >= NOW()`,
+        [clienteId]
+      );
+      return result.rows[0].total;
+    } catch (error) {
+      throw mapDatabaseError(error, 'Error al contar citas futuras activas del cliente');
+    }
+  }
 }
