@@ -1,7 +1,17 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@shared': path.resolve(__dirname, './shared')
+    }
+  },
   plugins: [
     VitePWA({
       registerType: 'prompt',

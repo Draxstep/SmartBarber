@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:migrate": "node server/database/migrator.js",
+    "db:seed": "node server/database/seed.js",
+    "db:smoke": "node server/scripts/smoke-test.js",
+    "db:health": "node server/scripts/health-check.js"
   },
   "devDependencies": {
     "eslint": "^10.10.0",
@@ -15,5 +19,10 @@
     "vite": "^8.3.0",
     "vite-plugin-pwa": "^1.3.0",
     "workbox-window": "^7.4.1"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.10",
+    "pg": "^8.23.1",
+    "zod": "^4.6.7"
   }
 }
