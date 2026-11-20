@@ -1,0 +1,118 @@
+/**
+ * BackofficeSidebar Component
+ * Barra lateral fija de 240px en Carbon Black (#1C1C1C).
+ * Conforme a DESIGN.md: WCAG 2.1 AA, borde azul activo (#7BA3D4), badge alerta (#E07A7A).
+ * Filtrado dinámico según rol de usuario (Admin vs. Barbero).
+ */
+
+export const ALL_NAV_ITEMS = [
+  { id: 'agenda', label: 'Agenda y Turnos', icon: 'calendar_month', path: '#agenda', roles: ['admin', 'administrador', 'barbero'] },
+  { id: 'cortes', label: 'Historial y Caja', icon: 'point_of_sale', path: '#cortes', roles: ['admin', 'administrador', 'barbero'] },
+  { id: 'barberos', label: 'Barberos y Horarios', icon: 'badge', path: '#barberos', roles: ['admin', 'administrador'] },
+  { id: 'servicios', label: 'Servicios y Tarifas', icon: 'content_cut', path: '#servicios', roles: ['admin', 'administrador'] },
+  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, roles: ['admin', 'administrador'] },
+  { id: 'comisiones', label: 'Liquidación Comisiones', icon: 'percent', path: '#comisiones', roles: ['admin', 'administrador', 'barbero'] },
+  { id: 'configuracion', label: 'Configuración', icon: 'settings', path: '#configuracion', roles: ['admin', 'administrador'] }
+];
+
+/**
+ * Renderiza la barra lateral del panel administrativo.
+ * @param {Object} options
+ * @param {string} options.activeRoute - Ruta activa (ej: 'agenda', 'cortes')
+ * @param {number} options.inventoryAlerts - Conteo de alertas de stock bajo/agotado
+ * @param {Object} options.user - Datos de usuario autenticado
+ * @returns {string} HTML string
+ */
+export function renderBackofficeSidebar({
+  activeRoute = 'agenda',
+  inventoryAlerts = 3,
+  user = { name: 'Carlos Mendoza', role: 'Administrador', rawRole: 'administrador' }
+} = {}) {
+  const currentRole = user.rawRole === 'barbero' ? 'barbero' : 'administrador';
+
+  const visibleItems = ALL_NAV_ITEMS.filter(item => item.roles.includes(currentRole));
+
+  const itemsHtml = visibleItems.map(item => {
+    const isActive = item.id === activeRoute;
+
+    const baseClasses = 'flex items-center justify-between h-[44px] px-3 rounded-lg transition-all duration-150 font-sans text-sm font-medium';
+    const activeClasses = isActive
+      ? 'bg-[#2A2A2A] text-[#F2EBDD] border-l-[3px] border-[#7BA3D4] font-semibold'
+      : 'text-[#BDB4A5] hover:bg-[#2A2A2A] hover:text-[#F2EBDD]';
+
+    const iconColor = isActive ? 'text-[#7BA3D4]' : 'text-[#BDB4A5]';
+
+    const badgeHtml = item.hasBadge && inventoryAlerts > 0
+      ? `<span class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#E07A7A] text-[#1C1C1C] font-mono text-[11px] font-bold leading-none shadow-xs" title="${inventoryAlerts} alertas de inventario">
+           ${inventoryAlerts}
+         </span>`
+      : '';
+
+    return `
+      <a
+        href="${item.path}"
+        data-route="${item.id}"
+        class="${baseClasses} ${activeClasses}"
+        aria-current="${isActive ? 'page' : 'false'}"
+      >
+        <div class="flex items-center gap-3">
+          <span class="material-symbols-outlined text-[20px] ${iconColor}" aria-hidden="true">${item.icon}</span>
+          <span>${item.label}</span>
+        </div>
+        ${badgeHtml}
+      </a>
+    `;
+  }).join('');
+
+  return `
+    <aside
+      id="backoffice-sidebar"
+      class="fixed left-0 top-0 h-full w-[240px] bg-[#1C1C1C] z-50 flex flex-col justify-between select-none shadow-[2px_0_12px_rgba(0,0,0,0.25)]"
+      aria-label="Navegación principal Backoffice"
+    >
+      <div class="flex flex-col">
+        <!-- Logo / Marca Heritage -->
+        <div class="pt-6 pb-6 px-5 border-b border-white/10">
+          <a href="/backoffice.html#agenda" class="flex items-center gap-2.5 group">
+            <div class="w-8 h-8 rounded-md bg-[#8B1E1E] flex items-center justify-center text-[#F2EBDD] font-bold shadow-xs">
+              <span class="material-symbols-outlined text-[18px]">content_cut</span>
+            </div>
+            <div>
+              <span class="block font-serif text-xl font-bold text-[#F2EBDD] tracking-tight leading-none group-hover:text-white transition-colors">SmartBarber</span>
+              <span class="block font-sans text-[10px] text-[#BDB4A5] mt-1 uppercase tracking-wider font-semibold">Panel Administrativo</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Enlaces de Navegación -->
+        <nav class="flex flex-col gap-1 py-4 px-2" aria-label="Menú de módulos">
+          ${itemsHtml}
+        </nav>
+      </div>
+
+      <!-- Perfil de usuario y Logout -->
+      <div class="p-3 border-t border-white/10 bg-[#161616]">
+        <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-[#2A2A2A]">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div class="w-8 h-8 rounded-full bg-[#1F3A5F] flex items-center justify-center text-[#F2EBDD] shrink-0 font-semibold text-xs">
+              <span class="material-symbols-outlined text-[18px]">person</span>
+            </div>
+            <div class="flex flex-col min-w-0">
+              <span class="font-sans text-xs text-[#F2EBDD] font-semibold truncate leading-tight">${user.name}</span>
+              <span class="font-sans text-[10px] text-[#BDB4A5] truncate leading-tight">${user.role}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            id="btn-sidebar-logout"
+            aria-label="Cerrar sesión"
+            class="p-1.5 rounded-md text-[#BDB4A5] hover:text-[#F2EBDD] hover:bg-white/10 transition-colors cursor-pointer"
+            title="Cerrar sesión"
+          >
+            <span class="material-symbols-outlined text-[18px]">logout</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  `;
+}

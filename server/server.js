@@ -6,6 +6,7 @@ import { app } from './app.js';
 import { env } from './config/env.js';
 import { checkDatabaseHealth } from './shared/database/health.js';
 import { closeDatabasePool } from './shared/database/connection.js';
+import { iniciarCorreoWorker, detenerCorreoWorker } from './services/correo.worker.js';
 
 async function bootstrap() {
   console.log('🚀 Iniciando backend de SmartBarber (Modular Monolith)...');
@@ -23,11 +24,13 @@ async function bootstrap() {
     console.log(`💈 Servidor SmartBarber escuchando en puerto ${env.PORT} [${env.NODE_ENV}]`);
     console.log(`🩺 Endpoint de salud: http://localhost:${env.PORT}/api/health`);
     console.log(`📡 Base API: http://localhost:${env.PORT}/api/v1`);
+    iniciarCorreoWorker();
   });
 
   // Apagado controlado (Graceful Shutdown)
   const shutdown = async (signal) => {
     console.log(`\n🛑 Señal ${signal} recibida. Cerrando conexiones activas...`);
+    detenerCorreoWorker();
     server.close(async () => {
       console.log('🚪 Servidor HTTP cerrado.');
       await closeDatabasePool();

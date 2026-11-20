@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SmartBarber | Tradición &amp; Oficio en Bogotá</title>
+<!-- Google Fonts Preconnect & Stylesheets -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@500;600;700&amp;family=Playfair+Display:ital,wght@0,600;0,700;1,600&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS CDN with forms & container queries plugins -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Configuration -->
+<script data-purpose="tailwind-config">
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            alabastro: '#F2EBDD',
+            marfil: '#FAF7F2',
+            bordeCard: '#D5CBB8',
+            carbon: '#1C1C1C',
+            sangria: '#8B1E1E',
+            prusia: '#1F3A5F',
+            verdeBosque: '#235D3A',
+            verdeBg: '#E3EFE7',
+            textoClaroSec: '#BDB4A5',
+            textoOscuroSec: '#4F4A42',
+            textoAtenuado: '#6B645A',
+            bordeBadge: '#8C8272'
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          }
+        }
+      }
+    }
+  </script>
+<!-- Typography Styles -->
+<style data-purpose="typography">
+    .font-serif-title {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+    .font-sans-ui {
+      font-family: 'Inter', system-ui, sans-serif;
+    }
+    .font-mono-numbers {
+      font-family: 'JetBrains Mono', monospace;
+      font-variant-numeric: tabular-nums;
+    }
+  </style>
+<!-- Layout and Custom Borders -->
+<style data-purpose="layout-decorations">
+    .double-rule-divider {
+      border-top: 2px solid #1C1C1C;
+      height: 3px;
+      border-bottom: 1px solid #8B1E1E;
+    }
+    .btn-touch-target {
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body class="bg-alabastro text-carbon font-sans antialiased min-h-screen flex flex-col selection:bg-sangria selection:text-white">
+<!-- BEGIN: MainHeader -->
+<header class="sticky top-0 z-50 h-16 bg-carbon border-b-2 border-sangria px-4 sm:px-6 shadow-md" data-purpose="primary-navigation">
+<div class="max-w-4xl mx-auto h-full flex items-center justify-between">
+<!-- Brand Wordmark -->
+<a aria-label="SmartBarber Inicio" class="flex flex-col focus:outline-none focus:ring-2 focus:ring-alabastro rounded py-0.5" href="#inicio">
+<span class="font-serif-title text-xl font-bold tracking-tight text-alabastro leading-tight">SmartBarber</span>
+<span class="font-sans text-[9px] font-semibold tracking-widest text-textoClaroSec uppercase">Tradición &amp; Oficio</span>
+</a>
+<!-- Quick Action Navigation Link -->
+<div>
+<a aria-label="Ir a la sección de agendar cita" class="btn-touch-target px-4 py-2 bg-alabastro hover:bg-white text-carbon text-xs font-bold rounded transition-colors duration-150 shadow-sm" href="#servicios">
+          Agendar
+        </a>
+</div>
+</div>
+</header>
+<!-- END: MainHeader -->
+<main class="flex-grow" id="inicio">
+<!-- BEGIN: HeroSection -->
+<section class="relative bg-carbon text-alabastro py-12 px-4 sm:px-6 overflow-hidden" data-purpose="hero-banner">
+<!-- Background Image with Moody Warm Tungsten Overlay -->
+<div class="absolute inset-0 z-0">
+<img alt="Atmospheric warm cinematic photography of a classic vintage barbershop interior, vintage leather barber chairs, warm ambient tungsten lighting, wooden accents, vintage mirrors and apothecary bottles, dark moody tones, authentic craftsmanship atmosphere" class="w-full h-full object-cover object-center opacity-40 mix-blend-luminosity filter contrast-125" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC4jTpUFVv00-ErUgSJ9QzULpFJ4svSCn1KSW_2vCi2--YR2HILqowUFzjsT7bzTyt4Jcjt-ZGmmQ1ZflSGwNw7FR5ikg_-9pZ2j73hDDehKq5HJ1zNRFr62Jm1UI1WiqA7IcNYPXY9XFXJww_k2tFHF_2616k8o5AyrbKh_H3MPPzKaMlTFv6USQi866MJJ8agcwnA5ODbG-t9_EnRDz-k_owIfcwo3UNi8_xeDfPh"/>
+<div class="absolute inset-0 bg-gradient-to-b from-[#1C1C1C]/80 via-[#1C1C1C]/85 to-[#1C1C1C]"></div>
+</div>
+<!-- Hero Content Container -->
+<div class="relative z-10 max-w-xl mx-auto flex flex-col items-start pt-2 pb-4">
+<!-- Location Badge -->
+<div class="inline-flex items-center gap-1.5 border border-bordeBadge px-3 py-1 rounded-full mb-4 bg-carbon/60 backdrop-blur-sm">
+<span aria-hidden="true" class="w-1.5 h-1.5 rounded-full bg-sangria"></span>
+<span class="text-[11px] font-medium tracking-wider uppercase text-alabastro">Barbería Tradicional Bogotá</span>
+</div>
+<!-- Main Headline -->
+<h1 class="font-serif-title text-3xl sm:text-4xl font-bold text-alabastro leading-tight tracking-normal mb-3">
+          El oficio clásico del buen corte
+        </h1>
+<!-- Editorial Subtitle -->
+<p class="font-sans text-sm text-textoClaroSec leading-relaxed mb-6 max-w-md">
+          Reserva tu turno en menos de 90 segundos, sin filas ni registros. Experiencia de barbería artesanal en Chapinero.
+        </p>
+<!-- Primary Call to Action Button -->
+<a class="w-full btn-touch-target bg-alabastro hover:bg-white text-carbon text-[15px] font-bold py-3.5 px-6 rounded transition-all duration-150 shadow-md flex items-center justify-center gap-2 mb-6 group active:scale-[0.99]" href="#servicios">
+<svg aria-hidden="true" class="w-5 h-5 text-carbon" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Agendar Cita Ahora</span>
+</a>
+<!-- Operational Quick Info Strip -->
+<div class="w-full pt-4 border-t border-bordeBadge/30 flex flex-col sm:flex-row gap-2.5 text-xs text-textoClaroSec">
+<div class="flex items-center gap-2">
+<svg aria-hidden="true" class="w-4 h-4 text-alabastro shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Hoy abierto hasta las 8:00 PM</span>
+</div>
+<span aria-hidden="true" class="hidden sm:inline text-textoClaroSec/50">·</span>
+<div class="flex items-center gap-2">
+<svg aria-hidden="true" class="w-4 h-4 text-alabastro shrink-0" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<span>Calle 72 # 10-34, Bogotá</span>
+</div>
+</div>
+</div>
+</section>
+<!-- END: HeroSection -->
+<!-- BEGIN: HeritageSeparator -->
+<div aria-hidden="true" class="double-rule-divider w-full" role="separator"></div>
+<!-- END: HeritageSeparator -->
+<!-- BEGIN: ValuePropBanner -->
+<section class="max-w-xl mx-auto px-4 sm:px-6 pt-8" data-purpose="confidence-banner">
+<div class="bg-marfil border border-bordeCard rounded-lg p-4 shadow-sm flex items-start gap-3">
+<div aria-hidden="true" class="p-2 bg-alabastro rounded border border-bordeCard/60 shrink-0 text-carbon">
+<svg class="w-5 h-5 text-sangria" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</div>
+<div>
+<h2 class="text-xs font-bold uppercase tracking-wider text-carbon mb-1">Agendamiento transparente</h2>
+<p class="text-xs text-textoOscuroSec leading-relaxed">
+            Elige tu servicio, barbero y hora. Confirmación inmediata vía SMS o WhatsApp. Pagas directamente en el local en <strong>Efectivo, Nequi, Daviplata o Tarjeta</strong>.
+          </p>
+</div>
+</div>
+</section>
+<!-- END: ValuePropBanner -->
+<!-- BEGIN: ServicesSection -->
+<section class="max-w-xl mx-auto px-4 sm:px-6 py-8" data-purpose="services-catalog" id="servicios">
+<!-- Section Header -->
+<div class="mb-6">
+<h2 class="font-serif-title text-2xl font-bold text-carbon tracking-tight">Nuestros Servicios</h2>
+<p class="text-[13px] text-textoOscuroSec mt-1">Cortes de precisión y afeitado tradicional con navaja y toalla caliente.</p>
+</div>
+<!-- Services Cards Grid -->
+<div class="space-y-4">
+<!-- Service Card 1 -->
+<article class="bg-marfil border border-bordeCard rounded-lg p-4 relative transition-shadow hover:shadow-sm" data-purpose="service-item">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-bold text-[15px] text-carbon">Corte Clásico a Tijera</h3>
+<span class="inline-block mt-1 font-mono-numbers text-[11px] font-medium text-textoAtenuado bg-alabastro px-2 py-0.5 rounded border border-bordeCard/50">
+                30 min · 1 bloque
+              </span>
+</div>
+<div class="text-right">
+<span class="font-mono-numbers font-bold text-base text-carbon">$ 25.000 COP</span>
+</div>
+</div>
+<p class="text-xs text-textoOscuroSec leading-relaxed mb-4">
+            Lavado previo, corte tradicional con tijera artesanal, peinado con pomada mate y acabado de cuello con navaja.
+          </p>
+<div class="flex justify-end">
+<button aria-label="Elegir Corte Clásico a Tijera por $ 25.000 COP" class="btn-touch-target w-full sm:w-auto px-4 py-2 bg-carbon hover:bg-black text-alabastro text-xs font-bold rounded transition-colors" type="button">
+              Elegir Servicio
+            </button>
+</div>
+</article>
+<!-- Service Card 2 -->
+<article class="bg-marfil border border-bordeCard rounded-lg p-4 relative transition-shadow hover:shadow-sm" data-purpose="service-item">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-bold text-[15px] text-carbon">Corte Fade &amp; Degradado</h3>
+<span class="inline-block mt-1 font-mono-numbers text-[11px] font-medium text-textoAtenuado bg-alabastro px-2 py-0.5 rounded border border-bordeCard/50">
+                30 min · 1 bloque
+              </span>
+</div>
+<div class="text-right">
+<span class="font-mono-numbers font-bold text-base text-carbon">$ 28.000 COP</span>
+</div>
+</div>
+<p class="text-xs text-textoOscuroSec leading-relaxed mb-4">
+            Degradado limpio a navaja o shaver (Skin Fade / Mid Fade), perfilado de líneas y aplicación de tónico capilar.
+          </p>
+<div class="flex justify-end">
+<button aria-label="Elegir Corte Fade &amp; Degradado por $ 28.000 COP" class="btn-touch-target w-full sm:w-auto px-4 py-2 bg-carbon hover:bg-black text-alabastro text-xs font-bold rounded transition-colors" type="button">
+              Elegir Servicio
+            </button>
+</div>
+</article>
+<!-- Service Card 3 -->
+<article class="bg-marfil border border-bordeCard rounded-lg p-4 relative transition-shadow hover:shadow-sm" data-purpose="service-item">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-bold text-[15px] text-carbon">Perfilado y Ritual de Barba</h3>
+<span class="inline-block mt-1 font-mono-numbers text-[11px] font-medium text-textoAtenuado bg-alabastro px-2 py-0.5 rounded border border-bordeCard/50">
+                30 min · 1 bloque
+              </span>
+</div>
+<div class="text-right">
+<span class="font-mono-numbers font-bold text-base text-carbon">$ 18.000 COP</span>
+</div>
+</div>
+<p class="text-xs text-textoOscuroSec leading-relaxed mb-4">
+            Toalla caliente aromatizada, aceites esenciales de cedro, perfilado al milímetro con navaja y bálsamo hidratante.
+          </p>
+<div class="flex justify-end">
+<button aria-label="Elegir Perfilado y Ritual de Barba por $ 18.000 COP" class="btn-touch-target w-full sm:w-auto px-4 py-2 bg-carbon hover:bg-black text-alabastro text-xs font-bold rounded transition-colors" type="button">
+              Elegir Servicio
+            </button>
+</div>
+</article>
+<!-- Service Card 4: Most Popular Combo -->
+<article class="bg-marfil border-2 border-sangria/80 rounded-lg p-4 relative transition-shadow shadow-sm" data-purpose="service-item-featured">
+<!-- Featured Badge -->
+<div class="absolute -top-3 right-4">
+<span class="bg-sangria text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full tracking-wider uppercase shadow-sm">
+              MÁS POPULAR
+            </span>
+</div>
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="font-bold text-[15px] text-carbon">Combo Tradicional (Corte + Barba)</h3>
+<span class="inline-block mt-1 font-mono-numbers text-[11px] font-medium text-textoAtenuado bg-alabastro px-2 py-0.5 rounded border border-bordeCard/50">
+                60 min · 2 bloques
+              </span>
+</div>
+<div class="text-right">
+<span class="font-mono-numbers font-bold text-base text-carbon">$ 40.000 COP</span>
+</div>
+</div>
+<p class="text-xs text-textoOscuroSec leading-relaxed mb-4">
+            Servicio completo: corte de autor + ritual completo de barba con toalla caliente y tónico revitalizante.
+          </p>
+<div class="flex justify-end">
+<button aria-label="Elegir Combo Tradicional por $ 40.000 COP" class="btn-touch-target w-full sm:w-auto px-4 py-2 bg-sangria hover:bg-[#721919] text-white text-xs font-bold rounded transition-colors shadow-sm" type="button">
+              Elegir Combo
+            </button>
+</div>
+</article>
+</div>
+</section>
+<!-- END: ServicesSection -->
+<!-- BEGIN: BarbersSection -->
+<section class="max-w-xl mx-auto px-4 sm:px-6 py-8" data-purpose="barbers-roster">
+<div class="mb-6">
+<h2 class="font-serif-title text-2xl font-bold text-carbon tracking-tight">Maestros Barberos</h2>
+<p class="text-[13px] text-textoOscuroSec mt-1">Artesanos del estilo con años de dedicación al oficio clásico.</p>
+</div>
+<div class="space-y-3">
+<!-- Barber 1: Mateo -->
+<article class="bg-marfil border border-bordeCard rounded-lg p-3.5 flex items-center gap-3.5 transition-transform hover:-translate-y-0.5 duration-150">
+<img alt="Professional studio headshot portrait of a skilled classic Colombian male barber named Mateo, 30s, groomed beard, wearing a classic dark barber apron, warm neutral background" class="w-16 h-16 rounded-full object-cover shrink-0 border border-bordeCard shadow-inner" height="64" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxbihVCEManN6sRG8yCjDBBOlJml9GoATQUPwuBDpljUS9TN8L76ObnLRJ0pdXWe3BPqv7aAJ5og2zGZzGsuNKzPgxcJ2otqFgbyDb4J0OMlEImmO1F6DaU18c7b4gDIBgORvtaL_jhd1vGQhAqN29qnBJdn-bRBzt0h68AZDdTw7CIOPLMmVERUWEHaR3YoH9pKf3deXzNhFrb4-FkgQVCBJ-OqJk8jfviek-JGUT" width="64"/>
+<div class="flex-grow min-w-0">
+<div class="flex items-center justify-between gap-1 mb-0.5">
+<h3 class="font-bold text-[15px] text-carbon truncate">Mateo Ríos</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-verdeBg text-verdeBosque shrink-0">
+                Disponible Hoy
+              </span>
+</div>
+<p class="text-xs text-textoOscuroSec leading-tight mb-2">Especialista en Fades, Degradados y Navaja Clásica</p>
+<button aria-label="Reservar turno con Mateo Ríos" class="text-xs font-bold text-prusia hover:underline inline-flex items-center gap-1 focus:outline-none" type="button">
+<span>Seleccionar</span>
+<svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</article>
+<!-- Barber 2: Julián -->
+<article class="bg-marfil border border-bordeCard rounded-lg p-3.5 flex items-center gap-3.5 transition-transform hover:-translate-y-0.5 duration-150">
+<img alt="Professional studio headshot portrait of a friendly skilled classic Colombian male barber named Julián, late 20s, neatly styled hair and clean look, wearing a vintage barber smock, warm neutral background" class="w-16 h-16 rounded-full object-cover shrink-0 border border-bordeCard shadow-inner" height="64" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA59SKTPq7dNQyfoEi5pK_oUhe2YwLeaQoN0wuvPzidX1C1Nps-qQ3GXYV-g-kFeC3B6frjDx3iEYHtFYPLANaMbIUEb8LcnUCh3efAOoYSBLWbWNiHVzXgiB9jUCtI2QdT39A9tkAq7LYEJVOyv1xZZBK4d1WUFPKxMz65SgZcmmwdWLmWV_Jmky9lzpUdKSb3CMlZt34TJ5Ue8CG1-EaUAPGWuvMheLG-eOcmpuRC" width="64"/>
+<div class="flex-grow min-w-0">
+<div class="flex items-center justify-between gap-1 mb-0.5">
+<h3 class="font-bold text-[15px] text-carbon truncate">Julián Pardo</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-verdeBg text-verdeBosque shrink-0">
+                Disponible Hoy
+              </span>
+</div>
+<p class="text-xs text-textoOscuroSec leading-tight mb-2">Tijera Clásica, Textura y Arreglo de Barba Tradicional</p>
+<button aria-label="Reservar turno con Julián Pardo" class="text-xs font-bold text-prusia hover:underline inline-flex items-center gap-1 focus:outline-none" type="button">
+<span>Seleccionar</span>
+<svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</article>
+<!-- Barber 3: Andrés -->
+<article class="bg-marfil border border-bordeCard rounded-lg p-3.5 flex items-center gap-3.5 transition-transform hover:-translate-y-0.5 duration-150">
+<img alt="Professional studio headshot portrait of an experienced master barber named Andrés, 40s, distinguished style with mustache, wearing a craftsman barber vest, warm neutral background" class="w-16 h-16 rounded-full object-cover shrink-0 border border-bordeCard shadow-inner" height="64" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBWWj2ojjJXmw08I99lKjYN-IFIl-bVoiTu9stT_unyPKpKBglFdhm6vszRS3MSX3XceWswBSRdwN06Dz51XtZUhMUt4QS4IO7U5zQzKFL-dZhhLBX6Fq3PN99kL32EagPlA2UVtTx6MZPgb52g4aBLiHHdGvIuOa0CgGPG2U6LCvQ1dCnOrsjekGaA5uVxNx-HH6u3Iw8fNJXLEtQuZ3GLe0sLiR1dPloY1G7A1S27" width="64"/>
+<div class="flex-grow min-w-0">
+<div class="flex items-center justify-between gap-1 mb-0.5">
+<h3 class="font-bold text-[15px] text-carbon truncate">Andrés Vega</h3>
+<span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-verdeBg text-verdeBosque shrink-0">
+                Disponible Hoy
+              </span>
+</div>
+<p class="text-xs text-textoOscuroSec leading-tight mb-2">Maestro Barbero · 15 años de oficio y rituales clásicos</p>
+<button aria-label="Reservar turno con Andrés Vega" class="text-xs font-bold text-prusia hover:underline inline-flex items-center gap-1 focus:outline-none" type="button">
+<span>Seleccionar</span>
+<svg aria-hidden="true" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M9 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+</article>
+</div>
+</section>
+<!-- END: BarbersSection -->
+<!-- BEGIN: LocationSection -->
+<section class="max-w-xl mx-auto px-4 sm:px-6 py-6 pb-12" data-purpose="location-details">
+<div class="bg-marfil border border-bordeCard rounded-lg p-5 shadow-sm">
+<h2 class="font-serif-title text-lg font-bold text-carbon mb-4 flex items-center gap-2">
+<span>Ubicación &amp; Atención</span>
+</h2>
+<!-- Operational Info List -->
+<div class="space-y-3.5 text-xs text-textoOscuroSec mb-6">
+<div class="flex items-start gap-2.5">
+<svg aria-hidden="true" class="w-4 h-4 text-carbon shrink-0 mt-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+<path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<div>
+<p class="font-semibold text-carbon">Calle 72 # 10-34, Local 102</p>
+<p class="text-textoAtenuado">Chapinero Tradicional, Bogotá D.C.</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5">
+<svg aria-hidden="true" class="w-4 h-4 text-carbon shrink-0 mt-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<div>
+<p><strong class="text-carbon">Lun a Sáb:</strong> 8:00 AM – 8:00 PM</p>
+<p><strong class="text-carbon">Dom y Festivos:</strong> 9:00 AM – 5:00 PM</p>
+</div>
+</div>
+<div class="flex items-start gap-2.5">
+<svg aria-hidden="true" class="w-4 h-4 text-carbon shrink-0 mt-0.5" fill="none" stroke="currentColor" viewbox="0 0 24 24">
+<path d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<div>
+<p class="font-mono-numbers font-medium text-carbon">+57 (601) 320 8900</p>
+<p class="text-textoAtenuado">Atención continua sin cita previa o agendada</p>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex flex-col sm:flex-row gap-3">
+<!-- Google Maps Button (btn-secondary) -->
+<a class="btn-touch-target flex-1 border-2 border-prusia text-prusia hover:bg-prusia/5 text-sm font-bold rounded px-4 py-2 text-center transition-colors" href="https://maps.google.com" rel="noopener noreferrer" target="_blank">
+            Abrir en Google Maps
+          </a>
+<!-- WhatsApp Direct Inquiry -->
+<a class="btn-touch-target flex-1 bg-verdeBosque hover:bg-[#1a442b] text-white text-sm font-bold rounded px-4 py-2 text-center transition-colors shadow-sm flex items-center justify-center gap-2" href="https://wa.me/573208900000" rel="noopener noreferrer" target="_blank">
+<svg aria-hidden="true" class="w-4 h-4 fill-current" viewbox="0 0 24 24">
+<path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z"></path>
+</svg>
+<span>Consultar por WhatsApp</span>
+</a>
+</div>
+</div>
+</section>
+<!-- END: LocationSection -->
+</main>
+<!-- BEGIN: MainFooter -->
+<footer class="bg-carbon border-t-2 border-sangria text-alabastro py-8 px-4 sm:px-6" data-purpose="site-footer">
+<div class="max-w-xl mx-auto flex flex-col items-center text-center">
+<!-- Footer Logo -->
+<span class="font-serif-title text-base font-bold text-alabastro mb-1 tracking-tight">SmartBarber</span>
+<!-- Operational Legend -->
+<p class="font-sans text-xs text-textoClaroSec mb-4">
+        © 2025 SmartBarber. Todos los derechos reservados. Oficio, pulcritud y tradición.
+      </p>
+<!-- Legal Compliance Link (Colombia Habeas Data) -->
+<a aria-label="Ver política de tratamiento de datos personales de SmartBarber" class="text-[11px] text-textoClaroSec hover:text-alabastro transition-colors underline focus:outline-none focus:ring-1 focus:ring-alabastro rounded px-1" href="#">
+        Política de Tratamiento de Datos Personales (Ley 1581 de 2012)
+      </a>
+</div>
+</footer>
+<!-- END: MainFooter -->
+</body></html>

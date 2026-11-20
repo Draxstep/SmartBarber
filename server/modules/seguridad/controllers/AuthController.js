@@ -13,7 +13,9 @@ export class AuthController {
   login = async (req, res, next) => {
     try {
       const { correo, contrasena } = req.body;
-      const resultado = await this.authService.login(correo, contrasena);
+      const clientIp = req.ip || req.headers['x-forwarded-for']?.split(',')[0].trim() || req.socket.remoteAddress;
+      const userAgent = req.headers['user-agent'] || null;
+      const resultado = await this.authService.login(correo, contrasena, { ip: clientIp, userAgent });
       return sendSuccess(res, resultado, 200);
     } catch (error) {
       next(error);

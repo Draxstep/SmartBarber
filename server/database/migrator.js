@@ -1,6 +1,7 @@
 /**
  * @file migrator.js
  * @description Ejecutor de migraciones de base de datos para PostgreSQL.
+ * Ejecuta todos los scripts SQL de migrations/ en orden alfanumérico.
  */
 import fs from 'fs/promises';
 import path from 'path';
@@ -16,14 +17,21 @@ export async function runMigrations() {
   const client = await pool.connect();
 
   try {
-    const migrationPath = path.join(__dirname, 'migrations', '001_initial_schema.sql');
-    console.log(`📄 Leyendo script DDL: ${migrationPath}`);
-    const sql = await fs.readFile(migrationPath, 'utf-8');
+    const migrationsDir = path.join(__dirname, 'migrations');
+    const files = await fs.readdir(migrationsDir);
+    const sqlFiles = files.filter((f) => f.endsWith('.sql')).sort();
 
-    console.log('⏳ Ejecutando DDL en PostgreSQL RDS...');
-    await client.query(sql);
+    console.log(`📂 Archivos de migración encontrados: ${sqlFiles.length}`);
 
-    console.log('✅ Migración ejecutada con éxito. Verificando tablas creadas...');
+    for (const file of sqlFiles) {
+      const filePath = path.join(migrationsDir, file);
+      console.log(`📄 Ejecutando migración: ${file}...`);
+      const sql = await fs.readFile(filePath, 'utf-8');
+      await client.query(sql);
+      console.log(`✅ Migración ${file} completada con éxito.`);
+    }
+
+    console.log('🔍 Verificando tablas creadas en el esquema public...');
     const result = await client.query(`
       SELECT table_name 
       FROM information_schema.tables 

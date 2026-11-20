@@ -11,10 +11,12 @@ import { BarberoPgRepository } from '../../barberos/repositories/BarberoPgReposi
 import { SedePgRepository } from '../../sedes/repositories/SedePgRepository.js';
 import { DisponibilidadService } from './DisponibilidadService.js';
 import { EmailService } from './EmailService.js';
+import { pushService } from '../../../services/push.service.js';
 import {
   NotFoundError,
   ValidationError,
   ConflictError,
+  ExclusionViolationError,
   ForbiddenError
 } from '../../../shared/errors/domainErrors.js';
 
@@ -126,7 +128,7 @@ export class CitaService {
         .map(([id]) => id);
 
       if (barberosCandidatos.length === 0) {
-        throw new ConflictError(
+        throw new ExclusionViolationError(
           'El horario seleccionado acaba de ser ocupado. Por favor elija otro horario disponible.'
         );
       }
@@ -210,6 +212,18 @@ export class CitaService {
       })
       .catch((err) => console.error('Error al despachar notificación de confirmación:', err));
 
+    // 9. Disparo de Notificación Push a Backoffice (CU-021)
+    pushService
+      .notificarNuevaCita({
+        cita: citaGuardada,
+        barberoId: barberoFinalId,
+        clienteNombre: clientePersistido.nombreCompleto,
+        servicioNombre: serviciosSnapshots.map((s) => s.nombreServicioSnapshot).join(', '),
+        horaFormateada: dto.horaInicio.slice(0, 5),
+        fecha: dto.fecha
+      })
+      .catch((err) => console.error('Error al despachar Push de nueva cita:', err));
+
     return {
       citaId: citaGuardada.citaId,
       codigoReserva: citaGuardada.codigoReserva,
@@ -230,6 +244,41 @@ export class CitaService {
         telefono: clientePersistido.telefonoWhatsapp
       }
     };
+  }
+
+  /**
+   * Cancelación pública de cita por código único (RF-AGE-06: Antelación mínima >= 2h).
+   */
+  async cancelarReservaPublica(codigo, motivo = '') {
+    const cita = await this.citaRepo.findByCodigo(codigo.toUpperCase().trim());
+    if (!cita) {
+      throw new NotFoundError('Reserva con código', codigo);
+    }
+
+    if (cita.estado === 'cancelada') {
+      throw new ValidationError('La cita ya se encuentra cancelada.');
+    }
+
+    if (['completada', 'no_asistio'].includes(cita.estado)) {
+      throw new ValidationError(`No es posible cancelar una cita en estado final '${cita.estado}'.`);
+    }
+
+    // RF-AGE-06: Validar antelación mínima de 2 horas (120 minutos)
+    const now = new Date();
+    const inicio = new Date(cita.inicioEn);
+    const diffMinutos = (inicio.getTime() - now.getTime()) / 60000;
+
+    if (diffMinutos < 120) {
+      throw new ValidationError(
+        `La cancelación anticipada en línea requiere al menos 2 horas de anticipación (RF-AGE-06). Faltan ${Math.max(0, Math.floor(diffMinutos))} minutos.`
+      );
+    }
+
+    return await this.citaRepo.updateEstado(cita.citaId, {
+      nuevoEstado: 'cancelada',
+      observacion: motivo ? `Cancelación pública: ${motivo}` : 'Cancelada por el cliente desde el portal',
+      motivoCancelacion: motivo || 'Cancelada voluntariamente por el cliente'
+    });
   }
 
   /**

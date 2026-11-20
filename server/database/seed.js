@@ -77,10 +77,34 @@ export async function runSeed() {
     const adminUserId = adminUserResult.rows[0].usuario_id;
     console.log(`✅ Usuario administrador verificado con ID: ${adminUserId}`);
 
+    // 2.1 Usuario Barbero (para login y auditoría de barbero)
+    const barberoHash = '$2b$10$aWjljaVCIi8cjDWsgtxXbeYRoExyCvPoAuvcl5Wi1eUNvSv6m7srW'; // 'Barbero123456!'
+    const barberoUserResult = await client.query(`
+      INSERT INTO usuarios (
+        sede_id,
+        correo,
+        contrasena_hash,
+        rol,
+        estado
+      ) VALUES (
+        $1,
+        'barbero@smartbarber.co',
+        $2,
+        'barbero',
+        'activo'
+      )
+      ON CONFLICT (correo) DO UPDATE SET estado = 'activo'
+      RETURNING usuario_id;
+    `, [sedeId, barberoHash]);
+
+    const barberoUserId = barberoUserResult.rows[0].usuario_id;
+    console.log(`✅ Usuario barbero verificado con ID: ${barberoUserId}`);
+
     // 3. Barberos Iniciales
     const barbero1 = await client.query(`
       INSERT INTO barberos (
         sede_id,
+        usuario_id,
         nombre_completo,
         nombre_publico,
         telefono,
@@ -90,6 +114,7 @@ export async function runSeed() {
         estado
       ) VALUES (
         $1,
+        $2,
         'Carlos Mendoza Ruiz',
         'Carlos Fade Master',
         '+573114445566',
@@ -98,9 +123,9 @@ export async function runSeed() {
         45.00,
         'activo'
       )
-      ON CONFLICT (correo) DO UPDATE SET estado = 'activo'
+      ON CONFLICT (correo) DO UPDATE SET usuario_id = $2, estado = 'activo'
       RETURNING barbero_id;
-    `, [sedeId]);
+    `, [sedeId, barberoUserId]);
     const barbero1Id = barbero1.rows[0].barbero_id;
 
     const barbero2 = await client.query(`

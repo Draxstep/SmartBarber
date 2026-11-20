@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "border-focus": "#1F3A5F", "on-tertiary-fixed-variant": "#474746", "status-warning-text": "#8A5300", "tertiary-container": "#3a3939", "surface": "#fff9ee", "surface-container-high": "#eee7da", "surface-container-lowest": "#ffffff", "status-error-bg": "#FCE8E6", "outline-variant": "#c4c6cf", "bg-canvas": "#F2EBDD", "status-info-text": "#1F3A5F", "status-info-bg": "#E4ECF5", "on-secondary": "#ffffff", "bg-surface": "#FAF7F2", "secondary-fixed": "#ffdad6", "status-success-bg": "#E3EFE7", "on-background": "#1e1b13", "surface-bright": "#fff9ee", "surface-container-highest": "#e9e2d4", "secondary-fixed-dim": "#ffb3ad", "primary-fixed-dim": "#aec8f4", "on-primary": "#ffffff", "on-primary-container": "#8ba4cf", "surface-dim": "#e0d9cc", "error": "#ba1a1a", "surface-variant": "#e9e2d4", "surface-container-low": "#faf3e5", "text-on-dark-muted": "#BDB4A5", "text-on-dark": "#F2EBDD", "on-error-container": "#93000a", "on-primary-fixed-variant": "#2d476d", "background": "#fff9ee", "text-primary": "#1C1C1C", "inverse-surface": "#333027", "surface-container": "#f4eddf", "outline": "#74777f", "error-container": "#ffdad6", "bg-input": "#FFFFFF", "primary-fixed": "#d5e3ff", "on-surface-variant": "#43474e", "status-warning-bg": "#FDF1DC", "inverse-primary": "#aec8f4", "accent-on-dark-red": "#E07A7A", "brand-accent-hover": "#6E1616", "text-on-brand": "#FFFFFF", "status-success-text": "#235D3A", "on-tertiary": "#ffffff", "text-muted": "#6B645A", "on-tertiary-fixed": "#1b1b1b", "on-error": "#ffffff", "text-secondary": "#4F4A42", "tertiary-fixed-dim": "#c8c6c5", "secondary": "#aa3531", "on-secondary-fixed-variant": "#891c1d", "on-primary-fixed": "#001c3b", "bg-dark-elevated": "#2A2A2A", "status-error-text": "#B3261E", "status-neutral-bg": "#E8DFCE", "accent-on-dark-blue": "#7BA3D4", "border-strong": "#8C8272", "tertiary": "#242424", "primary": "#032448", "on-surface": "#1e1b13", "inverse-on-surface": "#f7f0e2", "bg-surface-subtle": "#E8DFCE", "surface-tint": "#465f86", "on-tertiary-container": "#a4a3a2", "border-subtle": "#D5CBB8", "primary-container": "#1f3a5f", "secondary-container": "#fd726a", "tertiary-fixed": "#e5e2e1", "status-neutral-text": "#4F4A42", "on-secondary-fixed": "#410003", "brand-primary-hover": "#162B47", "on-secondary-container": "#6f060d" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "space-xl": "2rem", "margin-tablet": "1.5rem", "gutter-mobile": "0.75rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "2rem", "margin-mobile": "1rem", "gutter-tablet": "1rem", "space-sm": "0.5rem", "gutter": "1.25rem" }, "fontFamily": { "display-hero": [ "Playfair Display" ], "heading-h1": [ "Playfair Display" ], "label-ui": [ "Inter" ], "body-lg": [ "Inter" ], "mono-data": [ "JetBrains Mono" ], "caption-sm": [ "Inter" ], "heading-h3": [ "Inter" ], "display-hero-mobile": [ "Playfair Display" ], "kpi-value": [ "Inter" ], "heading-h2": [ "Playfair Display" ], "body-md": [ "Inter" ] }, "fontSize": { "display-hero": [ "40px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "heading-h1": [ "28px", { "lineHeight": "35px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-ui": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "mono-data": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "caption-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "heading-h3": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "display-hero-mobile": [ "32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "kpi-value": [ "28px", { "lineHeight": "32px", "fontWeight": "700" } ], "heading-h2": [ "22px", { "lineHeight": "29px", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "21px", "fontWeight": "400" } ] } } } }</script></head><body class="bg-bg-canvas font-body-md text-text-primary antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-[240px] bg-tertiary z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg pt-space-lg pb-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary text-[20px]">content_cut</span></div><div><span class="block font-heading-h3 text-heading-h3 text-text-on-dark tracking-tight leading-none">SmartBarber</span><span class="block font-caption-sm text-caption-sm text-text-on-dark-muted mt-1 uppercase tracking-wider">Panel Administrativo</span></div></div><div class="mt-space-md w-full h-[1px] bg-bg-dark-elevated"></div></div><nav class="flex flex-col gap-1 px-space-xs mt-space-sm" data-active-classes="bg-bg-dark-elevated text-text-on-dark font-label-ui text-label-ui border-l-[3px] border-accent-on-dark-blue"><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="agenda-y-turnos" href="#">Agenda y Turnos</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="historial-de-cortes-y-caja" href="#">Historial de Cortes y Caja</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="barberos-y-horarios" href="#">Barberos y Horarios</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="inventario" href="#">Inventario</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="servicios-y-tarifas" href="#">Servicios y Tarifas</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="configuracion" href="#">Configuración</a></nav></div><div class="p-space-md bg-bg-dark-elevated mx-space-xs mb-space-md rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-sm overflow-hidden"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-label-ui text-label-ui text-text-on-dark truncate">Carlos Mendoza</span><span class="font-caption-sm text-caption-sm text-text-on-dark-muted truncate">Administrador</span></div></div><a class="text-text-on-dark-muted hover:text-text-on-dark p-1 rounded-DEFAULT transition-colors flex items-center justify-center flex-shrink-0" data-path="login" href="#" title="Cerrar sesión"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></aside><div class="pl-[240px]"><header class="fixed top-0 left-[240px] right-0 z-40 bg-bg-canvas/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-space-xl flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md flex-1"><div class="flex items-center gap-space-xs bg-bg-surface px-space-md py-2 rounded-lg text-text-primary"><span class="material-symbols-outlined text-[18px] text-text-secondary">store</span><span class="font-label-ui text-label-ui text-text-primary">Sede Principal · Medellín</span><span class="material-symbols-outlined text-[18px] text-text-secondary">expand_more</span></div><div class="relative max-w-md w-full hidden md:block"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">search</span><input class="w-full h-10 pl-9 pr-4 rounded-lg bg-bg-surface text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Buscar producto, SKU, cliente o barbero..." type="search"/></div></div><div class="flex items-center gap-space-md"><button class="relative p-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden lg:flex flex-col text-left"><span class="font-label-ui text-label-ui text-text-primary leading-tight">Carlos Mendoza</span><span class="font-caption-sm text-caption-sm text-text-secondary leading-tight">Administrador</span></div></div></div></div></header><main class="w-full pt-16 min-h-screen bg-bg-canvas px-space-xl py-space-xl"><div class="flex flex-col w-full gap-space-lg">
+<!-- BREADCRUMB & TAG DISTINTIVO -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm">
+<nav aria-label="Ruta de navegación" class="flex items-center gap-2">
+<span class="font-caption-sm text-caption-sm text-text-muted">SmartBarber</span>
+<span class="text-text-muted font-caption-sm text-caption-sm">/</span>
+<span class="font-caption-sm text-caption-sm text-text-muted">Barberos y Horarios</span>
+<span class="text-text-muted font-caption-sm text-caption-sm">/</span>
+<span class="font-caption-sm text-caption-sm text-primary font-semibold">Liquidación por Comisiones</span>
+</nav>
+<div class="inline-flex items-center gap-1.5 px-3 py-1 bg-bg-surface-subtle text-text-secondary rounded text-caption-sm font-caption-sm w-fit">
+<span class="material-symbols-outlined text-[15px] text-text-muted">balance</span>
+<span>Liquidación Referencial · No constituye nómina electrónica DIAN ni dispersión bancaria directa</span>
+</div>
+</div>
+<!-- CABECERA PRINCIPAL CON ESTILO EDITORIAL -->
+<div class="flex flex-col lg:flex-row lg:items-end justify-between gap-space-md pb-space-xs">
+<div class="space-y-1">
+<div class="flex items-center gap-3">
+<span class="text-secondary font-mono-data text-mono-data uppercase tracking-wider">#LIQ-2026-W47</span>
+<span class="w-1.5 h-1.5 rounded-full bg-border-strong"></span>
+<span class="text-text-muted font-caption-sm text-caption-sm">Semana 47 · Calendario Operativo</span>
+</div>
+<h1 class="font-heading-h1 text-heading-h1 text-text-primary tracking-tight">Liquidación de Comisiones</h1>
+<p class="font-body-md text-body-md text-text-secondary max-w-2xl">
+        Cálculo y auditoría de comisiones por servicios prestados en base a cortes activos y porcentajes vigentes.
+      </p>
+</div>
+<!-- BOTONES DE ACCIÓN DE CABECERA -->
+<div class="flex items-center gap-space-sm flex-wrap sm:flex-nowrap">
+<button class="h-10 px-4 rounded bg-transparent text-primary-container font-label-ui text-label-ui flex items-center gap-2 transition-colors hover:bg-status-info-bg shadow-sm cursor-pointer" style="outline: 1.5px solid #1F3A5F;" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Exportar CSV</span>
+</button>
+<button class="h-10 px-4 rounded bg-bg-surface text-text-primary font-label-ui text-label-ui flex items-center gap-2 transition-colors hover:bg-surface-container-high shadow-sm cursor-pointer" style="outline: 1px solid #D5CBB8;" type="button">
+<span class="material-symbols-outlined text-[18px]">print</span>
+<span>Imprimir Reporte</span>
+</button>
+</div>
+</div>
+<!-- FILTROS Y REGLAS DE AUDITORÍA -->
+<section class="bg-bg-surface rounded-lg p-space-md shadow-sm flex flex-col gap-space-md" style="outline: 1px solid #D5CBB8;">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<!-- Selector de Periodo y Chips -->
+<div class="flex flex-col sm:flex-row sm:items-center gap-space-md">
+<div class="flex items-center gap-2 bg-surface-container-lowest px-3 py-2 rounded" style="outline: 1px solid #8C8272;">
+<span class="material-symbols-outlined text-text-muted text-[18px]">calendar_today</span>
+<span class="font-label-ui text-label-ui text-text-primary">Esta semana: 16 – 20 Nov 2026</span>
+<span class="material-symbols-outlined text-text-muted text-[16px]">arrow_drop_down</span>
+</div>
+<!-- Atajos estilo chip -->
+<div aria-label="Atajos de periodo" class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0" role="group">
+<button class="px-3 py-1.5 text-caption-sm font-label-ui rounded bg-surface-container-lowest text-text-secondary hover:bg-surface-container transition-colors" style="outline: 1px solid #D5CBB8;" type="button">Hoy</button>
+<button class="px-3 py-1.5 text-caption-sm font-label-ui rounded bg-surface-container-lowest text-text-secondary hover:bg-surface-container transition-colors" style="outline: 1px solid #D5CBB8;" type="button">Últimos 7 días</button>
+<button class="px-3 py-1.5 text-caption-sm font-label-ui rounded bg-primary-container text-text-on-brand shadow-sm font-semibold" type="button">Esta semana</button>
+<button class="px-3 py-1.5 text-caption-sm font-label-ui rounded bg-surface-container-lowest text-text-secondary hover:bg-surface-container transition-colors" style="outline: 1px solid #D5CBB8;" type="button">Quincena</button>
+<button class="px-3 py-1.5 text-caption-sm font-label-ui rounded bg-surface-container-lowest text-text-secondary hover:bg-surface-container transition-colors" style="outline: 1px solid #D5CBB8;" type="button">Mes</button>
+</div>
+</div>
+<!-- Selector de Barbero -->
+<div class="flex items-center gap-3">
+<label class="font-caption-sm text-caption-sm text-text-secondary uppercase tracking-wider font-semibold whitespace-nowrap" for="barber-select">Filtrar Barbero:</label>
+<div class="relative min-w-[240px]">
+<select class="w-full h-10 pl-3 pr-8 rounded bg-bg-input text-text-primary font-body-md text-body-md appearance-none focus:outline-none focus:ring-2 focus:ring-border-focus cursor-pointer" id="barber-select" style="outline: 1px solid #8C8272;">
+<option selected="">Todos los barberos (3 activos)</option>
+<option>Mateo Ríos (Sillón 01)</option>
+<option>Julián Pardo (Sillón 02)</option>
+<option>Andrés Vega (Sillón 03)</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[18px]">unfold_more</span>
+</div>
+</div>
+</div>
+<!-- BANNER INFORMATIVO DE AUDITORÍA -->
+<div class="bg-status-info-bg p-3 rounded flex items-start gap-2.5 text-status-info-text" style="border-left: 3px solid #1F3A5F;">
+<span class="material-symbols-outlined text-[18px] shrink-0 mt-0.5">info</span>
+<p class="font-body-md text-body-md text-primary-container leading-relaxed">
+<strong>Regla de cálculo:</strong> Calculado únicamente sobre cortes en estado Activo usando el porcentaje de comisión histórico vigente en la fecha de realización de cada corte. Cortes anulados se encuentran 100% excluidos.
+      </p>
+</div>
+</section>
+<!-- 3 TARJETAS KPI -->
+<section aria-label="Métricas consolidadas de liquidación" class="grid grid-cols-1 md:grid-cols-3 gap-space-md">
+<!-- KPI 1 -->
+<div class="bg-bg-surface rounded-lg p-5 shadow-sm flex flex-col justify-between" style="outline: 1px solid #D5CBB8;">
+<div class="flex items-center justify-between">
+<span class="font-label-ui text-caption-sm text-text-muted uppercase tracking-wider">TOTAL FACTURADO SERVICIOS</span>
+<div class="w-8 h-8 rounded bg-surface-container flex items-center justify-center text-text-secondary">
+<span class="material-symbols-outlined text-[18px]">receipt_long</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="font-kpi-value text-kpi-value text-text-primary font-mono-data tabular-nums">
+          $ 2.480.000 <span class="font-caption-sm text-caption-sm font-semibold text-text-muted">COP</span>
+</div>
+<p class="mt-1 font-body-md text-body-md text-text-secondary flex items-center gap-1.5">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success-text"></span>
+<span>74 cortes activos registrados en el periodo</span>
+</p>
+</div>
+</div>
+<!-- KPI 2 -->
+<div class="bg-bg-surface rounded-lg p-5 shadow-sm flex flex-col justify-between" style="outline: 1px solid #D5CBB8;">
+<div class="flex items-center justify-between">
+<span class="font-label-ui text-caption-sm text-text-muted uppercase tracking-wider">TOTAL COMISIONES A PAGAR</span>
+<div class="w-8 h-8 rounded bg-status-info-bg flex items-center justify-center text-status-info-text">
+<span class="material-symbols-outlined text-[18px]">payments</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="font-kpi-value text-kpi-value text-primary-container font-mono-data tabular-nums">
+          $ 1.199.000 <span class="font-caption-sm text-caption-sm font-semibold text-text-muted">COP</span>
+</div>
+<p class="mt-1 font-body-md text-body-md text-text-secondary">
+          Promedio global de comisión: <strong class="font-mono-data text-text-primary">48.3%</strong> sobre facturación
+        </p>
+</div>
+</div>
+<!-- KPI 3 -->
+<div class="bg-bg-surface rounded-lg p-5 shadow-sm flex flex-col justify-between" style="outline: 1px solid #D5CBB8;">
+<div class="flex items-center justify-between">
+<span class="font-label-ui text-caption-sm text-text-muted uppercase tracking-wider">MARGEN NETO BARBERÍA</span>
+<div class="w-8 h-8 rounded bg-status-success-bg flex items-center justify-center text-status-success-text">
+<span class="material-symbols-outlined text-[18px]">savings</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="font-kpi-value text-kpi-value text-status-success-text font-mono-data tabular-nums">
+          $ 1.281.000 <span class="font-caption-sm text-caption-sm font-semibold text-text-muted">COP</span>
+</div>
+<p class="mt-1 font-body-md text-body-md text-text-secondary">
+          Retención bruta para costos operativos y sede
+        </p>
+</div>
+</div>
+</section>
+<!-- TABLA PRINCIPAL DE LIQUIDACIÓN -->
+<section class="bg-bg-surface rounded-lg shadow-sm overflow-hidden" style="outline: 1px solid #D5CBB8;">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-bg-surface-subtle">
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider" scope="col">Barbero</th>
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider text-center" scope="col">Cortes Realizados</th>
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider text-right" scope="col">Facturado (COP)</th>
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider text-center" scope="col">% Comisión Vigente</th>
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider text-right" scope="col">Valor a Pagar (COP)</th>
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider text-right" scope="col">Retención Barbería (COP)</th>
+<th class="py-3 px-4 font-label-ui text-caption-sm text-text-secondary uppercase tracking-wider text-center" scope="col">Detalle y Auditoría</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#D5CBB8]">
+<!-- FILA 1: MATEO RÍOS -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<div class="relative w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0" style="outline: 1px solid #8C8272;">
+<span class="font-label-ui text-caption-sm font-bold text-text-primary">MR</span>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-success-text" title="Activo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-heading-h3 text-heading-h3 text-text-primary leading-tight font-semibold">Mateo Ríos</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-status-success-bg text-status-success-text">Activo</span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary">Maestro Barbero · Sillón 01</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="font-mono-data text-mono-data text-text-primary">28 cortes</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-mono-data font-semibold text-text-primary tabular-nums">$ 980.000 COP</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-block px-2.5 py-1 rounded bg-status-info-bg text-status-info-text font-mono-data text-caption-sm font-bold">50%</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-body-lg font-bold text-text-primary tabular-nums">$ 490.000 COP</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-mono-data text-text-secondary tabular-nums">$ 490.000 COP</span>
+</td>
+<td class="py-4 px-4 text-center">
+<button class="inline-flex items-center gap-1 font-label-ui text-label-ui text-primary-container hover:text-brand-primary-hover font-semibold transition-colors cursor-pointer group" onclick="toggleDetails('barber-1')" type="button">
+<span>Ver 28 cortes</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</button>
+</td>
+</tr>
+<!-- FILA 2: JULIÁN PARDO -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<div class="relative w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0" style="outline: 1px solid #8C8272;">
+<span class="font-label-ui text-caption-sm font-bold text-text-primary">JP</span>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-success-text" title="Activo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-heading-h3 text-heading-h3 text-text-primary leading-tight font-semibold">Julián Pardo</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-status-success-bg text-status-success-text">Activo</span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary">Barbero Senior · Sillón 02</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="font-mono-data text-mono-data text-text-primary">24 cortes</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-mono-data font-semibold text-text-primary tabular-nums">$ 820.000 COP</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-block px-2.5 py-1 rounded bg-status-info-bg text-status-info-text font-mono-data text-caption-sm font-bold">45%</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-body-lg font-bold text-text-primary tabular-nums">$ 369.000 COP</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-mono-data text-text-secondary tabular-nums">$ 451.000 COP</span>
+</td>
+<td class="py-4 px-4 text-center">
+<button class="inline-flex items-center gap-1 font-label-ui text-label-ui text-primary-container hover:text-brand-primary-hover font-semibold transition-colors cursor-pointer group" onclick="toggleDetails('barber-2')" type="button">
+<span>Ver 24 cortes</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</button>
+</td>
+</tr>
+<!-- FILA 3: ANDRÉS VEGA -->
+<tr class="hover:bg-surface-container-low transition-colors">
+<td class="py-4 px-4">
+<div class="flex items-center gap-3">
+<div class="relative w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center shrink-0" style="outline: 1px solid #8C8272;">
+<span class="font-label-ui text-caption-sm font-bold text-text-primary">AV</span>
+<span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-status-success-text" title="Activo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-heading-h3 text-heading-h3 text-text-primary leading-tight font-semibold">Andrés Vega</span>
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-semibold bg-status-success-bg text-status-success-text">Activo</span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary">Estilista Capilar · Sillón 03</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="font-mono-data text-mono-data text-text-primary">22 cortes</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-mono-data font-semibold text-text-primary tabular-nums">$ 680.000 COP</span>
+</td>
+<td class="py-4 px-4 text-center">
+<span class="inline-block px-2.5 py-1 rounded bg-status-info-bg text-status-info-text font-mono-data text-caption-sm font-bold">50%</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-body-lg font-bold text-text-primary tabular-nums">$ 340.000 COP</span>
+</td>
+<td class="py-4 px-4 text-right">
+<span class="font-mono-data text-mono-data text-text-secondary tabular-nums">$ 340.000 COP</span>
+</td>
+<td class="py-4 px-4 text-center">
+<button class="inline-flex items-center gap-1 font-label-ui text-label-ui text-primary-container hover:text-brand-primary-hover font-semibold transition-colors cursor-pointer group" onclick="toggleDetails('barber-3')" type="button">
+<span>Ver 22 cortes</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</button>
+</td>
+</tr>
+</tbody>
+<!-- FILA DE TOTALES CONSOLIDADA -->
+<tfoot>
+<tr class="bg-bg-surface-subtle" style="border-top: 2px solid #1C1C1C;">
+<td class="py-4 px-4 font-label-ui text-label-ui font-bold text-text-primary uppercase tracking-wide">
+              TOTAL PERIODO CONSOLIDADO
+            </td>
+<td class="py-4 px-4 text-center font-mono-data text-mono-data font-bold text-text-primary">
+              74 cortes activos
+            </td>
+<td class="py-4 px-4 text-right font-mono-data text-mono-data font-bold text-text-primary tabular-nums">
+              $ 2.480.000 COP
+            </td>
+<td class="py-4 px-4 text-center text-text-muted font-mono-data">
+              —
+            </td>
+<td class="py-4 px-4 text-right font-mono-data text-body-lg font-bold text-primary-container tabular-nums">
+              $ 1.199.000 COP
+            </td>
+<td class="py-4 px-4 text-right font-mono-data text-body-lg font-bold text-status-success-text tabular-nums">
+              $ 1.281.000 COP
+            </td>
+<td class="py-4 px-4 text-center">
+<button class="px-3 py-1.5 bg-bg-surface text-text-primary rounded font-label-ui text-caption-sm font-semibold hover:bg-surface-container-high transition-colors inline-flex items-center gap-1 cursor-pointer" style="outline: 1px solid #8C8272;" type="button">
+<span class="material-symbols-outlined text-[14px]">table_view</span>
+<span>Exportar Respaldo CSV</span>
+</button>
+</td>
+</tr>
+</tfoot>
+</table>
+</div>
+</section>
+<!-- SECCIÓN EXPANDIBLE / VISTA PREVIA DETALLADA DE AUDITORÍA -->
+<div class="bg-bg-surface rounded-lg p-space-lg shadow-sm flex flex-col gap-space-md" id="audit-preview-panel" style="outline: 1px solid #D5CBB8;">
+<div class="flex flex-col md:flex-row md:items-center justify-between pb-space-sm gap-2" style="border-bottom: 1px solid #D5CBB8;">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary-container text-[22px]">verified_user</span>
+<h2 class="font-heading-h3 text-heading-h3 text-text-primary font-semibold">Trazabilidad y Certificación de Conciliación</h2>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center px-2 py-0.5 rounded text-caption-sm font-semibold bg-status-warning-bg text-status-warning-text">
+<span class="material-symbols-outlined text-[14px] mr-1">pending</span>
+          Pendiente de Conciliación
+        </span>
+</div>
+</div>
+<!-- METADATOS Y RESPONSABILIDAD -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 p-3 bg-surface-container-low rounded">
+<div>
+<span class="block font-caption-sm text-caption-sm text-text-muted uppercase">Documento ID</span>
+<span class="font-mono-data text-caption-sm font-semibold text-text-primary">LIQ-2026-W47-BOG</span>
+</div>
+<div>
+<span class="block font-caption-sm text-caption-sm text-text-muted uppercase">Generado por</span>
+<span class="font-body-md text-caption-sm font-medium text-text-primary">Carlos Mendoza (Admin)</span>
+</div>
+<div>
+<span class="block font-caption-sm text-caption-sm text-text-muted uppercase">Fecha y Hora de Corte</span>
+<span class="font-mono-data text-caption-sm text-text-primary">20 Nov 2026 · 18:00 COT</span>
+</div>
+<div>
+<span class="block font-caption-sm text-caption-sm text-text-muted uppercase">Régimen Monetario</span>
+<span class="font-body-md text-caption-sm text-text-primary">COP sin decimales (Art. 577 ET)</span>
+</div>
+</div>
+<p class="font-caption-sm text-caption-sm text-text-muted italic leading-normal">
+      * La presente liquidación actúa como soporte interno de control administrativo y gestión del desempeño. La entrega de fondos o acreditación deberá respaldarse mediante el comprobante de egreso o recibo de caja correspondiente según los acuerdos contractuales individuales de arrendamiento de sillón o prestación de servicios.
+    </p>
+<!-- ACCIONES DE CIERRE Y CONCILIACIÓN -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-sm pt-space-xs">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-text-muted text-[18px]">lock_clock</span>
+<span class="font-caption-sm text-caption-sm text-text-secondary">Los cortes incluidos no podrán ser reasignados tras conciliación</span>
+</div>
+<div class="flex items-center gap-space-sm flex-wrap">
+<button class="h-10 px-4 rounded bg-bg-surface text-text-primary font-label-ui text-label-ui flex items-center gap-2 hover:bg-surface-container transition-colors cursor-pointer" style="outline: 1.5px solid #1F3A5F;" type="button">
+<span class="material-symbols-outlined text-[18px]">receipt</span>
+<span>Imprimir Comprobantes Individuales</span>
+</button>
+<button class="h-10 px-5 rounded bg-primary-container text-text-on-brand font-label-ui text-label-ui flex items-center gap-2 hover:bg-brand-primary-hover transition-colors shadow-sm cursor-pointer" onclick="markReconciled(this)" type="button">
+<span class="material-symbols-outlined text-[18px]">task_alt</span>
+<span>Marcar como Conciliado</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<script>
+  function toggleDetails(barberId) {
+    const alertMsg = 'Visualizando desglose individual de cortes auditados para: ' + barberId.toUpperCase() + '\n\nEn la vista extendida se desglosan: Hora de inicio/fin, Servicio facturado, Medio de pago (Efectivo/Nequi/Daviplata) y Porcentaje aplicado al momento de la cita.';
+    alert(alertMsg);
+  }
+
+  function markReconciled(btn) {
+    btn.innerHTML = '<span class="material-symbols-outlined text-[18px]">check_circle</span> <span>Período Conciliado</span>';
+    btn.classList.remove('bg-primary-container', 'hover:bg-brand-primary-hover');
+    btn.classList.add('bg-status-success-bg', 'text-status-success-text');
+    btn.disabled = true;
+  }
+</script></main></div></body></html>

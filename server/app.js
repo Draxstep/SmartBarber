@@ -8,6 +8,7 @@ import { env } from './config/env.js';
 import { checkDatabaseHealth } from './shared/database/health.js';
 import { errorHandler } from './shared/middlewares/errorHandler.js';
 import { apiRouter } from './routes.js';
+import { publicAgendamientoRouter } from './modules/agendamiento/routes/publicAgendamientoRoutes.js';
 
 export const app = express();
 
@@ -37,7 +38,10 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
-// Enrutador de la API v1
+// Rutas públicas directas (/api/public/* según SMARTBARBER_TECH_SPEC.md)
+app.use('/api/public', publicAgendamientoRouter);
+
+// Enrutador principal de la API (/api/v1/*)
 app.use('/api/v1', apiRouter);
 
 // Manejo de rutas inexistentes (404)

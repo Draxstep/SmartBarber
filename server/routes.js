@@ -12,6 +12,8 @@ import { barberoRouter } from './modules/barberos/routes/barberoRoutes.js';
 import { citaRouter } from './modules/agendamiento/routes/citaRoutes.js';
 import { corteRouter } from './modules/cortes/routes/corteRoutes.js';
 import { inventarioRouter } from './modules/inventario/routes/inventarioRoutes.js';
+import { pushRouter } from './modules/seguridad/routes/pushRoutes.js';
+import { syncRouter } from './modules/agendamiento/routes/syncRoutes.js';
 
 export const apiRouter = Router();
 
@@ -40,3 +42,7 @@ apiRouter.use('/cortes', corteRouter);
 
 // Módulo 4: Inventario y Kardex (CU-016 a CU-019)
 apiRouter.use('/inventario', inventarioRouter);
+
+// Capa PWA: Notificaciones Push VAPID y Sincronización Idempotente Outbox
+apiRouter.use('/push', pushRouter);
+apiRouter.use('/sync', syncRouter);

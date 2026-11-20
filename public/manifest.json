@@ -1,26 +1,32 @@
 {
-  "name": "Smart Barber - Gestión Integral",
+  "name": "SmartBarber - Tradición y Oficio",
   "short_name": "SmartBarber",
-  "description": "Gestión inteligente de turnos, control de inventario y registro técnico de cortes.",
+  "description": "Gestión integral y agendamiento ágil para barbería clásica en Bogotá.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#111827",
-  "background_color": "#ffffff",
+  "theme_color": "#1C1C1C",
+  "background_color": "#F2EBDD",
   "lang": "es",
   "dir": "ltr",
   "categories": ["business", "productivity", "lifestyle"],
   "icons": [
     {
-      "src": "/icons/launchericon-48x48.png",
-      "sizes": "48x48",
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/launchericon-72x72.png",
-      "sizes": "72x72",
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/launchericon-144x144.png",
+      "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
     },
@@ -31,22 +37,10 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/launchericon-144x144.png",
-      "sizes": "144x144",
+      "src": "/icons/launchericon-48x48.png",
+      "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
-    },
-    {
-      "src": "/icons/launchericon-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/icons/launchericon-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
     }
   ]
 }

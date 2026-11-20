@@ -58,9 +58,9 @@ export class ForeignKeyViolationError extends ConflictError {
 }
 
 export class ExclusionViolationError extends ConflictError {
-  constructor(message = 'Conflicto de disponibilidad: el barbero o recurso ya se encuentra ocupado en ese rango de tiempo.', details = null) {
+  constructor(message = 'El horario seleccionado acaba de ser reservado. Elige otro bloque disponible.', details = null) {
     super(message, details);
-    this.code = 'EXCLUSION_VIOLATION';
+    this.code = 'SLOT_CONFLICT';
   }
 }
 
@@ -79,11 +79,17 @@ export class ConcurrencyError extends DomainError {
 export class InsufficientStockError extends DomainError {
   constructor(productoId, stockActual, cantidadRequerida) {
     super(
-      `Stock insuficiente para el producto ${productoId}. Stock actual: ${stockActual}, solicitado: ${cantidadRequerida}.`,
+      `Stock insuficiente. Disponible: ${stockActual} unidad(es).`,
       'INSUFFICIENT_STOCK',
-      422,
-      { productoId, stockActual, cantidadRequerida }
+      409,
+      { productoId, stock_disponible: stockActual, stockActual, cantidadRequerida }
     );
+  }
+}
+
+export class AccountLockedError extends DomainError {
+  constructor(message = 'Ha superado los 5 intentos fallidos permitidos. Su cuenta ha sido bloqueada temporalmente por 15 minutos.', details = null) {
+    super(message, 'ACCOUNT_LOCKED', 423, details);
   }
 }
 

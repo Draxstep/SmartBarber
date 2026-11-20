@@ -2,14 +2,17 @@
  * @file AuthService.js
  * @description Servicio de aplicación para autenticación, bloqueo por fuerza bruta y sesiones (CU-001).
  */
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { env } from '../../../config/env.js';
+import { getDatabasePool } from '../../../shared/database/connection.js';
 import {
   UnauthorizedError,
   ForbiddenError,
   NotFoundError,
-  ValidationError
+  ValidationError,
+  AccountLockedError
 } from '../../../shared/errors/domainErrors.js';
 import { UsuarioPgRepository } from '../repositories/UsuarioPgRepository.js';
 import { BarberoPgRepository } from '../../barberos/repositories/BarberoPgRepository.js';
@@ -30,7 +33,7 @@ export class AuthService {
    * @param {string} contrasena
    * @returns {Promise<{token: string, usuario: object}>}
    */
-  async login(correo, contrasena) {
+  async login(correo, contrasena, { ip = null, userAgent = null } = {}) {
     const usuario = await this.usuarioRepo.findByCorreo(correo);
 
     if (!usuario) {
@@ -42,10 +45,10 @@ export class AuthService {
       throw new ForbiddenError('La cuenta de usuario se encuentra inactiva. Comuníquese con el administrador.');
     }
 
-    // Verificar si está en periodo de bloqueo por fuerza bruta (RNF-10: 15 min tras 5 intentos)
+    // Verificar si está en periodo de bloqueo por fuerza bruta (RNF-10: 15 min tras 5 intentos -> HTTP 423)
     if (usuario.bloqueadoHasta && new Date(usuario.bloqueadoHasta) > new Date()) {
       const minutosRestantes = Math.ceil((new Date(usuario.bloqueadoHasta).getTime() - Date.now()) / 60000);
-      throw new ForbiddenError(
+      throw new AccountLockedError(
         `Cuenta bloqueada temporalmente por 5 intentos fallidos consecutivos. Por favor espere ${minutosRestantes} minuto(s).`
       );
     }
@@ -57,7 +60,7 @@ export class AuthService {
       const intentosActuales = (usuario.intentosFallidos || 0) + 1;
 
       if (intentosActuales >= 5) {
-        throw new ForbiddenError(
+        throw new AccountLockedError(
           'Ha superado los 5 intentos fallidos permitidos. Su cuenta ha sido bloqueada temporalmente por 15 minutos.'
         );
       }
@@ -89,6 +92,19 @@ export class AuthService {
       env.JWT_SECRET,
       { expiresIn: env.JWT_EXPIRES_IN }
     );
+
+    // Registrar sesión activa en sesiones_usuarios (RNF-10)
+    try {
+      const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+      const pool = getDatabasePool();
+      await pool.query(
+        `INSERT INTO sesiones_usuarios (usuario_id, token_hash, direccion_ip, agente_usuario, expira_en)
+         VALUES ($1, $2, $3, $4, NOW() + INTERVAL '8 hours')`,
+        [usuario.usuarioId, tokenHash, ip, userAgent]
+      );
+    } catch (sessionErr) {
+      console.warn('⚠️ No se pudo registrar sesión en sesiones_usuarios:', sessionErr.message);
+    }
 
     return {
       token,

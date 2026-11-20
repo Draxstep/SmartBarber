@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "border-focus": "#1F3A5F", "on-tertiary-fixed-variant": "#474746", "status-warning-text": "#8A5300", "tertiary-container": "#3a3939", "surface": "#fff9ee", "surface-container-high": "#eee7da", "surface-container-lowest": "#ffffff", "status-error-bg": "#FCE8E6", "outline-variant": "#c4c6cf", "bg-canvas": "#F2EBDD", "status-info-text": "#1F3A5F", "status-info-bg": "#E4ECF5", "on-secondary": "#ffffff", "bg-surface": "#FAF7F2", "secondary-fixed": "#ffdad6", "status-success-bg": "#E3EFE7", "on-background": "#1e1b13", "surface-bright": "#fff9ee", "surface-container-highest": "#e9e2d4", "secondary-fixed-dim": "#ffb3ad", "primary-fixed-dim": "#aec8f4", "on-primary": "#ffffff", "on-primary-container": "#8ba4cf", "surface-dim": "#e0d9cc", "error": "#ba1a1a", "surface-variant": "#e9e2d4", "surface-container-low": "#faf3e5", "text-on-dark-muted": "#BDB4A5", "text-on-dark": "#F2EBDD", "on-error-container": "#93000a", "on-primary-fixed-variant": "#2d476d", "background": "#fff9ee", "text-primary": "#1C1C1C", "inverse-surface": "#333027", "surface-container": "#f4eddf", "outline": "#74777f", "error-container": "#ffdad6", "bg-input": "#FFFFFF", "primary-fixed": "#d5e3ff", "on-surface-variant": "#43474e", "status-warning-bg": "#FDF1DC", "inverse-primary": "#aec8f4", "accent-on-dark-red": "#E07A7A", "brand-accent-hover": "#6E1616", "text-on-brand": "#FFFFFF", "status-success-text": "#235D3A", "on-tertiary": "#ffffff", "text-muted": "#6B645A", "on-tertiary-fixed": "#1b1b1b", "on-error": "#ffffff", "text-secondary": "#4F4A42", "tertiary-fixed-dim": "#c8c6c5", "secondary": "#aa3531", "on-secondary-fixed-variant": "#891c1d", "on-primary-fixed": "#001c3b", "bg-dark-elevated": "#2A2A2A", "status-error-text": "#B3261E", "status-neutral-bg": "#E8DFCE", "accent-on-dark-blue": "#7BA3D4", "border-strong": "#8C8272", "tertiary": "#242424", "primary": "#032448", "on-surface": "#1e1b13", "inverse-on-surface": "#f7f0e2", "bg-surface-subtle": "#E8DFCE", "surface-tint": "#465f86", "on-tertiary-container": "#a4a3a2", "border-subtle": "#D5CBB8", "primary-container": "#1f3a5f", "secondary-container": "#fd726a", "tertiary-fixed": "#e5e2e1", "status-neutral-text": "#4F4A42", "on-secondary-fixed": "#410003", "brand-primary-hover": "#162B47", "on-secondary-container": "#6f060d" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "space-xl": "2rem", "margin-tablet": "1.5rem", "gutter-mobile": "0.75rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "2rem", "margin-mobile": "1rem", "gutter-tablet": "1rem", "space-sm": "0.5rem", "gutter": "1.25rem" }, "fontFamily": { "display-hero": [ "Playfair Display" ], "heading-h1": [ "Playfair Display" ], "label-ui": [ "Inter" ], "body-lg": [ "Inter" ], "mono-data": [ "JetBrains Mono" ], "caption-sm": [ "Inter" ], "heading-h3": [ "Inter" ], "display-hero-mobile": [ "Playfair Display" ], "kpi-value": [ "Inter" ], "heading-h2": [ "Playfair Display" ], "body-md": [ "Inter" ] }, "fontSize": { "display-hero": [ "40px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "heading-h1": [ "28px", { "lineHeight": "35px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-ui": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "mono-data": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "caption-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "heading-h3": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "display-hero-mobile": [ "32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "kpi-value": [ "28px", { "lineHeight": "32px", "fontWeight": "700" } ], "heading-h2": [ "22px", { "lineHeight": "29px", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "21px", "fontWeight": "400" } ] } } } }</script></head><body class="bg-bg-canvas font-body-md text-text-primary antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-[240px] bg-tertiary z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg pt-space-lg pb-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary text-[20px]">content_cut</span></div><div><span class="block font-heading-h3 text-heading-h3 text-text-on-dark tracking-tight leading-none">SmartBarber</span><span class="block font-caption-sm text-caption-sm text-text-on-dark-muted mt-1 uppercase tracking-wider">Panel Administrativo</span></div></div><div class="mt-space-md w-full h-[1px] bg-bg-dark-elevated"></div></div><nav class="flex flex-col gap-1 px-space-xs mt-space-sm" data-active-classes="bg-bg-dark-elevated text-text-on-dark font-label-ui text-label-ui border-l-[3px] border-accent-on-dark-blue"><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="agenda-y-turnos" href="#">Agenda y Turnos</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="historial-de-cortes-y-caja" href="#">Historial de Cortes y Caja</a><a aria-current="page" class="flex items-center px-space-md py-3 rounded-DEFAULT transition-colors bg-bg-dark-elevated text-text-on-dark font-label-ui text-label-ui border-l-[3px] border-accent-on-dark-blue" data-path="barberos-y-horarios" href="#">Barberos y Horarios</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="inventario" href="#">Inventario</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="servicios-y-tarifas" href="#">Servicios y Tarifas</a><a class="flex items-center px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="configuracion" href="#">Configuración</a></nav></div><div class="p-space-md bg-bg-dark-elevated mx-space-xs mb-space-md rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-sm overflow-hidden"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-label-ui text-label-ui text-text-on-dark truncate">Carlos Mendoza</span><span class="font-caption-sm text-caption-sm text-text-on-dark-muted truncate">Administrador</span></div></div><a class="text-text-on-dark-muted hover:text-text-on-dark p-1 rounded-DEFAULT transition-colors flex items-center justify-center flex-shrink-0" data-path="login" href="#" title="Cerrar sesión"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></aside><div class="pl-[240px]"><header class="fixed top-0 left-[240px] right-0 z-40 bg-bg-canvas/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-space-xl flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md flex-1"><div class="flex items-center gap-space-xs bg-bg-surface px-space-md py-2 rounded-lg text-text-primary"><span class="material-symbols-outlined text-[18px] text-text-secondary">store</span><span class="font-label-ui text-label-ui text-text-primary">Sede Principal · Medellín</span><span class="material-symbols-outlined text-[18px] text-text-secondary">expand_more</span></div><div class="relative max-w-md w-full hidden md:block"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">search</span><input class="w-full h-10 pl-9 pr-4 rounded-lg bg-bg-surface text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Buscar producto, SKU, cliente o barbero..." type="search"/></div></div><div class="flex items-center gap-space-md"><button class="relative p-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden lg:flex flex-col text-left"><span class="font-label-ui text-label-ui text-text-primary leading-tight">Carlos Mendoza</span><span class="font-caption-sm text-caption-sm text-text-secondary leading-tight">Administrador</span></div></div></div></div></header><main class="w-full pt-16 min-h-screen bg-bg-canvas px-space-xl py-space-xl"><div class="flex flex-col w-full">
+<!-- ENCABEZADO SUPERIOR DEL CONTENIDO -->
+<header class="flex flex-col gap-space-sm mb-space-lg">
+<!-- Breadcrumb & Metadata Badge -->
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<nav aria-label="Ruta de navegación" class="flex items-center gap-2">
+<span class="font-caption-sm text-caption-sm text-text-muted">SmartBarber</span>
+<span class="font-caption-sm text-caption-sm text-text-muted">/</span>
+<span class="font-label-ui text-label-ui text-text-primary">Personal y Turnos</span>
+</nav>
+<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-DEFAULT bg-status-success-bg text-status-success-text shadow-sm">
+<span class="w-2 h-2 rounded-full bg-status-success-text animate-pulse"></span>
+<span class="font-caption-sm text-caption-sm">3 Barberos en Turno Activo · Sincronizado</span>
+</div>
+</div>
+<!-- Título Principal & Acciones Globales -->
+<div class="flex flex-col lg:flex-row lg:items-center justify-between gap-space-md pt-space-xs">
+<div>
+<h1 class="font-heading-h1 text-heading-h1 text-text-primary tracking-tight">Equipo de Barberos</h1>
+<p class="font-body-md text-body-md text-text-secondary mt-1 max-w-3xl">
+          Gestión de perfiles, esquemas de comisión y plantillas de disponibilidad semanal en bloques de 30 minutos.
+        </p>
+</div>
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button class="inline-flex items-center justify-center gap-2 px-4 h-10 rounded-lg bg-transparent text-status-info-text font-label-ui text-label-ui shadow-sm hover:bg-status-info-bg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1.5px #1F3A5F;" type="button">
+<span class="material-symbols-outlined text-[18px]">percent</span>
+<span>Liquidación de Comisiones</span>
+</button>
+<button class="inline-flex items-center justify-center gap-2 px-5 h-10 rounded-lg bg-primary-container text-text-on-brand font-label-ui text-label-ui shadow-sm hover:bg-brand-primary-hover active:scale-[0.98] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" type="button">
+<span class="material-symbols-outlined text-[20px]">person_add</span>
+<span>+ Nuevo Barbero</span>
+</button>
+</div>
+</div>
+</header>
+<!-- LAYOUT MAESTRO-DETALLE -->
+<section class="grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6 items-start">
+<!-- COLUMNA IZQUIERDA: LISTA MAESTRA (320px) -->
+<aside class="flex flex-col gap-space-sm bg-bg-surface p-space-md rounded-xl shadow-sm" style="box-shadow: 0 1px 2px rgba(28, 28, 28, 0.06), inset 0 0 0 1px #D5CBB8;">
+<!-- Buscador rápido -->
+<div class="relative w-full">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">search</span>
+<input aria-label="Buscar barbero" class="w-full h-10 pl-9 pr-3 rounded-lg bg-bg-input text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Buscar barbero..." style="box-shadow: inset 0 0 0 1px #8C8272;" type="search"/>
+</div>
+<!-- Pestañas de filtro de lista -->
+<div class="flex items-center justify-between p-1 rounded-lg bg-bg-canvas text-text-secondary" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<button class="flex-1 py-1.5 px-2 text-center rounded-DEFAULT font-caption-sm text-caption-sm text-text-secondary hover:text-text-primary transition-colors" type="button">
+          Todos (4)
+        </button>
+<button class="flex-1 py-1.5 px-2 text-center rounded-DEFAULT bg-bg-surface text-text-primary font-label-ui text-caption-sm shadow-sm transition-all" style="box-shadow: inset 0 0 0 1px #D5CBB8;" type="button">
+          Activos (3)
+        </button>
+</div>
+<!-- Tarjetas de Barberos -->
+<div aria-label="Lista de Barberos" class="flex flex-col gap-2.5 mt-1" role="listbox">
+<!-- Barbero 1: SELECCIONADO (Mateo Ríos) -->
+<article aria-selected="true" class="flex flex-col gap-2.5 p-3.5 rounded-xl cursor-pointer bg-status-info-bg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" role="option" style="box-shadow: inset 0 0 0 2px #1F3A5F, 0 2px 4px rgba(31, 58, 95, 0.08);" tabindex="0">
+<div class="flex items-center gap-3">
+<div class="relative flex-shrink-0">
+<img class="w-11 h-11 rounded-full object-cover" data-alt="Close-up portrait of Mateo Rios, a skilled professional Colombian barber in his late 20s with a neatly styled beard, warm vintage barbershop light, high detail authentic grooming craft aesthetic" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEwDUS9YD7KVWsmiioVQB3cxlPLcGxLfHgNVH_wZSEun4Ppz2kO3OI-CI8nMyydvRj8cHvgKUv0M2SK73Z7GPWt0yqDhg0iUaCQH9B1cZJskwPfnKdiC8V8vtgmmdQTcNMkofIIT_4_ydyBmNolbqZmNs8wS-DHA2JXkp-6kseE5CO8t9Jcb2Gr5sgsAC3ieBFVf90TYxuOuW9tENe_vf9c2M5H_XJqXm6_C_Mx6qG" style="box-shadow: inset 0 0 0 1px #8C8272;"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-status-success-text shadow-sm" style="box-shadow: 0 0 0 1.5px #FAF7F2;" title="En turno activo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary truncate font-semibold">Mateo Ríos</span>
+<span class="font-caption-sm text-caption-sm text-text-secondary truncate">Sillón 01 · Maestro Barbero</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-DEFAULT bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[13px]">check_circle</span>
+              Activo
+            </span>
+<span class="font-mono-data text-mono-data text-text-secondary">Comisión: 50%</span>
+</div>
+</article>
+<!-- Barbero 2: Julián Pardo -->
+<article aria-selected="false" class="flex flex-col gap-2.5 p-3.5 rounded-xl cursor-pointer bg-bg-surface hover:bg-surface-container-low transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" role="option" style="box-shadow: inset 0 0 0 1px #D5CBB8;" tabindex="0">
+<div class="flex items-center gap-3">
+<div class="relative flex-shrink-0">
+<img class="w-11 h-11 rounded-full object-cover" data-alt="Portrait of Julian Pardo, an experienced senior barber with modern undercut and apron, standing in a rustic tailored barbershop interior with warm tone lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDX1Gd8mrk7ncJxFQJZmKDn2cRKFTraDHYofvRbGtmngmM2jnNqgqYU8n6JkCvhzMgs4tOcoUYfA_GIThjfpATLoSWrCn_URjELszeqXnqwnecdBcSEP4em4q7q8PnyjQTk7ZE5wZRpEzc3cCY-9iP7juRWzyDkSDS_iCw-rOsbhQ1PRwIyn1kc3FFRCKbyAuqasPeS2aP0OZz01lnhMdgSew7EAXdXl_oByZeXazME" style="box-shadow: inset 0 0 0 1px #8C8272;"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-status-success-text shadow-sm" style="box-shadow: 0 0 0 1.5px #FAF7F2;" title="En turno activo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary truncate">Julián Pardo</span>
+<span class="font-caption-sm text-caption-sm text-text-secondary truncate">Sillón 02 · Barbero Senior</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-DEFAULT bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[13px]">check_circle</span>
+              Activo
+            </span>
+<span class="font-mono-data text-mono-data text-text-secondary">Comisión: 45%</span>
+</div>
+</article>
+<!-- Barbero 3: Andrés Vega -->
+<article aria-selected="false" class="flex flex-col gap-2.5 p-3.5 rounded-xl cursor-pointer bg-bg-surface hover:bg-surface-container-low transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" role="option" style="box-shadow: inset 0 0 0 1px #D5CBB8;" tabindex="0">
+<div class="flex items-center gap-3">
+<div class="relative flex-shrink-0">
+<img class="w-11 h-11 rounded-full object-cover" data-alt="Portrait of Andres Vega, skilled hair stylist and barber in stylish dark attire, warm editorial studio lighting, classic barber mirror background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGuRutYtv06w-xn8opkEKZvpacoR91iPQ8x3NVuSONel8S3aa5gMT--PxNb93jcS2bdZ011vUt0Kf23mByDMEpYGYzeVb55CUvJsXWaA9f1zNMwOBB70IRjtm_M7toIY9b85GCMocTwWfpqfElWxUxL2u3FvBvRjnK2QhrVevojQU9C80hQAu91nb-Mx-JoU48xE0cP-hB9mCnqUB1WR4wYd6Mo09sbM8KNQeu4_IJ" style="box-shadow: inset 0 0 0 1px #8C8272;"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-status-success-text shadow-sm" style="box-shadow: 0 0 0 1.5px #FAF7F2;" title="En turno activo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary truncate">Andrés Vega</span>
+<span class="font-caption-sm text-caption-sm text-text-secondary truncate">Sillón 03 · Estilista Capilar</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-DEFAULT bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[13px]">check_circle</span>
+              Activo
+            </span>
+<span class="font-mono-data text-mono-data text-text-secondary">Comisión: 50%</span>
+</div>
+</article>
+<!-- Barbero 4: Camilo Torres (Inactivo) -->
+<article aria-selected="false" class="flex flex-col gap-2.5 p-3.5 rounded-xl cursor-pointer bg-surface-container-low opacity-75 hover:opacity-100 transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" role="option" style="box-shadow: inset 0 0 0 1px #D5CBB8;" tabindex="0">
+<div class="flex items-center gap-3">
+<div class="relative flex-shrink-0">
+<img class="w-11 h-11 rounded-full object-cover grayscale" data-alt="Desaturated documentary portrait of former barber Camilo Torres, black and white aesthetic with gentle sepia grain, soft neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDQCiOAhxH6Rc-rENuFmTY7cgg29BmmftYAEkK5juwEt_SodlKWU39ZEdx15CGrNtuRzbIbMvYouUYC2rEfpRvfqzT23MlhqNF3OZw-gc71eZw19h5IxYRzyTm4e5tirMclglDBy-JZ9fT0PdcPOHzcU_DerMuUSi17LImoeN-6Wu1VHbzdxVOYtJxsn37VyrOwB_0YoxLKZS9KIZxf0gmYw6wsEkSQI4w2_7TS0OsO" style="box-shadow: inset 0 0 0 1px #8C8272;"/>
+<span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-status-neutral-text shadow-sm" style="box-shadow: 0 0 0 1.5px #FAF7F2;" title="Inactivo"></span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-muted truncate">Camilo Torres</span>
+<span class="font-caption-sm text-caption-sm text-text-muted truncate">Ex-barbero · Inactivo</span>
+</div>
+</div>
+<div class="flex items-center justify-between pt-1">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-DEFAULT bg-status-neutral-bg text-status-neutral-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[13px]">do_not_disturb_on</span>
+              Inactivo
+            </span>
+<span class="font-mono-data text-mono-data text-text-muted">Comisión: 40%</span>
+</div>
+</article>
+</div>
+</aside>
+<!-- COLUMNA DERECHA: FICHA DETALLADA Y HORARIOS (Fluida) -->
+<main class="flex flex-col bg-bg-surface p-7 rounded-xl shadow-sm min-w-0" style="box-shadow: 0 1px 2px rgba(28, 28, 28, 0.06), inset 0 0 0 1px #D5CBB8;">
+<!-- CABECERA DEL BARBERO SELECCIONADO -->
+<header class="flex flex-col lg:flex-row lg:items-start justify-between gap-space-md pb-space-md">
+<div class="flex items-start gap-4">
+<div class="relative flex-shrink-0">
+<img class="w-16 h-16 rounded-full object-cover" data-alt="Prominent high resolution headshot of Mateo Rios, master barber in Medellin, calm commanding gaze, tailored apron collar, warm textured background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDLkHq98D1yvwYXJW52dZXyXftYdpp3UNOaeaidoQGcIl4l4tCnntifiJAlj18ysRD8btwO8AM7jD8h76o18WBz6Kk-Nd5w0xp2H3nhUd7qifq3GIZjWSq6AdGqh2-CJAQY0Vr8dOL2BgbszPrvj1_0mR3vSCGVQjQITx53sdxsPCqPhm_zEiCA-g9FDt7DHZ57SFRu89H75Ct16nBmlPbDNuDN6uvD7oN26rhbBrUF" style="box-shadow: inset 0 0 0 2px #D5CBB8;"/>
+<span class="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-status-success-text shadow-sm" style="box-shadow: 0 0 0 2px #FAF7F2;" title="En turno activo"></span>
+</div>
+<div class="flex flex-col">
+<div class="flex flex-wrap items-center gap-2">
+<h2 class="font-heading-h2 text-heading-h2 text-text-primary tracking-tight">Mateo Ríos</h2>
+<span class="px-2 py-0.5 rounded-DEFAULT bg-status-info-bg text-status-info-text font-caption-sm text-caption-sm font-semibold">Sillón 01</span>
+<span class="px-2 py-0.5 rounded-DEFAULT bg-bg-canvas text-text-secondary font-caption-sm text-caption-sm">Maestro Barbero</span>
+</div>
+<p class="font-caption-sm text-caption-sm text-text-secondary mt-1">
+              mateo@smartbarber.co · +57 312 458 9210 · CC 1.049.823.114
+            </p>
+<div class="mt-2.5 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-bg-surface text-text-primary text-body-md" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<span class="material-symbols-outlined text-[16px] text-primary">pie_chart</span>
+<span class="font-label-ui text-label-ui">Esquema de Comisión: <strong class="font-mono-data text-mono-data text-primary">50% por servicio</strong></span>
+</div>
+</div>
+</div>
+<!-- Acción Destructiva Segura -->
+<div class="flex flex-col items-start lg:items-end gap-1 flex-shrink-0">
+<button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-status-error-bg text-status-error-text font-label-ui text-label-ui hover:bg-error hover:text-on-error transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-error" style="box-shadow: inset 0 0 0 1px #B3261E;" title="Borrado lógico · No se borra historial contable ni facturación" type="button">
+<span class="material-symbols-outlined text-[18px]">person_off</span>
+<span>Desactivar Barbero</span>
+</button>
+<span class="font-caption-sm text-caption-sm text-text-muted italic">Borrado lógico · Conserva historial contable</span>
+</div>
+</header>
+<!-- PESTAÑAS HORIZONTALES -->
+<nav aria-label="Secciones del Barbero" class="flex items-center gap-space-lg mb-space-lg" style="box-shadow: inset 0 -1px 0 #D5CBB8;">
+<button class="pb-3 text-text-muted font-label-ui text-label-ui hover:text-text-primary transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">badge</span>
+          Perfil y Acceso
+        </button>
+<button class="pb-3 text-primary-container font-label-ui text-label-ui flex items-center gap-1.5" style="box-shadow: inset 0 -2.5px 0 #1F3A5F;" type="button">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+          Horario Semanal (Activa)
+        </button>
+<button class="pb-3 text-text-muted font-label-ui text-label-ui hover:text-text-primary transition-colors flex items-center gap-1.5" type="button">
+<span class="material-symbols-outlined text-[18px]">event_busy</span>
+          Bloqueos Puntuales
+          <span class="px-1.5 py-0.5 rounded-DEFAULT bg-status-neutral-bg text-status-neutral-text font-mono-data text-caption-sm">2</span>
+</button>
+</nav>
+<!-- BANNER DE REGLA DE NEGOCIO -->
+<div class="flex items-start gap-3 p-3.5 rounded-lg bg-status-info-bg text-status-info-text mb-space-lg" style="box-shadow: inset 3px 0 0 #1F3A5F;">
+<span class="material-symbols-outlined text-[20px] flex-shrink-0 mt-0.5">info</span>
+<p class="font-body-md text-body-md leading-relaxed">
+<strong class="font-label-ui">Regla del sistema:</strong> Las franjas de disponibilidad se programan estrictamente en bloques de 30 minutos (minutos :00 y :30) para sincronizar con la agenda y reservas online.
+        </p>
+</div>
+<!-- TABLA / GRILLA DE DÍAS SEMANALES -->
+<section aria-label="Plantilla semanal de disponibilidad" class="flex flex-col gap-2">
+<!-- Fila LUNES -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface hover:bg-surface-container-low transition-colors gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-primary w-20">Lunes</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Lunes" checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<!-- Turno 1 -->
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T1</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">09:00 AM</option>
+<option>09:30 AM</option>
+<option>10:00 AM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option>12:30 PM</option>
+<option selected="">01:00 PM</option>
+<option>01:30 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(4 hrs · 8 blq)</span>
+</div>
+<span class="text-border-strong hidden md:inline">|</span>
+<!-- Turno 2 -->
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T2</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option>01:30 PM</option>
+<option selected="">02:00 PM</option>
+<option>02:30 PM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option>06:30 PM</option>
+<option selected="">07:00 PM</option>
+<option>07:30 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(5 hrs · 10 blq)</span>
+</div>
+</div>
+<button class="self-end xl:self-center p-2 text-text-muted hover:text-text-primary rounded-lg transition-colors" title="Añadir franja extraordinaria" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+</div>
+<!-- Fila MARTES -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface hover:bg-surface-container-low transition-colors gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-primary w-20">Martes</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Martes" checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T1</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">09:00 AM</option>
+<option>09:30 AM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">01:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(4 hrs · 8 blq)</span>
+</div>
+<span class="text-border-strong hidden md:inline">|</span>
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T2</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">02:00 PM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">07:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(5 hrs · 10 blq)</span>
+</div>
+</div>
+<button class="self-end xl:self-center p-2 text-text-muted hover:text-text-primary rounded-lg transition-colors" title="Añadir franja extraordinaria" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+</div>
+<!-- Fila MIÉRCOLES -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface hover:bg-surface-container-low transition-colors gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-primary w-20">Miércoles</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Miércoles" checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T1</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">09:00 AM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">01:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(4 hrs · 8 blq)</span>
+</div>
+<span class="text-border-strong hidden md:inline">|</span>
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T2</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">02:00 PM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">07:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(5 hrs · 10 blq)</span>
+</div>
+</div>
+<button class="self-end xl:self-center p-2 text-text-muted hover:text-text-primary rounded-lg transition-colors" title="Añadir franja extraordinaria" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+</div>
+<!-- Fila JUEVES -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface hover:bg-surface-container-low transition-colors gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-primary w-20">Jueves</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Jueves" checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T1</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">09:00 AM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">01:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(4 hrs · 8 blq)</span>
+</div>
+<span class="text-border-strong hidden md:inline">|</span>
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T2</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">02:00 PM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">07:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(5 hrs · 10 blq)</span>
+</div>
+</div>
+<button class="self-end xl:self-center p-2 text-text-muted hover:text-text-primary rounded-lg transition-colors" title="Añadir franja extraordinaria" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+</div>
+<!-- Fila VIERNES -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface hover:bg-surface-container-low transition-colors gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-primary w-20">Viernes</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Viernes" checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T1</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">09:00 AM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">01:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(4 hrs · 8 blq)</span>
+</div>
+<span class="text-border-strong hidden md:inline">|</span>
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T2</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">02:00 PM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option>07:00 PM</option>
+<option selected="">08:00 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(6 hrs · 12 blq)</span>
+</div>
+</div>
+<button class="self-end xl:self-center p-2 text-text-muted hover:text-text-primary rounded-lg transition-colors" title="Añadir franja extraordinaria" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+</div>
+<!-- Fila SÁBADO -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface hover:bg-surface-container-low transition-colors gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-primary w-20">Sábado</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Sábado" checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex flex-wrap items-center gap-3 flex-1">
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T1</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">08:30 AM</option>
+<option>09:00 AM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">01:30 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(5 hrs · 10 blq)</span>
+</div>
+<span class="text-border-strong hidden md:inline">|</span>
+<div class="flex items-center gap-1.5">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase">T2</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">02:30 PM</option>
+</select>
+<span class="text-text-muted font-caption-sm">a</span>
+<select class="h-10 px-2 rounded-lg bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;">
+<option selected="">07:30 PM</option>
+</select>
+<span class="font-caption-sm text-caption-sm text-text-muted whitespace-nowrap">(5 hrs · 10 blq)</span>
+</div>
+</div>
+<button class="self-end xl:self-center p-2 text-text-muted hover:text-text-primary rounded-lg transition-colors" title="Añadir franja extraordinaria" type="button">
+<span class="material-symbols-outlined text-[18px]">add_circle</span>
+</button>
+</div>
+<!-- Fila DOMINGO (Descanso General) -->
+<div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg bg-bg-surface-subtle opacity-75 gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex items-center gap-4 w-44 flex-shrink-0">
+<span class="font-label-ui text-label-ui text-text-muted w-20">Domingo</span>
+<label class="relative inline-flex items-center cursor-pointer">
+<input aria-label="Laboral Domingo" class="sr-only peer" type="checkbox"/>
+<div class="w-10 h-5 bg-border-strong peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary-container"></div>
+</label>
+</div>
+<div class="flex items-center gap-3 flex-1">
+<span class="inline-flex items-center gap-1.5 text-text-muted font-body-md text-body-md italic">
+<span class="material-symbols-outlined text-[18px]">bedtime</span>
+              Día de descanso general (Sin atención en sede)
+            </span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-muted line-through self-end xl:self-center">Sin franjas asignadas</span>
+</div>
+</section>
+<!-- SECCIÓN "PRÓXIMOS BLOQUEOS PUNTUALES Y EXCEPCIONES" -->
+<section class="mt-space-lg pt-5 flex flex-col gap-3" style="box-shadow: inset 0 1px 0 #D5CBB8;">
+<div class="flex flex-wrap items-center justify-between gap-space-sm">
+<div>
+<h3 class="font-heading-h3 text-heading-h3 text-text-primary">Excepciones y Bloqueos de Agenda</h3>
+<p class="font-caption-sm text-caption-sm text-text-secondary">Franjas inhabilitadas puntuales sin afectar la plantilla recurrente.</p>
+</div>
+<button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-transparent text-status-info-text font-label-ui text-caption-sm hover:bg-status-info-bg transition-colors" style="box-shadow: inset 0 0 0 1px #1F3A5F;" type="button">
+<span class="material-symbols-outlined text-[16px]">lock_clock</span>
+<span>+ Agregar Bloqueo de Franja</span>
+</button>
+</div>
+<!-- Tarjetas de Bloqueos -->
+<div class="flex flex-col gap-2.5 mt-1">
+<!-- Bloqueo 1 -->
+<div class="flex flex-col md:flex-row md:items-center justify-between p-3 rounded-lg bg-bg-surface gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex flex-wrap items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-status-warning-bg text-status-warning-text flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">medical_services</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-ui text-label-ui text-text-primary">Jueves, 26 Nov 2026</span>
+<span class="font-mono-data text-mono-data text-text-secondary">02:00 PM – 03:30 PM (3 bloques)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-DEFAULT bg-status-warning-bg text-status-warning-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[13px]">warning</span>
+                Cita médica programada
+              </span>
+</div>
+<div class="flex items-center gap-2 self-end md:self-center">
+<button class="px-2 py-1 rounded-DEFAULT text-text-muted hover:text-text-primary text-caption-sm font-label-ui transition-colors" type="button">
+                Editar
+              </button>
+<button class="px-2 py-1 rounded-DEFAULT text-status-error-text hover:bg-status-error-bg text-caption-sm font-label-ui transition-colors" type="button">
+                Eliminar
+              </button>
+</div>
+</div>
+<!-- Bloqueo 2 -->
+<div class="flex flex-col md:flex-row md:items-center justify-between p-3 rounded-lg bg-bg-surface gap-3" style="box-shadow: inset 0 0 0 1px #D5CBB8;">
+<div class="flex flex-wrap items-center gap-3">
+<div class="w-8 h-8 rounded-lg bg-status-neutral-bg text-status-neutral-text flex items-center justify-center flex-shrink-0">
+<span class="material-symbols-outlined text-[18px]">event_busy</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-ui text-label-ui text-text-primary">Sábado, 05 Dic 2026</span>
+<span class="font-mono-data text-mono-data text-text-secondary">Jornada completa (09:00 AM – 07:00 PM)</span>
+</div>
+<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-DEFAULT bg-status-neutral-bg text-status-neutral-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[13px]">assignment_turned_in</span>
+                Permiso personal autorizado
+              </span>
+</div>
+<div class="flex items-center gap-2 self-end md:self-center">
+<button class="px-2 py-1 rounded-DEFAULT text-text-muted hover:text-text-primary text-caption-sm font-label-ui transition-colors" type="button">
+                Editar
+              </button>
+<button class="px-2 py-1 rounded-DEFAULT text-status-error-text hover:bg-status-error-bg text-caption-sm font-label-ui transition-colors" type="button">
+                Eliminar
+              </button>
+</div>
+</div>
+</div>
+</section>
+<!-- FOOTER DE ACCIONES DE LA TARJETA DERECHA -->
+<footer class="mt-space-lg pt-space-md flex flex-col sm:flex-row sm:items-center justify-between gap-space-md" style="box-shadow: inset 0 1px 0 #D5CBB8;">
+<span class="font-caption-sm text-caption-sm text-text-muted">
+          Última actualización por Carlos Mendoza · Hoy a las 11:20 AM
+        </span>
+<div class="flex items-center gap-space-sm self-end sm:self-center">
+<button class="px-4 h-11 rounded-lg bg-transparent text-text-secondary font-label-ui text-label-ui hover:bg-bg-surface-subtle transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" style="box-shadow: inset 0 0 0 1px #8C8272;" type="button">
+            Revertir Cambios
+          </button>
+<button class="inline-flex items-center justify-center gap-2 px-6 h-11 rounded-lg bg-primary-container text-text-on-brand font-label-ui text-label-ui shadow-sm hover:bg-brand-primary-hover active:scale-[0.98] transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-border-focus" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Guardar Horario Semanal</span>
+</button>
+</div>
+</footer>
+</main>
+</section>
+</div></main></div></body></html>

@@ -192,6 +192,14 @@ async function runTests() {
       `Status: ${resBloqueo.status}, Msg: ${JSON.stringify(resBloqueo.data)}`
     );
 
+    // Limpieza del bloqueo de prueba
+    if (resBloqueo.data?.data?.bloqueoId) {
+      await request(`/api/v1/barberos/${testBarberoId}/bloqueos/${resBloqueo.data.data.bloqueoId}`, {
+        method: 'DELETE',
+        headers: authHeaders
+      });
+    }
+
     // --------------------------------------------------------------------------
     // 6. Módulo 5: Agendamiento de Citas (CU-021, CU-022, CU-023)
     // --------------------------------------------------------------------------
@@ -405,8 +413,8 @@ async function runTests() {
     });
     logTest(
       27,
-      'RN-10: Prohibición absoluta de stock negativo rechaza venta excedente',
-      resStockNegativo.status === 422 && resStockNegativo.data.error.code === 'INSUFFICIENT_STOCK'
+      'RN-10: Prohibición absoluta de stock negativo rechaza venta excedente (HTTP 409 Conflict)',
+      (resStockNegativo.status === 409 || resStockNegativo.status === 422) && resStockNegativo.data.error.code === 'INSUFFICIENT_STOCK'
     );
 
     const resAlertas = await request('/api/v1/inventario/alertas', { headers: authHeaders });

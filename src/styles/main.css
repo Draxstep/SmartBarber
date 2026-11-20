@@ -1,0 +1,63 @@
+@import "tailwindcss";
+@import "./tokens.css";
+
+@theme {
+  --color-brand-primary: #1F3A5F;
+  --color-brand-primary-hover: #162B47;
+  --color-brand-secondary: #1C1C1C;
+  --color-brand-accent: #8B1E1E;
+  --color-brand-accent-hover: #6E1616;
+
+  --color-bg-canvas: #F2EBDD;
+  --color-bg-surface: #FAF7F2;
+  --color-bg-surface-subtle: #E8DFCE;
+  --color-bg-input: #FFFFFF;
+  --color-bg-dark-elevated: #2A2A2A;
+
+  --color-text-primary: #1C1C1C;
+  --color-text-secondary: #4F4A42;
+  --color-text-muted: #6B645A;
+  --color-text-on-dark: #F2EBDD;
+  --color-text-on-dark-muted: #BDB4A5;
+  --color-text-on-brand: #FFFFFF;
+  --color-accent-on-dark-blue: #7BA3D4;
+  --color-accent-on-dark-red: #E07A7A;
+
+  --color-border-subtle: #D5CBB8;
+  --color-border-strong: #8C8272;
+  --color-border-focus: #1F3A5F;
+
+  --color-status-success-text: #235D3A;
+  --color-status-success-bg: #E3EFE7;
+  --color-status-warning-text: #8A5300;
+  --color-status-warning-bg: #FDF1DC;
+  --color-status-error-text: #B3261E;
+  --color-status-error-bg: #FCE8E6;
+  --color-status-info-text: #1F3A5F;
+  --color-status-info-bg: #E4ECF5;
+  --color-status-neutral-text: #4F4A42;
+  --color-status-neutral-bg: #E8DFCE;
+
+  /* Aliases for Stitch templates */
+  --color-alabastro: #F2EBDD;
+  --color-marfil: #FAF7F2;
+  --color-bordeCard: #D5CBB8;
+  --color-carbon: #1C1C1C;
+  --color-sangria: #8B1E1E;
+  --color-prusia: #1F3A5F;
+  --color-verdeBosque: #235D3A;
+  --color-verdeBg: #E3EFE7;
+  --color-textoClaroSec: #BDB4A5;
+  --color-textoOscuroSec: #4F4A42;
+  --color-textoAtenuado: #6B645A;
+  --color-bordeBadge: #8C8272;
+  --color-primary-container: #1F3A5F;
+  --color-secondary: #8B1E1E;
+  --color-tertiary: #1C1C1C;
+  --color-on-primary: #FFFFFF;
+  --color-on-secondary: #FFFFFF;
+
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}

@@ -16,6 +16,7 @@ const agendamientoController = new PublicAgendamientoController();
 
 // 1. Información pública del negocio, catálogo y barberos (CU-020, RNF-01)
 publicAgendamientoRouter.get('/info', landingController.getLandingInfo);
+publicAgendamientoRouter.get('/landing', landingController.getLandingInfo);
 
 // 2. Consulta en vivo de bloques de horarios disponibles (CU-025, RNF-02)
 publicAgendamientoRouter.get(
@@ -31,9 +32,21 @@ publicAgendamientoRouter.post(
   validate({ body: reservaPublicaSchema }),
   agendamientoController.crearReserva
 );
+publicAgendamientoRouter.post(
+  '/citas',
+  bookingRateLimiter,
+  validate({ body: reservaPublicaSchema }),
+  agendamientoController.crearReserva
+);
 
 // 4. Consulta de estado de cita por código único de reserva (SB-XXXXXX)
 publicAgendamientoRouter.get(
   '/reservas/:codigo',
   agendamientoController.consultarPorCodigo
+);
+
+// 5. Cancelación pública con antelación mínima >= 2h (CU-021, RF-AGE-06)
+publicAgendamientoRouter.patch(
+  '/reservas/:codigo/cancelar',
+  agendamientoController.cancelarReserva
 );

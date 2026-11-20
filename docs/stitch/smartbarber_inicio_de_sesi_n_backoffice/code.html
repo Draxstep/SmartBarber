@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartBarber - Inicio de Sesión Backoffice</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              primary: '#1F3A5F',
+              'primary-hover': '#162B47',
+              secondary: '#1C1C1C',
+              accent: '#8B1E1E',
+              'accent-hover': '#6E1616',
+            },
+            surface: {
+              canvas: '#F2EBDD',
+              card: '#FAF7F2',
+              subtle: '#E8DFCE',
+              input: '#FFFFFF',
+              dark: '#1C1C1C',
+              'dark-lift': '#2A2A2A',
+            },
+            content: {
+              primary: '#1C1C1C',
+              secondary: '#4F4A42',
+              muted: '#6B645A',
+              'on-dark': '#F2EBDD',
+              'on-dark-muted': '#BDB4A5',
+              'accent-blue': '#7BA3D4',
+              'accent-red': '#E07A7A',
+            },
+            borderCustom: {
+              subtle: '#D5CBB8',
+              strong: '#8C8272',
+              focus: '#1F3A5F',
+            }
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'Georgia', 'serif'],
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background-color: #F2EBDD;
+      color: #1C1C1C;
+    }
+  </style>
+</head>
+<body class="h-full antialiased overflow-hidden select-none">
+  <div class="flex h-screen w-screen">
+    
+    <!-- PANEL IZQUIERDO: Marca Patrimonial y Fotografía Editorial (50% Desktop) -->
+    <aside class="relative hidden lg:flex lg:w-1/2 flex-col justify-between bg-[#1C1C1C] border-r-[3px] border-[#8B1E1E] p-12 xl:p-16 overflow-hidden">
+      <!-- Fondo con textura sutil y fotografía editorial integrada con gradiente profundo -->
+      <div class="absolute inset-0 z-0">
+        <img 
+          src="https://lh3.googleusercontent.com/aida-public/AB6AXuBMtXMLoOJBs-bWVswo0ozlmhvkoWmOrFeXe0MkDqkYlBsyM6pJ-jyAp-W_QtVn5Sdt3q_2J7wXzQLo7p12pWsH1WVn5O3aVUUBpPQhBdsC3enB7Vuh0lSQ3pOV_mWl1y3YUK-N4XffGhwKwNJQ56bmHI1Z3Wblb_Tn-7Ofhqx_nk9F1YDOETl6RmqzDO5whzsRiHptPivm0YG6cZ1gcBme-0OPN_qgaUfpZoiXY82H" 
+          alt="Herramientas tradicionales de barbería sobre madera envejecida"
+          class="w-full h-full object-cover object-center opacity-30 mix-blend-luminosity filter contrast-125 brightness-90"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#1C1C1C] via-[#1C1C1C]/75 to-[#1C1C1C]/90"></div>
+        <div class="absolute inset-0 bg-[radial-gradient(#8B1E1E_1px,transparent_1px)] [background-size:24px_24px] opacity-10"></div>
+      </div>
+
+      <!-- Cabecera del Panel Izquierdo: Wordmark y Subtítulo de Operación -->
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-2">
+          <!-- Icono sutil de tijeras cruzadas -->
+          <div class="w-10 h-10 rounded border border-[#8C8272]/50 bg-[#2A2A2A] flex items-center justify-center text-[#F2EBDD]">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <circle cx="6" cy="6" r="3"></circle>
+              <circle cx="6" cy="18" r="3"></circle>
+              <line x1="20" y1="4" x2="8.12" y2="15.88"></line>
+              <line x1="14.47" y1="14.48" x2="20" y2="20"></line>
+              <line x1="8.12" y1="8.12" x2="12" y2="12"></line>
+            </svg>
+          </div>
+          <span class="font-serif text-3xl xl:text-4xl font-bold tracking-tight text-[#F2EBDD]">SmartBarber</span>
+        </div>
+        <div class="flex items-center gap-2 pl-[52px]">
+          <span class="inline-block w-2 h-2 rounded-full bg-[#E07A7A]"></span>
+          <p class="text-xs xl:text-sm font-medium tracking-wide uppercase text-[#BDB4A5]">Sistema de Gestión Operativa</p>
+        </div>
+      </div>
+
+      <!-- Centro Editorial: Mensaje de Tradición y Eficiencia -->
+      <div class="relative z-10 max-w-lg my-auto py-8">
+        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded bg-[#2A2A2A] border border-[#8C8272]/40 text-[#F2EBDD] text-xs font-mono mb-6">
+          <svg class="w-3.5 h-3.5 text-[#7BA3D4]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          ACCESO RESTRINGIDO A PERSONAL AUTORIZADO
+        </div>
+        
+        <h2 class="font-serif text-2xl xl:text-3xl text-[#F2EBDD] font-bold leading-snug mb-4">
+          Oficio centenario con disciplina y sincronización en tiempo real.
+        </h2>
+        
+        <p class="text-[#BDB4A5] text-sm xl:text-base leading-relaxed mb-8">
+          Control diario de agenda en bloques de 30 minutos, liquidación de sillón sin fricción en moneda nacional y kardex automatizado para el equipo de barbería.
+        </p>
+
+        <!-- Indicador de 3 Sillones Activos en Sede -->
+        <div class="grid grid-cols-3 gap-3 border-t border-[#8C8272]/30 pt-6">
+          <div class="bg-[#2A2A2A]/70 border border-[#8C8272]/30 rounded p-3">
+            <p class="text-[11px] font-mono text-[#BDB4A5] uppercase">Sillón 01</p>
+            <p class="text-xs font-semibold text-[#F2EBDD] mt-0.5">Mateo Ríos</p>
+            <span class="inline-flex items-center gap-1 text-[10px] text-[#7BA3D4] mt-1 font-mono">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#235D3A]"></span> En turno
+            </span>
+          </div>
+          <div class="bg-[#2A2A2A]/70 border border-[#8C8272]/30 rounded p-3">
+            <p class="text-[11px] font-mono text-[#BDB4A5] uppercase">Sillón 02</p>
+            <p class="text-xs font-semibold text-[#F2EBDD] mt-0.5">Julián Pardo</p>
+            <span class="inline-flex items-center gap-1 text-[10px] text-[#7BA3D4] mt-1 font-mono">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#235D3A]"></span> En turno
+            </span>
+          </div>
+          <div class="bg-[#2A2A2A]/70 border border-[#8C8272]/30 rounded p-3">
+            <p class="text-[11px] font-mono text-[#BDB4A5] uppercase">Sillón 03</p>
+            <p class="text-xs font-semibold text-[#F2EBDD] mt-0.5">Andrés Vega</p>
+            <span class="inline-flex items-center gap-1 text-[10px] text-[#7BA3D4] mt-1 font-mono">
+              <span class="w-1.5 h-1.5 rounded-full bg-[#235D3A]"></span> En turno
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie del Panel Izquierdo: Ubicación y Metadatos Técnicos -->
+      <div class="relative z-10 flex items-center justify-between border-t border-[#8C8272]/30 pt-4 text-xs font-mono text-[#BDB4A5]">
+        <div class="flex items-center gap-2">
+          <svg class="w-3.5 h-3.5 text-[#BDB4A5]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Operación interna · Sede Principal · Cra. 11 # 19-45</span>
+        </div>
+        <span class="bg-[#2A2A2A] px-2.5 py-1 rounded text-[#F2EBDD] border border-[#8C8272]/40">UTC-5 (COL)</span>
+      </div>
+    </aside>
+
+    <!-- PANEL DERECHO: Formulario de Autenticación Centrado (50% Desktop) -->
+    <main class="w-full lg:w-1/2 flex flex-col justify-between items-center bg-[#F2EBDD] p-6 sm:p-10 lg:p-12 overflow-y-auto">
+      
+      <!-- Barra superior móvil / navegación superior complementaria -->
+      <div class="w-full max-w-[420px] flex items-center justify-between pt-2 pb-4">
+        <!-- Logo visible en móviles si la pantalla es reducida -->
+        <div class="flex items-center gap-2 lg:invisible">
+          <span class="font-serif text-xl font-bold tracking-tight text-[#1C1C1C]">SmartBarber</span>
+          <span class="text-xs px-2 py-0.5 rounded bg-[#FAF7F2] border border-[#D5CBB8] text-[#4F4A42] font-mono">Backoffice</span>
+        </div>
+        <div class="ml-auto">
+          <span class="inline-flex items-center gap-1.5 text-xs text-[#4F4A42] bg-[#FAF7F2] border border-[#D5CBB8] px-2.5 py-1 rounded">
+            <span class="w-2 h-2 rounded-full bg-[#235D3A]"></span> Servidor Operativo
+          </span>
+        </div>
+      </div>
+
+      <!-- Tarjeta Principal de Login (Elevation-1, Max-Width 420px) -->
+      <div class="w-full max-w-[420px] my-auto">
+        <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-[0_1px_3px_rgba(28,28,28,0.06)] p-8">
+          
+          <!-- Encabezado de la Tarjeta -->
+          <div class="mb-6">
+            <div class="w-12 h-12 rounded-lg bg-[#E4ECF5] border border-[#1F3A5F]/20 flex items-center justify-center text-[#1F3A5F] mb-4">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+            </div>
+            <h1 class="font-serif text-2xl sm:text-[26px] font-bold text-[#1C1C1C] tracking-tight mb-2">
+              Acceso al Backoffice
+            </h1>
+            <p class="text-sm text-[#4F4A42] leading-relaxed">
+              Ingresa con tus credenciales de Administrador o Barbero.
+            </p>
+          </div>
+
+          <!-- Alerta de Información sobre Roles Internos -->
+          <div class="flex items-start gap-2.5 p-3 rounded-md bg-[#E4ECF5] border-l-[3px] border-[#1F3A5F] text-[#1F3A5F] mb-6">
+            <svg class="w-4 h-4 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+            <p class="text-xs leading-normal">
+              Acceso restringido a gestión de agenda, sillones, inventario y caja POS.
+            </p>
+          </div>
+
+          <!-- Formulario de Login -->
+          <form class="space-y-4" onsubmit="event.preventDefault();">
+            <!-- Campo: Correo Electrónico -->
+            <div>
+              <label for="email" class="block text-sm font-semibold text-[#1C1C1C] mb-1.5">
+                Correo electrónico institucional
+              </label>
+              <div class="relative">
+                <input 
+                  type="email" 
+                  id="email" 
+                  name="email"
+                  value="carlos.mendoza@smartbarber.co"
+                  placeholder="barbero@smartbarber.co"
+                  required
+                  class="w-full h-11 px-3.5 pl-10 rounded-md bg-[#FFFFFF] border border-[#8C8272] text-[#1C1C1C] text-sm placeholder-[#6B645A] focus:outline-none focus:border-[#1F3A5F] focus:ring-2 focus:ring-[#1F3A5F]/20 transition-colors"
+                />
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6B645A]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Campo: Contraseña con Toggle Mostrar/Ocultar -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label for="password" class="block text-sm font-semibold text-[#1C1C1C]">
+                  Contraseña
+                </label>
+                <a href="#recuperar" class="text-xs font-semibold text-[#1F3A5F] hover:underline focus:outline-none">
+                  ¿Olvidaste tu clave?
+                </a>
+              </div>
+              <div class="relative">
+                <input 
+                  type="password" 
+                  id="password" 
+                  name="password"
+                  value="••••••••••••"
+                  placeholder="Mínimo 8 caracteres"
+                  required
+                  class="w-full h-11 px-3.5 pl-10 pr-10 rounded-md bg-[#FFFFFF] border border-[#8C8272] text-[#1C1C1C] text-sm placeholder-[#6B645A] focus:outline-none focus:border-[#1F3A5F] focus:ring-2 focus:ring-[#1F3A5F]/20 transition-colors"
+                />
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#6B645A]">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                  </svg>
+                </div>
+                <!-- Botón Mostrar/Ocultar Contraseña -->
+                <button 
+                  type="button" 
+                  aria-label="Mostrar u ocultar contraseña"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-[#6B645A] hover:text-[#1C1C1C] focus:outline-none"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Recordar equipo de trabajo -->
+            <div class="flex items-center pt-1">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  checked
+                  class="w-4 h-4 rounded border-[#8C8272] text-[#1F3A5F] focus:ring-[#1F3A5F]"
+                />
+                <span class="text-xs text-[#4F4A42]">Recordar este terminal por 30 días</span>
+              </label>
+            </div>
+
+            <!-- Botón Primario: Iniciar Sesión (btn-primary) -->
+            <div class="pt-2">
+              <button 
+                type="submit"
+                class="w-full h-11 px-5 rounded-md bg-[#1F3A5F] hover:bg-[#162B47] active:bg-[#162B47] text-[#FFFFFF] font-semibold text-sm transition-colors duration-150 flex items-center justify-center gap-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] focus:ring-offset-2"
+              >
+                <span>Iniciar Sesión</span>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                </svg>
+              </button>
+            </div>
+          </form>
+
+          <!-- Separador fino -->
+          <div class="border-t border-[#D5CBB8] my-6"></div>
+
+          <!-- Nota de Seguridad Discreta dentro de la Tarjeta -->
+          <div class="flex items-start gap-2.5 text-xs text-[#6B645A] leading-relaxed bg-[#E8DFCE]/40 p-3 rounded-md border border-[#D5CBB8]/60">
+            <svg class="w-4 h-4 text-[#8C8272] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+            </svg>
+            <span>
+              La sesión expira tras 8 horas de inactividad. Bloqueo temporal preventivo tras 5 intentos fallidos.
+            </span>
+          </div>
+
+        </div>
+
+        <!-- Enlace Inferior Fuera de la Tarjeta: Retorno al Portal Público -->
+        <div class="text-center mt-6">
+          <a 
+            href="#portal-publico" 
+            class="inline-flex items-center gap-2 text-xs font-semibold text-[#1F3A5F] hover:text-[#162B47] hover:underline transition-colors py-2 px-3 rounded hover:bg-[#FAF7F2]/60"
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            Ir al Portal Público de Agendamiento
+          </a>
+        </div>
+      </div>
+
+      <!-- Pie del Panel Derecho: Copyright & Versión del Sistema -->
+      <div class="w-full max-w-[420px] flex items-center justify-between text-[11px] font-mono text-[#6B645A] pt-4 pb-2 border-t border-[#D5CBB8]/60">
+        <span>SmartBarber v2.4.0</span>
+        <span>© 2026 SmartBarber Ltd.</span>
+      </div>
+
+    </main>
+
+  </div>
+</body>
+</html>

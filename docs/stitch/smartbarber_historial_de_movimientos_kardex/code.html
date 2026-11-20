@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "border-focus": "#1F3A5F", "on-tertiary-fixed-variant": "#474746", "status-warning-text": "#8A5300", "tertiary-container": "#3a3939", "surface": "#fff9ee", "surface-container-high": "#eee7da", "surface-container-lowest": "#ffffff", "status-error-bg": "#FCE8E6", "outline-variant": "#c4c6cf", "bg-canvas": "#F2EBDD", "status-info-text": "#1F3A5F", "status-info-bg": "#E4ECF5", "on-secondary": "#ffffff", "bg-surface": "#FAF7F2", "secondary-fixed": "#ffdad6", "status-success-bg": "#E3EFE7", "on-background": "#1e1b13", "surface-bright": "#fff9ee", "surface-container-highest": "#e9e2d4", "secondary-fixed-dim": "#ffb3ad", "primary-fixed-dim": "#aec8f4", "on-primary": "#ffffff", "on-primary-container": "#8ba4cf", "surface-dim": "#e0d9cc", "error": "#ba1a1a", "surface-variant": "#e9e2d4", "surface-container-low": "#faf3e5", "text-on-dark-muted": "#BDB4A5", "text-on-dark": "#F2EBDD", "on-error-container": "#93000a", "on-primary-fixed-variant": "#2d476d", "background": "#fff9ee", "text-primary": "#1C1C1C", "inverse-surface": "#333027", "surface-container": "#f4eddf", "outline": "#74777f", "error-container": "#ffdad6", "bg-input": "#FFFFFF", "primary-fixed": "#d5e3ff", "on-surface-variant": "#43474e", "status-warning-bg": "#FDF1DC", "inverse-primary": "#aec8f4", "accent-on-dark-red": "#E07A7A", "brand-accent-hover": "#6E1616", "text-on-brand": "#FFFFFF", "status-success-text": "#235D3A", "on-tertiary": "#ffffff", "text-muted": "#6B645A", "on-tertiary-fixed": "#1b1b1b", "on-error": "#ffffff", "text-secondary": "#4F4A42", "tertiary-fixed-dim": "#c8c6c5", "secondary": "#aa3531", "on-secondary-fixed-variant": "#891c1d", "on-primary-fixed": "#001c3b", "bg-dark-elevated": "#2A2A2A", "status-error-text": "#B3261E", "status-neutral-bg": "#E8DFCE", "accent-on-dark-blue": "#7BA3D4", "border-strong": "#8C8272", "tertiary": "#242424", "primary": "#032448", "on-surface": "#1e1b13", "inverse-on-surface": "#f7f0e2", "bg-surface-subtle": "#E8DFCE", "surface-tint": "#465f86", "on-tertiary-container": "#a4a3a2", "border-subtle": "#D5CBB8", "primary-container": "#1f3a5f", "secondary-container": "#fd726a", "tertiary-fixed": "#e5e2e1", "status-neutral-text": "#4F4A42", "on-secondary-fixed": "#410003", "brand-primary-hover": "#162B47", "on-secondary-container": "#6f060d" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "space-xl": "2rem", "margin-tablet": "1.5rem", "gutter-mobile": "0.75rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "2rem", "margin-mobile": "1rem", "gutter-tablet": "1rem", "space-sm": "0.5rem", "gutter": "1.25rem" }, "fontFamily": { "display-hero": [ "Playfair Display" ], "heading-h1": [ "Playfair Display" ], "label-ui": [ "Inter" ], "body-lg": [ "Inter" ], "mono-data": [ "JetBrains Mono" ], "caption-sm": [ "Inter" ], "heading-h3": [ "Inter" ], "display-hero-mobile": [ "Playfair Display" ], "kpi-value": [ "Inter" ], "heading-h2": [ "Playfair Display" ], "body-md": [ "Inter" ] }, "fontSize": { "display-hero": [ "40px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "heading-h1": [ "28px", { "lineHeight": "35px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-ui": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "mono-data": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "caption-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "heading-h3": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "display-hero-mobile": [ "32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "kpi-value": [ "28px", { "lineHeight": "32px", "fontWeight": "700" } ], "heading-h2": [ "22px", { "lineHeight": "29px", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "21px", "fontWeight": "400" } ] } } } }</script></head><body class="bg-bg-canvas font-body-md text-text-primary antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-[240px] bg-tertiary z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg pt-space-lg pb-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary text-[20px]">content_cut</span></div><div><span class="block font-heading-h3 text-heading-h3 text-text-on-dark tracking-tight leading-none">SmartBarber</span><span class="block font-caption-sm text-caption-sm text-text-on-dark-muted mt-1 uppercase tracking-wider">Panel Administrativo</span></div></div><div class="mt-space-md w-full h-[1px] bg-bg-dark-elevated"></div></div><nav class="flex flex-col gap-1 px-space-xs mt-space-sm" data-active-classes="bg-bg-dark-elevated text-text-on-dark font-label-ui text-label-ui border-l-[3px] border-accent-on-dark-blue"><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="agenda-y-caja" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span>Agenda y Caja</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="historial-de-cortes" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span>Historial de Cortes</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="barberos-y-horarios" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span>Barberos y Horarios</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="catalogo-de-servicios" href="#"><span class="material-symbols-outlined text-[20px]">style</span><span>Catálogo de Servicios</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="inventario" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">inventory_2</span><span>Inventario</span></div><span class="px-2 py-0.5 rounded-full bg-accent-on-dark-red text-text-primary font-caption-sm text-caption-sm font-bold leading-none">3</span></a></nav></div><div class="p-space-md bg-bg-dark-elevated mx-space-xs mb-space-md rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-sm overflow-hidden"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-label-ui text-label-ui text-text-on-dark truncate">Carlos Mendoza</span><span class="font-caption-sm text-caption-sm text-text-on-dark-muted truncate">Dueño</span></div></div><a class="text-text-on-dark-muted hover:text-text-on-dark p-1 rounded-DEFAULT transition-colors flex items-center justify-center flex-shrink-0" data-path="login" href="#" title="Cerrar sesión"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></aside><div class="pl-[240px]"><header class="fixed top-0 left-[240px] right-0 z-40 bg-bg-canvas/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-space-xl flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md flex-1"><div class="flex items-center gap-space-xs bg-bg-surface px-space-md py-2 rounded-lg text-text-primary"><span class="material-symbols-outlined text-[18px] text-text-secondary">store</span><span class="font-label-ui text-label-ui text-text-primary">Sede Principal · Medellín</span><span class="material-symbols-outlined text-[18px] text-text-secondary">expand_more</span></div><div class="relative max-w-md w-full hidden md:block"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">search</span><input class="w-full h-10 pl-9 pr-4 rounded-lg bg-bg-surface text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Buscar producto, SKU, cliente o barbero..." type="search"/></div></div><div class="flex items-center gap-space-md"><button class="relative p-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden lg:flex flex-col text-left"><span class="font-label-ui text-label-ui text-text-primary leading-tight">Carlos M.</span><span class="font-caption-sm text-caption-sm text-text-secondary leading-tight">Administrador</span></div></div></div></div></header><main class="w-full pt-16 min-h-screen bg-bg-canvas px-space-xl py-space-xl"><div class="flex flex-col w-full relative">
+<!-- SCRIPT FOR MODAL INTERACTION -->
+<script>
+    function closeModal() {
+      const modal = document.getElementById('kardex-modal-overlay');
+      if (modal) {
+        modal.classList.add('hidden');
+      }
+    }
+    function openModal() {
+      const modal = document.getElementById('kardex-modal-overlay');
+      if (modal) {
+        modal.classList.remove('hidden');
+      }
+    }
+  </script>
+<!-- BREADCRUMB & TOP ACTIONS BAR -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-space-md mb-space-lg">
+<div>
+<div class="flex items-center gap-space-xs text-text-muted font-caption-sm text-caption-sm mb-1 uppercase tracking-wider">
+<span>SmartBarber</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span>Inventario</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-text-primary font-semibold">Kardex de Movimientos</span>
+</div>
+<h1 class="font-heading-h1 text-heading-h1 text-text-primary tracking-tight">
+        Historial de Movimientos (Kardex)
+      </h1>
+<p class="font-body-md text-body-md text-text-secondary mt-1">
+        Bitácora inmutable de ingresos, salidas por venta y consumos internos en sede.
+      </p>
+</div>
+<div class="flex items-center gap-space-sm flex-shrink-0">
+<button class="h-11 px-space-lg rounded-[6px] bg-primary-container hover:bg-brand-primary-hover active:scale-[0.98] text-on-primary font-label-ui text-label-ui flex items-center gap-space-xs shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-border-focus focus:ring-offset-2" onclick="openModal()" type="button">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+<span>+ Registrar Entrada / Reposición</span>
+</button>
+</div>
+</div>
+<!-- HERITAGE DOUBLE-RULE DECORATIVE DIVIDER -->
+<div class="w-full mb-space-lg">
+<div class="w-full h-[2px] bg-text-primary"></div>
+<div class="w-full h-[1px] bg-secondary mt-[3px]"></div>
+</div>
+<!-- METRIC KPI SUMMARY STRIP -->
+<div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-space-md mb-space-lg">
+<div class="bg-bg-surface p-space-md rounded-[8px] shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase font-semibold">Movimientos Mes</span>
+<span class="material-symbols-outlined text-[18px] text-text-muted">receipt_long</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-text-primary font-bold">142</span>
+<span class="font-caption-sm text-caption-sm text-status-success-text flex items-center font-medium">
+<span class="material-symbols-outlined text-[14px]">trending_up</span> +12%
+        </span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary mt-1">118 despachos · 24 reposiciones</span>
+</div>
+<div class="bg-bg-surface p-space-md rounded-[8px] shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase font-semibold">Entradas del Período</span>
+<span class="material-symbols-outlined text-[18px] text-status-success-text">arrow_circle_up</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-status-success-text font-bold">+12 <span class="text-sm font-normal text-text-secondary">uds</span></span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary mt-1">Valor reposición: $ 200.000 COP</span>
+</div>
+<div class="bg-bg-surface p-space-md rounded-[8px] shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase font-semibold">Salidas por Venta / Uso</span>
+<span class="material-symbols-outlined text-[18px] text-status-error-text">arrow_circle_down</span>
+</div>
+<div class="mt-2 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-status-error-text font-bold">-4 <span class="text-sm font-normal text-text-secondary">uds</span></span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary mt-1">Total recaudado: $ 63.000 COP</span>
+</div>
+<div class="bg-bg-surface p-space-md rounded-[8px] shadow-sm flex flex-col justify-between">
+<div class="flex items-center justify-between">
+<span class="font-caption-sm text-caption-sm text-text-muted uppercase font-semibold">Certificación Auditoría</span>
+<span class="material-symbols-outlined text-[18px] text-primary-container">verified_user</span>
+</div>
+<div class="mt-2 flex items-center gap-1.5">
+<span class="font-mono-data text-mono-data text-text-primary uppercase tracking-tight">KDX-99.9%</span>
+<span class="px-1.5 py-0.5 rounded bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-bold">OK</span>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-secondary mt-1">Libro cerrado al 20 Nov 2026</span>
+</div>
+</div>
+<!-- FILTER CONTROLS BAR -->
+<div class="bg-bg-surface p-space-md rounded-[8px] shadow-sm mb-space-lg">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md items-center">
+<!-- Selector Producto -->
+<div class="lg:col-span-3 flex flex-col">
+<label class="font-caption-sm text-caption-sm text-text-secondary mb-1 font-semibold uppercase tracking-wide">
+          Producto
+        </label>
+<div class="relative">
+<select class="w-full h-11 pl-3 pr-8 rounded-[6px] bg-bg-input text-text-primary font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus appearance-none cursor-pointer">
+<option>Todos los productos (8)</option>
+<option>Aceite para Barba Cedro 30ml</option>
+<option>Cera Mate Pomade 100g</option>
+<option>Pomada Brillo Clásico 80g</option>
+<option>Shampoo Estimulante Menta 250ml</option>
+<option>Tónico Capilar Fortificante 150ml</option>
+<option>Loción Aftershave Colonia 100ml</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none text-[18px]">
+            expand_more
+          </span>
+</div>
+</div>
+<!-- Selector Tipo de Movimiento Segmented Tabs -->
+<div class="lg:col-span-3 flex flex-col">
+<label class="font-caption-sm text-caption-sm text-text-secondary mb-1 font-semibold uppercase tracking-wide">
+          Tipo de movimiento
+        </label>
+<div class="flex items-center h-11 bg-bg-surface-subtle p-1 rounded-[6px]">
+<button class="flex-1 h-full rounded-[4px] bg-bg-surface text-text-primary font-label-ui text-label-ui shadow-sm flex items-center justify-center transition-all" type="button">
+            Todos
+          </button>
+<button class="flex-1 h-full rounded-[4px] text-text-secondary hover:text-text-primary font-label-ui text-label-ui flex items-center justify-center transition-all" type="button">
+            Entradas
+          </button>
+<button class="flex-1 h-full rounded-[4px] text-text-secondary hover:text-text-primary font-label-ui text-label-ui flex items-center justify-center transition-all" type="button">
+            Salidas
+          </button>
+</div>
+</div>
+<!-- Selector Rango de Fechas -->
+<div class="lg:col-span-3 flex flex-col">
+<label class="font-caption-sm text-caption-sm text-text-secondary mb-1 font-semibold uppercase tracking-wide">
+          Rango de fechas
+        </label>
+<div class="relative">
+<input class="w-full h-11 pl-9 pr-3 rounded-[6px] bg-bg-input text-text-primary font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus cursor-pointer text-ellipsis overflow-hidden whitespace-nowrap" readonly="" type="text" value="Últimos 30 días (21 Oct – 20 Nov 2026)"/>
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none text-[18px]">
+            calendar_month
+          </span>
+</div>
+</div>
+<!-- Buscador y Exportar -->
+<div class="lg:col-span-3 flex flex-col justify-end">
+<label class="font-caption-sm text-caption-sm text-text-secondary mb-1 font-semibold uppercase tracking-wide">
+          Búsqueda rápida
+        </label>
+<div class="flex items-center gap-2">
+<div class="relative flex-1">
+<input class="w-full h-11 pl-8 pr-3 rounded-[6px] bg-bg-input text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Buscar responsable, producto..." type="search"/>
+<span class="material-symbols-outlined absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none text-[16px]">
+              search
+            </span>
+</div>
+<button class="h-11 px-3 rounded-[6px] bg-transparent hover:bg-status-info-bg text-primary-container font-label-ui text-label-ui flex items-center gap-1 transition-all whitespace-nowrap flex-shrink-0" title="Exportar archivo CSV oficial de Kardex" type="button">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span class="hidden xl:inline">Exportar CSV</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- MAIN KARDEX READ-ONLY DATA TABLE CONTAINER -->
+<div class="bg-bg-surface rounded-[8px] shadow-sm overflow-hidden flex flex-col">
+<!-- TABLE HEADER BAR -->
+<div class="px-space-lg py-space-md bg-bg-surface-subtle flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-text-secondary text-[20px]">lock</span>
+<span class="font-label-ui text-label-ui text-text-primary uppercase tracking-wider font-semibold">
+          Registro Oficial de Transacciones · Ledger Inmutable
+        </span>
+</div>
+<div class="flex items-center gap-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-status-info-bg text-status-info-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[13px]">balance</span> Método PEPS / Promedio Ponderado
+        </span>
+<span class="font-mono-data text-caption-sm text-text-secondary">Moneda: COP</span>
+</div>
+</div>
+<!-- RESPONSIVE TABLE WRAPPER -->
+<div class="overflow-x-auto w-full">
+<table class="w-full text-left font-body-md text-body-md text-text-primary">
+<thead>
+<tr class="bg-bg-surface-subtle/70 text-text-secondary font-label-ui text-label-ui uppercase tracking-wider text-[11px] select-none">
+<th class="py-3 px-space-md font-semibold">Fecha / Hora</th>
+<th class="py-3 px-space-md font-semibold">Producto</th>
+<th class="py-3 px-space-md font-semibold">Tipo y Subtipo</th>
+<th class="py-3 px-space-md font-semibold text-right">Cantidad</th>
+<th class="py-3 px-space-md font-semibold text-right">Saldo Resultante</th>
+<th class="py-3 px-space-md font-semibold text-right">Valor Unit. / Venta</th>
+<th class="py-3 px-space-md font-semibold">Responsable</th>
+<th class="py-3 px-space-md font-semibold">Observación</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle/50">
+<!-- FILA 1 -->
+<tr class="hover:bg-bg-surface-subtle/30 transition-colors">
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-semibold tabular-nums">20 Nov · 03:10 PM</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-semibold text-text-primary">Cera Mate Pomade 100g</span>
+<span class="font-mono-data text-[11px] text-text-muted">SKU: CR-MAT-100</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+                Salida · Venta al público
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-status-error-text font-bold tabular-nums">-1</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center justify-end gap-1.5">
+<span class="font-mono-data text-mono-data text-text-primary font-bold tabular-nums">2 uds</span>
+<span class="px-1.5 py-0.2 rounded bg-status-warning-bg text-status-warning-text font-caption-sm text-[10px] font-bold uppercase tracking-tight" title="Mínimo configurado: 3 uds">
+                  Stock bajo
+                </span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary tabular-nums">$ 35.000 COP</span>
+<span class="block font-caption-sm text-[11px] text-text-muted">(Efectivo)</span>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-caption-sm text-[10px] font-bold">M</span>
+<span class="font-medium text-text-primary">Mateo Ríos</span>
+<span class="font-caption-sm text-text-muted text-[12px]">(Sillón 01)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-text-secondary text-caption-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">receipt</span>
+                Asociado a corte #RC-1042
+              </span>
+</td>
+</tr>
+<!-- FILA 2 -->
+<tr class="hover:bg-bg-surface-subtle/30 transition-colors bg-status-error-bg/10">
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-semibold tabular-nums">20 Nov · 11:20 AM</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-semibold text-text-primary">Aceite para Barba Cedro 30ml</span>
+<span class="font-mono-data text-[11px] text-text-muted">SKU: AC-CED-030</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+                Salida · Consumo interno
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-status-error-text font-bold tabular-nums">-1</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<div class="inline-flex items-center justify-end gap-1.5">
+<span class="font-mono-data text-mono-data text-status-error-text font-bold tabular-nums">0 uds</span>
+<span class="px-1.5 py-0.2 rounded bg-status-error-bg text-status-error-text font-caption-sm text-[10px] font-bold uppercase tracking-tight">
+                  Agotado
+                </span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-muted tabular-nums">$ 0 COP</span>
+<span class="block font-caption-sm text-[11px] text-text-muted">(Uso en barbería)</span>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-caption-sm text-[10px] font-bold">J</span>
+<span class="font-medium text-text-primary">Julián Pardo</span>
+<span class="font-caption-sm text-text-muted text-[12px]">(Sillón 02)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-text-secondary text-caption-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">cleaning_services</span>
+                Uso profesional en estación
+              </span>
+</td>
+</tr>
+<!-- FILA 3 -->
+<tr class="hover:bg-bg-surface-subtle/30 transition-colors bg-status-success-bg/10">
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-semibold tabular-nums">18 Nov · 09:05 AM</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-semibold text-text-primary">Pomada Brillo Clásico 80g</span>
+<span class="font-mono-data text-[11px] text-text-muted">SKU: PM-BRI-080</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                Entrada · Compra / Reposición
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-status-success-text font-bold tabular-nums">+10</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-bold tabular-nums">12 uds</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary tabular-nums">$ 20.000 COP</span>
+<span class="block font-caption-sm text-[11px] text-text-muted">(Costo prov.)</span>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-caption-sm text-[10px] font-bold">C</span>
+<span class="font-semibold text-text-primary">Carlos Mendoza</span>
+<span class="font-caption-sm text-status-info-text text-[11px] font-semibold">(Admin)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-text-secondary text-caption-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">feed</span>
+                Factura #412 Proveedor BarbaReal
+              </span>
+</td>
+</tr>
+<!-- FILA 4 -->
+<tr class="hover:bg-bg-surface-subtle/30 transition-colors">
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-semibold tabular-nums">17 Nov · 04:45 PM</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-semibold text-text-primary">Shampoo Estimulante Menta 250ml</span>
+<span class="font-mono-data text-[11px] text-text-muted">SKU: SH-MEN-250</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+                Salida · Venta al público
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-status-error-text font-bold tabular-nums">-1</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-bold tabular-nums">5 uds</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary tabular-nums">$ 28.000 COP</span>
+<span class="block font-caption-sm text-[11px] text-text-muted">(Nequi)</span>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-caption-sm text-[10px] font-bold">A</span>
+<span class="font-medium text-text-primary">Andrés Vega</span>
+<span class="font-caption-sm text-text-muted text-[12px]">(Sillón 03)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-text-secondary text-caption-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">point_of_sale</span>
+                Venta directa en caja
+              </span>
+</td>
+</tr>
+<!-- FILA 5 -->
+<tr class="hover:bg-bg-surface-subtle/30 transition-colors">
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-semibold tabular-nums">15 Nov · 08:30 AM</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-semibold text-text-primary">Tónico Capilar Fortificante 150ml</span>
+<span class="font-mono-data text-[11px] text-text-muted">SKU: TN-CAP-150</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">arrow_upward</span>
+                Entrada · Ajuste positivo
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-status-success-text font-bold tabular-nums">+2</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-bold tabular-nums">4 uds</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-muted tabular-nums">—</span>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-caption-sm text-[10px] font-bold">C</span>
+<span class="font-semibold text-text-primary">Carlos Mendoza</span>
+<span class="font-caption-sm text-status-info-text text-[11px] font-semibold">(Admin)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-text-secondary text-caption-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-text-muted">inventory</span>
+                Ajuste por conteo físico mensual
+              </span>
+</td>
+</tr>
+<!-- FILA 6 -->
+<tr class="hover:bg-bg-surface-subtle/30 transition-colors">
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-semibold tabular-nums">14 Nov · 02:15 PM</span>
+</td>
+<td class="py-3.5 px-space-md">
+<div class="flex flex-col">
+<span class="font-semibold text-text-primary">Loción Aftershave Colonia 100ml</span>
+<span class="font-mono-data text-[11px] text-text-muted">SKU: LC-AFT-100</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-[4px] bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">arrow_downward</span>
+                Salida · Merma / Daño
+              </span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-status-error-text font-bold tabular-nums">-1</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-primary font-bold tabular-nums">3 uds</span>
+</td>
+<td class="py-3.5 px-space-md text-right whitespace-nowrap">
+<span class="font-mono-data text-mono-data text-text-muted tabular-nums">$ 0 COP</span>
+<span class="block font-caption-sm text-[11px] text-text-muted">(Merma justificada)</span>
+</td>
+<td class="py-3.5 px-space-md whitespace-nowrap">
+<div class="flex items-center gap-1.5">
+<span class="w-5 h-5 rounded-full bg-secondary text-on-secondary flex items-center justify-center font-caption-sm text-[10px] font-bold">C</span>
+<span class="font-semibold text-text-primary">Carlos Mendoza</span>
+<span class="font-caption-sm text-status-info-text text-[11px] font-semibold">(Admin)</span>
+</div>
+</td>
+<td class="py-3.5 px-space-md text-text-secondary text-caption-sm">
+<span class="inline-flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-status-error-text">broken_image</span>
+                Frasco averiado en transporte
+              </span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- TABLE FOOTER SUMMARY / INMUTABILITY BADGE -->
+<div class="px-space-lg py-space-md bg-bg-surface-subtle/50 flex flex-col sm:flex-row items-center justify-between gap-space-sm text-caption-sm">
+<div class="flex items-center gap-2 text-text-secondary font-medium">
+<span class="material-symbols-outlined text-[18px] text-status-success-text">verified</span>
+<span>6 movimientos registrados · 2 Entradas (+12 uds) · 4 Salidas (-4 uds) · Registro inmutable certificado.</span>
+</div>
+<div class="flex items-center gap-space-md text-text-muted">
+<span>Mostrando 1 a 6 de 6 entradas</span>
+<div class="flex items-center gap-1">
+<button class="w-8 h-8 rounded flex items-center justify-center bg-bg-surface-subtle text-text-muted cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_left</span>
+</button>
+<span class="w-8 h-8 rounded flex items-center justify-center bg-primary-container text-on-primary font-mono-data text-caption-sm font-bold">1</span>
+<button class="w-8 h-8 rounded flex items-center justify-center bg-bg-surface-subtle text-text-muted cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[16px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- MODAL ELEVATION 3: REGISTRAR ENTRADA / REPOSICIÓN (ABIERTO) -->
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-text-primary/55 backdrop-blur-[2px] p-space-md transition-opacity" id="kardex-modal-overlay">
+<div aria-labelledby="modal-title" aria-modal="true" class="bg-bg-surface w-full max-w-[480px] rounded-[12px] shadow-[0_12px_32px_rgba(28,28,28,0.22)] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-150" role="dialog">
+<!-- MODAL HEADER -->
+<div class="p-space-lg bg-bg-surface flex items-start justify-between">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<div class="w-7 h-7 rounded-[4px] bg-status-success-bg flex items-center justify-center text-status-success-text">
+<span class="material-symbols-outlined text-[18px]">add_business</span>
+</div>
+<h2 class="font-heading-h2 text-heading-h2 text-text-primary tracking-tight" id="modal-title">
+              Registrar Entrada de Inventario
+            </h2>
+</div>
+<p class="font-caption-sm text-caption-sm text-text-secondary">
+            Ingreso de existencias por compra o ajuste positivo de stock
+          </p>
+</div>
+<button class="w-8 h-8 rounded-[6px] hover:bg-bg-surface-subtle text-text-secondary hover:text-text-primary flex items-center justify-center transition-colors" onclick="closeModal()" title="Cerrar ventana" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- MODAL BODY -->
+<form class="p-space-lg flex flex-col gap-space-md" onsubmit="event.preventDefault(); closeModal();">
+<!-- SELECTOR DE PRODUCTO -->
+<div class="flex flex-col">
+<label class="font-label-ui text-label-ui text-text-primary mb-1.5 flex items-center justify-between">
+<span>Producto a ingresar <span class="text-secondary">*</span></span>
+<span class="font-caption-sm text-caption-sm text-text-muted">SKU: AC-CED-030</span>
+</label>
+<div class="relative">
+<select class="w-full h-11 pl-3 pr-8 rounded-[6px] bg-bg-input text-text-primary font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus appearance-none cursor-pointer">
+<option selected="">Aceite para Barba Cedro 30ml</option>
+<option>Cera Mate Pomade 100g</option>
+<option>Pomada Brillo Clásico 80g</option>
+<option>Shampoo Estimulante Menta 250ml</option>
+<option>Tónico Capilar Fortificante 150ml</option>
+<option>Loción Aftershave Colonia 100ml</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-text-secondary pointer-events-none text-[18px]">
+              expand_more
+            </span>
+</div>
+<!-- ALERTA DE STOCK BAJO ACTUAL -->
+<div class="mt-2 flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[16px]">error</span>
+<span class="font-semibold">Stock actual: 0 uds (Agotado) · Mínimo: 3</span>
+</div>
+</div>
+<!-- SUBTIPO CHIPS SELECTOR -->
+<div class="flex flex-col">
+<label class="font-label-ui text-label-ui text-text-primary mb-1.5">
+            Tipo de movimiento <span class="text-secondary">*</span>
+</label>
+<div class="grid grid-cols-2 gap-space-sm">
+<button class="h-11 px-space-md rounded-[6px] bg-primary-container text-on-primary font-label-ui text-label-ui flex items-center justify-center gap-1.5 shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">shopping_cart</span>
+<span>Compra / Reposición</span>
+</button>
+<button class="h-11 px-space-md rounded-[6px] bg-bg-input text-text-secondary hover:text-text-primary font-label-ui text-label-ui flex items-center justify-center gap-1.5 transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">tune</span>
+<span>Ajuste positivo</span>
+</button>
+</div>
+</div>
+<!-- 2 COLUMNAS: CANTIDAD Y COSTO -->
+<div class="grid grid-cols-2 gap-space-md">
+<div class="flex flex-col">
+<label class="font-label-ui text-label-ui text-text-primary mb-1">
+              Cantidad a ingresar <span class="text-secondary">*</span>
+</label>
+<div class="relative">
+<input class="w-full h-11 px-3 rounded-[6px] bg-bg-input text-text-primary font-mono-data text-[16px] font-bold focus:outline-none focus:ring-2 focus:ring-border-focus" min="1" type="number" value="10"/>
+<span class="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted font-caption-sm text-caption-sm uppercase">
+                uds
+              </span>
+</div>
+</div>
+<div class="flex flex-col">
+<label class="font-label-ui text-label-ui text-text-primary mb-1">
+              Costo unitario (COP)
+            </label>
+<input class="w-full h-11 px-3 rounded-[6px] bg-bg-input text-text-primary font-mono-data text-mono-data focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="$ 0 COP" type="text" value="$ 22.000 COP"/>
+</div>
+</div>
+<!-- LIVE PREVIEW BANNER DEL NUEVO SALDO -->
+<div class="bg-status-success-bg p-space-md rounded-[6px] shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-status-success-text text-[20px]">check_circle</span>
+<span class="font-label-ui text-label-ui text-status-success-text font-bold">
+              ✓ Nuevo saldo resultante: 10 unidades
+            </span>
+</div>
+<p class="font-caption-sm text-caption-sm text-status-success-text mt-1 pl-7 leading-relaxed">
+            Impacto: Se resolverá automáticamente la alerta crítica de <strong class="underline decoration-status-success-text/50">"Agotado"</strong> pasando a estado Óptimo en toda la sede.
+          </p>
+</div>
+<!-- OBSERVACIÓN O FACTURA -->
+<div class="flex flex-col">
+<label class="font-label-ui text-label-ui text-text-primary mb-1">
+            Observación o N° Factura
+          </label>
+<input class="w-full h-11 px-3 rounded-[6px] bg-bg-input text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Ej. Factura #, motivo de ajuste..." type="text" value="Reposición proveedor local - Factura #4890"/>
+</div>
+<!-- AUDITORÍA DE INMUTABILIDAD -->
+<div class="flex items-start gap-2 pt-1">
+<span class="material-symbols-outlined text-[16px] text-text-muted mt-0.5">shield</span>
+<p class="font-caption-sm text-caption-sm text-text-muted leading-tight">
+            Este movimiento quedará registrado a nombre de <strong class="text-text-secondary font-semibold">Carlos Mendoza (Administrador)</strong> y afectará de inmediato el saldo disponible.
+          </p>
+</div>
+<!-- MODAL FOOTER BUTTONS -->
+<div class="flex items-center justify-end gap-space-sm pt-space-sm">
+<button class="h-11 px-space-lg rounded-[6px] bg-transparent hover:bg-bg-surface-subtle text-text-secondary font-label-ui text-label-ui transition-colors" onclick="closeModal()" type="button">
+            Cancelar
+          </button>
+<button class="h-11 px-space-xl rounded-[6px] bg-primary-container hover:bg-brand-primary-hover active:scale-[0.98] text-on-primary font-label-ui text-label-ui flex items-center gap-1.5 shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-border-focus focus:ring-offset-2" type="submit">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Confirmar Entrada</span>
+</button>
+</div>
+</form>
+</div>
+</div>
+</div></main></div></body></html>

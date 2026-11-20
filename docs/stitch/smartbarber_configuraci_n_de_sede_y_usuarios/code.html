@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"secondary-fixed":"#ffdad6","on-secondary-fixed":"#410003","tertiary-fixed":"#e5e2e1","surface-container":"#f4eddf","text-muted":"#6B645A","bg-surface":"#FAF7F2","secondary":"#aa3531","surface-container-lowest":"#ffffff","status-info-bg":"#E4ECF5","tertiary-fixed-dim":"#c8c6c5","surface":"#fff9ee","status-neutral-bg":"#E8DFCE","on-primary":"#ffffff","primary-container":"#1f3a5f","status-success-bg":"#E3EFE7","on-primary-container":"#8ba4cf","on-primary-fixed-variant":"#2d476d","status-neutral-text":"#4F4A42","status-success-text":"#235D3A","bg-surface-subtle":"#E8DFCE","inverse-on-surface":"#f7f0e2","text-secondary":"#4F4A42","status-warning-bg":"#FDF1DC","status-error-text":"#B3261E","surface-variant":"#e9e2d4","surface-tint":"#465f86","on-tertiary-fixed-variant":"#474746","brand-primary-hover":"#162B47","accent-on-dark-red":"#E07A7A","on-primary-fixed":"#001c3b","on-tertiary":"#ffffff","border-subtle":"#D5CBB8","status-info-text":"#1F3A5F","accent-on-dark-blue":"#7BA3D4","status-warning-text":"#8A5300","on-tertiary-container":"#a4a3a2","on-secondary-container":"#6f060d","on-error-container":"#93000a","bg-dark-elevated":"#2A2A2A","tertiary-container":"#3a3939","inverse-primary":"#aec8f4","on-tertiary-fixed":"#1b1b1b","error":"#ba1a1a","surface-container-high":"#eee7da","text-primary":"#1C1C1C","primary":"#032448","on-error":"#ffffff","background":"#fff9ee","status-error-bg":"#FCE8E6","on-secondary-fixed-variant":"#891c1d","tertiary":"#242424","text-on-brand":"#FFFFFF","outline":"#74777f","on-secondary":"#ffffff","text-on-dark-muted":"#BDB4A5","border-strong":"#8C8272","bg-canvas":"#F2EBDD","surface-dim":"#e0d9cc","surface-bright":"#fff9ee","on-surface":"#1e1b13","secondary-container":"#fd726a","primary-fixed":"#d5e3ff","primary-fixed-dim":"#aec8f4","surface-container-highest":"#e9e2d4","on-background":"#1e1b13","brand-accent-hover":"#6E1616","error-container":"#ffdad6","border-focus":"#1F3A5F","surface-container-low":"#faf3e5","outline-variant":"#c4c6cf","secondary-fixed-dim":"#ffb3ad","inverse-surface":"#333027","bg-input":"#FFFFFF","text-on-dark":"#F2EBDD","on-surface-variant":"#43474e"},borderRadius:{DEFAULT:"0.125rem",lg:"0.25rem",xl:"0.5rem",full:"0.75rem"},spacing:{"space-xs":"0.25rem","space-xl":"2rem","gutter-mobile":"0.75rem",margin:"2rem","margin-tablet":"1.5rem","gutter-tablet":"1rem","space-lg":"1.5rem","space-sm":"0.5rem","margin-mobile":"1rem",gutter:"1.25rem","space-md":"1rem"},fontFamily:{"body-lg":["Inter"],"kpi-value":["Inter"],"body-md":["Inter"],"heading-h3":["Inter"],"display-hero-mobile":["Playfair Display"],"display-hero":["Playfair Display"],"heading-h1":["Playfair Display"],"label-ui":["Inter"],"heading-h2":["Playfair Display"],"caption-sm":["Inter"],"mono-data":["JetBrains Mono"]},fontSize:{"body-lg":["16px",{lineHeight:"24px",fontWeight:"400"}],"kpi-value":["28px",{lineHeight:"32px",fontWeight:"700"}],"body-md":["14px",{lineHeight:"21px",fontWeight:"400"}],"heading-h3":["18px",{lineHeight:"24px",fontWeight:"600"}],"display-hero-mobile":["32px",{lineHeight:"38px",letterSpacing:"-0.02em",fontWeight:"700"}],"display-hero":["40px",{lineHeight:"46px",letterSpacing:"-0.02em",fontWeight:"700"}],"heading-h1":["28px",{lineHeight:"35px",letterSpacing:"-0.01em",fontWeight:"700"}],"label-ui":["14px",{lineHeight:"17px",fontWeight:"600"}],"heading-h2":["22px",{lineHeight:"29px",fontWeight:"600"}],"caption-sm":["12px",{lineHeight:"16px",letterSpacing:"0.02em",fontWeight:"500"}],"mono-data":["14px",{lineHeight:"17px",fontWeight:"600"}]}}}};</script></head><body class="bg-bg-canvas font-body-md text-text-primary min-h-screen selection:bg-primary-container selection:text-on-primary-container"><aside class="fixed left-0 top-0 h-full w-[240px] bg-tertiary z-50 flex flex-col justify-between py-5 px-3 select-none"><div class="flex flex-col gap-6"><div class="px-2 pt-1 flex items-center gap-3"><div class="w-9 h-9 rounded-xl bg-bg-dark-elevated border border-border-strong flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-accent-on-dark-blue text-[20px]">content_cut</span></div><div class="flex flex-col min-w-0"><span class="font-heading-h2 text-[20px] leading-tight text-text-on-dark tracking-tight truncate">SmartBarber</span><span class="font-caption-sm text-[10px] uppercase tracking-widest text-text-on-dark-muted font-mono-data">Panel Administrativo</span></div></div><div class="h-px w-full bg-border-strong opacity-40"></div><nav class="flex flex-col gap-1" data-active-classes="bg-bg-dark-elevated text-text-on-dark border-l-2 border-accent-on-dark-blue"><a class="group flex items-center h-11 px-3 rounded-lg gap-3 text-text-on-dark-muted hover:text-text-on-dark hover:bg-bg-dark-elevated transition-colors" data-path="agenda-y-turnos" href="#"><span class="material-symbols-outlined text-[20px] text-text-on-dark-muted group-hover:text-accent-on-dark-blue transition-colors">calendar_today</span><span class="font-label-ui text-body-md truncate">Agenda y Turnos</span></a><a class="group flex items-center h-11 px-3 rounded-lg gap-3 text-text-on-dark-muted hover:text-text-on-dark hover:bg-bg-dark-elevated transition-colors" data-path="historial-de-cortes-y-caja" href="#"><span class="material-symbols-outlined text-[20px] text-text-on-dark-muted group-hover:text-accent-on-dark-blue transition-colors">point_of_sale</span><span class="font-label-ui text-body-md truncate">Historial y Caja</span></a><a class="group flex items-center h-11 px-3 rounded-lg gap-3 text-text-on-dark-muted hover:text-text-on-dark hover:bg-bg-dark-elevated transition-colors" data-path="barberos-y-horarios" href="#"><span class="material-symbols-outlined text-[20px] text-text-on-dark-muted group-hover:text-accent-on-dark-blue transition-colors">badge</span><span class="font-label-ui text-body-md truncate">Barberos y Turnos</span></a><a class="group flex items-center justify-between h-11 px-3 rounded-lg text-text-on-dark-muted hover:text-text-on-dark hover:bg-bg-dark-elevated transition-colors" data-path="inventario" href="#"><div class="flex items-center gap-3 min-w-0"><span class="material-symbols-outlined text-[20px] text-text-on-dark-muted group-hover:text-accent-on-dark-blue transition-colors">inventory_2</span><span class="font-label-ui text-body-md truncate">Inventario</span></div><span class="font-mono-data text-[11px] px-1.5 py-0.5 rounded-full bg-secondary text-text-on-brand font-bold">3</span></a><a class="group flex items-center h-11 px-3 rounded-lg gap-3 text-text-on-dark-muted hover:text-text-on-dark hover:bg-bg-dark-elevated transition-colors" data-path="servicios-y-tarifas" href="#"><span class="material-symbols-outlined text-[20px] text-text-on-dark-muted group-hover:text-accent-on-dark-blue transition-colors">receipt_long</span><span class="font-label-ui text-body-md truncate">Servicios y Tarifas</span></a><a aria-current="page" class="group flex items-center h-11 px-3 rounded-lg gap-3 transition-colors bg-bg-dark-elevated text-text-on-dark border-l-2 border-accent-on-dark-blue" data-path="configuracion" href="#"><span class="material-symbols-outlined text-[20px] text-accent-on-dark-blue transition-colors">settings</span><span class="font-label-ui text-body-md truncate">Configuración</span></a></nav></div><div class="flex flex-col gap-3 pt-3 border-t border-border-strong border-opacity-40"><div class="flex items-center justify-between p-2 rounded-lg bg-bg-dark-elevated"><div class="flex items-center gap-2.5 min-w-0"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center shrink-0 border border-border-strong"><span class="material-symbols-outlined text-on-primary text-[16px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-label-ui text-caption-sm text-text-on-dark truncate">Carlos Mendoza</span><span class="font-caption-sm text-[10px] text-text-on-dark-muted truncate">Dueño / Admin</span></div></div><a class="p-1.5 rounded-md text-text-on-dark-muted hover:text-accent-on-dark-red hover:bg-tertiary transition-colors" href="#"><span class="material-symbols-outlined text-[18px]">logout</span></a></div></div></aside><div class="pl-[240px]"><header class="fixed top-0 left-[240px] right-0 h-16 bg-bg-surface/90 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-40 flex items-center justify-between px-8 border-b border-border-subtle"><div class="flex items-center gap-6"><nav aria-label="Breadcrumb" class="flex items-center gap-2 text-body-md"><span class="text-text-muted font-body-md">SmartBarber</span><span class="text-border-strong text-caption-sm">/</span><span class="font-label-ui text-text-primary font-semibold">Configuración</span></nav><div class="h-4 w-px bg-border-subtle hidden md:block"></div><div class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-full bg-status-success-bg text-status-success-text text-caption-sm font-mono-data"><span class="w-1.5 h-1.5 rounded-full bg-status-success-text animate-pulse"></span><span>Sistema en línea • COP</span></div></div><div class="flex items-center gap-4"><div class="relative flex items-center"><span class="material-symbols-outlined absolute left-3 text-text-muted text-[18px]">search</span><input class="w-64 h-9 pl-9 pr-3 text-body-md bg-bg-input rounded-md border border-border-strong placeholder-text-muted text-text-primary focus:outline-none focus:border-border-focus" placeholder="Buscar citas, clientes..." type="text"/></div><button aria-label="Notificaciones" class="relative p-2 rounded-md hover:bg-bg-surface-subtle text-text-secondary transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></button><div class="h-6 w-px bg-border-subtle"></div><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div></div></header><main class="relative pt-16 bg-bg-canvas min-h-screen"><div class="flex flex-col w-full">
+<div class="w-full max-w-[1280px] mx-auto px-8 py-8 flex flex-col gap-6">
+<!-- Encabezado de la página -->
+<section class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-border-subtle">
+<div class="flex flex-col gap-1.5">
+<nav aria-label="Ruta de navegación" class="flex items-center gap-2 font-caption-sm text-caption-sm text-text-muted">
+<span>SmartBarber</span>
+<span>/</span>
+<span>Configuración</span>
+<span>/</span>
+<span class="text-text-primary font-semibold">Identidad y Parámetros</span>
+</nav>
+<h1 class="font-heading-h1 text-heading-h1 text-text-primary tracking-tight">
+          Configuración del Negocio
+        </h1>
+<p class="font-body-md text-body-md text-text-muted">
+          Los cambios de sede se reflejan en el Portal Público (Landing Page) en menos de 2 segundos.
+        </p>
+</div>
+<div class="flex items-center gap-2 self-start md:self-auto shrink-0 px-3 py-1.5 rounded-lg bg-status-neutral-bg text-status-neutral-text border border-border-subtle">
+<span class="material-symbols-outlined text-[16px] text-text-secondary">store</span>
+<span class="font-mono-data text-caption-sm">Sede Única Activa · Versión 1.0</span>
+</div>
+</section>
+<!-- Barra de Pestañas Horizontales -->
+<nav aria-label="Secciones de configuración" class="flex items-center gap-2 border-b border-border-subtle -mt-2">
+<button class="inline-flex items-center gap-2 px-5 py-3 font-label-ui text-label-ui text-primary-container font-semibold border-b-[2.5px] border-primary-container -mb-px transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">domain</span>
+<span>Identidad y Sede (Activa)</span>
+</button>
+<button class="inline-flex items-center gap-2 px-5 py-3 font-label-ui text-label-ui text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">event_note</span>
+<span>Reglas de Agenda</span>
+</button>
+<button class="inline-flex items-center gap-2 px-5 py-3 font-label-ui text-label-ui text-text-muted hover:text-text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-[18px]">group</span>
+<span>Usuarios y Accesos</span>
+<span class="font-mono-data text-[11px] px-1.5 py-0.5 rounded-full bg-status-neutral-bg text-status-neutral-text font-bold">4</span>
+</button>
+</nav>
+<!-- Heritage divider rule -->
+<div class="flex flex-col gap-[3px] -mt-3">
+<div class="w-full h-[2px] bg-text-primary"></div>
+<div class="w-full h-[1px] bg-secondary"></div>
+</div>
+<!-- Grid Principal de 2 Columnas: 60% / 40% -->
+<main class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+<!-- TARJETA 1 (Columna Izquierda, 60% ~ 7 cols de 12) -->
+<article class="lg:col-span-7 bg-bg-surface border border-border-subtle rounded-xl p-6 shadow-sm flex flex-col gap-6">
+<!-- Header de la Tarjeta -->
+<div class="flex items-start gap-3.5 pb-4 border-b border-border-subtle">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[22px]">storefront</span>
+</div>
+<div class="flex flex-col">
+<h2 class="font-heading-h3 text-heading-h3 text-text-primary">Información Pública de la Sede</h2>
+<p class="font-body-md text-body-md text-text-muted">
+              Datos visibles para clientes en la Landing Page móvil y confirmaciones de citas.
+            </p>
+</div>
+</div>
+<!-- Sección Logotipo de Marca -->
+<div class="p-4 rounded-lg bg-surface-container-low border border-border-subtle flex flex-col sm:flex-row items-center gap-5">
+<div class="w-[72px] h-[72px] rounded-lg bg-tertiary border border-border-strong flex flex-col items-center justify-center text-text-on-dark shrink-0 relative overflow-hidden shadow-inner">
+<span class="material-symbols-outlined text-[32px] text-accent-on-dark-blue">content_cut</span>
+<span class="font-mono-data text-[9px] tracking-wider uppercase text-text-on-dark-muted mt-0.5">EST. 2018</span>
+</div>
+<div class="flex flex-col flex-1 min-w-0 text-center sm:text-left gap-1">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold">Logotipo comercial de la barbería</span>
+<span class="font-caption-sm text-caption-sm text-text-muted">Formato vectorial SVG o PNG transparente (proporción 1:1, máx. 2MB).</span>
+<div class="pt-1">
+<button class="h-9 px-4 inline-flex items-center gap-2 rounded-lg border-[1.5px] border-primary-container text-primary-container hover:bg-status-info-bg transition-colors font-label-ui text-[13px] font-semibold active:scale-[0.99]" type="button">
+<span class="material-symbols-outlined text-[16px]">upload</span>
+<span>Cambiar logo</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Formulario de Campos de Sede -->
+<form class="grid grid-cols-1 sm:grid-cols-2 gap-4" onsubmit="event.preventDefault();">
+<!-- Nombre comercial -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-ui text-label-ui text-text-primary" for="shop-name">
+              Nombre comercial <span class="text-secondary font-bold">*</span>
+</label>
+<input class="h-11 px-3.5 bg-bg-input text-text-primary font-body-md text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-name" type="text" value="SmartBarber"/>
+</div>
+<!-- Eslogan del negocio -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-ui text-label-ui text-text-primary" for="shop-tagline">
+              Eslogan del negocio
+            </label>
+<input class="h-11 px-3.5 bg-bg-input text-text-primary font-body-md text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-tagline" type="text" value="El oficio clásico del buen corte"/>
+</div>
+<!-- Dirección física de atención (Fila Completa) -->
+<div class="flex flex-col gap-1.5 sm:col-span-2">
+<label class="font-label-ui text-label-ui text-text-primary" for="shop-address">
+              Dirección física de atención <span class="text-secondary font-bold">*</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-muted text-[18px]">location_on</span>
+<input class="w-full h-11 pl-10 pr-3.5 bg-bg-input text-text-primary font-body-md text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-address" type="text" value="Cra. 11 # 19-45, Centro Histórico, Tunja, Boyacá"/>
+</div>
+</div>
+<!-- Enlace Google Maps -->
+<div class="flex flex-col gap-1.5 sm:col-span-2">
+<label class="font-label-ui text-label-ui text-text-primary flex items-center justify-between" for="shop-maps">
+<span>Enlace Google Maps / Ubicación georreferenciada</span>
+<a class="font-caption-sm text-caption-sm text-primary-container hover:underline inline-flex items-center gap-0.5" href="https://maps.google.com/?q=Cra+11+19-45+Tunja" rel="noopener noreferrer" target="_blank">
+<span>Abrir mapa</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</a>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-muted text-[18px]">map</span>
+<input class="w-full h-11 pl-10 pr-3.5 bg-bg-input text-text-primary font-mono-data text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-maps" type="url" value="https://maps.google.com/?q=Cra+11+19-45+Tunja"/>
+</div>
+</div>
+<!-- Teléfono / WhatsApp -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-ui text-label-ui text-text-primary" for="shop-phone">
+              Teléfono / WhatsApp de contacto <span class="text-secondary font-bold">*</span>
+</label>
+<div class="flex items-center">
+<span class="h-11 px-3 bg-status-neutral-bg border border-r-0 border-border-strong rounded-l-lg font-mono-data text-body-md text-status-neutral-text flex items-center shrink-0">
+                +57
+              </span>
+<input class="w-full h-11 px-3 bg-bg-input text-text-primary font-mono-data text-body-md border border-border-strong rounded-r-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-phone" type="tel" value="312 458 9210"/>
+</div>
+</div>
+<!-- Correo electrónico oficial -->
+<div class="flex flex-col gap-1.5">
+<label class="font-label-ui text-label-ui text-text-primary" for="shop-email">
+              Correo electrónico oficial
+            </label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-muted text-[18px]">mail</span>
+<input class="w-full h-11 pl-10 pr-3.5 bg-bg-input text-text-primary font-body-md text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-email" type="email" value="contacto@smartbarber.co"/>
+</div>
+</div>
+<!-- Texto de horario general -->
+<div class="flex flex-col gap-1.5 sm:col-span-2">
+<label class="font-label-ui text-label-ui text-text-primary" for="shop-hours">
+              Texto de horario general (visible en footer de la Landing)
+            </label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-muted text-[18px]">schedule</span>
+<input class="w-full h-11 pl-10 pr-3.5 bg-bg-input text-text-primary font-body-md text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-hours" type="text" value="Lun–Sáb 9:00 AM – 7:00 PM · Dom cerrado"/>
+</div>
+</div>
+<!-- URL Política de Datos Personales (Ley 1581) -->
+<div class="flex flex-col gap-1.5 sm:col-span-2">
+<label class="font-label-ui text-label-ui text-text-primary flex items-center gap-1.5" for="shop-habeas">
+<span>URL Política de Tratamiento de Datos (Ley 1581 de 2012)</span>
+<span class="font-caption-sm text-[11px] text-text-muted">(Colombia)</span>
+</label>
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3.5 text-text-muted text-[18px]">policy</span>
+<input class="w-full h-11 pl-10 pr-3.5 bg-bg-input text-text-primary font-mono-data text-caption-sm border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 transition-all" id="shop-habeas" type="url" value="https://smartbarber.co/politica-tratamiento-datos"/>
+</div>
+</div>
+</form>
+<!-- Sello de Sincronización Automática al pie -->
+<div class="mt-2 p-3.5 rounded-lg bg-status-success-bg/70 border border-status-success-text/20 flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px] text-status-success-text shrink-0" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<p class="font-body-md text-body-md text-status-success-text">
+            Sincronización automática con la cabecera, mapa interactivo y pie de página de la Landing móvil.
+          </p>
+</div>
+</article>
+<!-- TARJETA 2 (Columna Derecha, 40% ~ 5 cols de 12) -->
+<aside class="lg:col-span-5 flex flex-col gap-6">
+<article class="bg-bg-surface border border-border-subtle rounded-xl p-6 shadow-sm flex flex-col gap-5">
+<!-- Header de Tarjeta 2 -->
+<div class="flex items-start gap-3.5 pb-4 border-b border-border-subtle">
+<div class="w-10 h-10 rounded-lg bg-primary-container text-on-primary flex items-center justify-center shrink-0 shadow-sm">
+<span class="material-symbols-outlined text-[22px]">tune</span>
+</div>
+<div class="flex flex-col">
+<h2 class="font-heading-h3 text-heading-h3 text-text-primary">Parámetros de Agendamiento Público</h2>
+<p class="font-body-md text-body-md text-text-muted">
+                Reglas operativas del motor de reservas en tiempo real.
+              </p>
+</div>
+</div>
+<!-- Parámetro 1: Estado inicial de citas -->
+<div class="flex flex-col gap-2.5">
+<span class="font-label-ui text-label-ui text-text-primary">
+              Estado inicial de citas agendadas desde Landing
+            </span>
+<div class="flex flex-col gap-2.5" id="booking-state-options">
+<!-- Opción 1: Pendiente (Seleccionada) -->
+<label class="relative flex items-start gap-3 p-3.5 rounded-lg border-2 border-primary-container bg-status-info-bg/40 cursor-pointer transition-all">
+<input checked="" class="mt-1 text-primary-container focus:ring-0" name="booking-initial-state" type="radio" value="pendiente"/>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold">Validación Previa Requerida</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption-sm font-label-ui bg-status-warning-bg text-status-warning-text border border-status-warning-text/30">
+<span class="material-symbols-outlined text-[13px]">schedule</span>
+<span>Pendiente</span>
+</span>
+</div>
+<span class="font-body-md text-caption-sm text-text-secondary">
+                    Requiere confirmación telefónica o aprobación manual en la Agenda diaria antes de fijar el turno.
+                  </span>
+</div>
+</label>
+<!-- Opción 2: Confirmada -->
+<label class="relative flex items-start gap-3 p-3.5 rounded-lg border border-border-strong bg-bg-surface hover:bg-surface-container-low cursor-pointer transition-all">
+<input class="mt-1 text-primary-container focus:ring-0" name="booking-initial-state" type="radio" value="confirmada"/>
+<div class="flex flex-col gap-1 min-w-0">
+<div class="flex items-center gap-2">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold">Reserva Directa</span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-caption-sm font-label-ui bg-status-info-bg text-status-info-text border border-status-info-text/30">
+<span class="material-symbols-outlined text-[13px]">done_all</span>
+<span>Confirmada</span>
+</span>
+</div>
+<span class="font-body-md text-caption-sm text-text-muted">
+                    Se bloquea el sillón y bloque de tiempo automáticamente en la agenda sin validación previa.
+                  </span>
+</div>
+</label>
+</div>
+</div>
+<!-- Parámetro 2: Horizonte máximo de reserva -->
+<div class="flex flex-col gap-1.5 pt-1">
+<div class="flex items-center justify-between">
+<label class="font-label-ui text-label-ui text-text-primary" for="reservation-horizon">
+                Horizonte máximo de reserva anticipada
+              </label>
+<span class="font-mono-data text-caption-sm text-text-muted">Máx. 60 días</span>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative flex items-center w-36">
+<input class="w-full h-11 pl-3.5 pr-12 bg-bg-input text-text-primary font-mono-data text-body-md border border-border-strong rounded-lg focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-primary-container/20 text-left tabular-nums" id="reservation-horizon" max="60" min="7" type="number" value="30"/>
+<span class="absolute right-3.5 font-label-ui text-caption-sm text-text-muted pointer-events-none">días</span>
+</div>
+<div class="flex items-center gap-1.5">
+<button aria-label="Disminuir horizonte de reserva" class="w-9 h-9 rounded-md border border-border-strong bg-bg-input hover:bg-status-neutral-bg flex items-center justify-center text-text-primary active:scale-95 transition-all" id="btn-decrease-horizon" type="button">
+<span class="material-symbols-outlined text-[18px]">remove</span>
+</button>
+<button aria-label="Aumentar horizonte de reserva" class="w-9 h-9 rounded-md border border-border-strong bg-bg-input hover:bg-status-neutral-bg flex items-center justify-center text-text-primary active:scale-95 transition-all" id="btn-increase-horizon" type="button">
+<span class="material-symbols-outlined text-[18px]">add</span>
+</button>
+</div>
+</div>
+<span class="font-caption-sm text-caption-sm text-text-muted">
+              Rango permitido: 7 a 60 días en el selector de calendario del cliente.
+            </span>
+</div>
+<!-- Fila de Parámetros Técnicos (Read-only) -->
+<div class="pt-2 border-t border-border-subtle grid grid-cols-1 sm:grid-cols-2 gap-3">
+<div class="flex flex-col gap-1">
+<span class="font-caption-sm text-caption-sm text-text-muted font-medium">Antelación mínima</span>
+<div class="h-10 px-3 rounded-lg bg-status-neutral-bg text-status-neutral-text border border-border-subtle flex items-center gap-2 select-none">
+<span class="material-symbols-outlined text-[16px] text-text-muted">hourglass_bottom</span>
+<span class="font-mono-data text-caption-sm truncate">30 min (1 bloque)</span>
+</div>
+</div>
+<div class="flex flex-col gap-1">
+<span class="font-caption-sm text-caption-sm text-text-muted font-medium">Zona horaria oficial</span>
+<div class="h-10 px-3 rounded-lg bg-status-neutral-bg text-status-neutral-text border border-border-subtle flex items-center gap-2 select-none">
+<span class="material-symbols-outlined text-[16px] text-text-muted">public</span>
+<span class="font-mono-data text-caption-sm truncate">Bogota (UTC-5)</span>
+</div>
+</div>
+</div>
+<!-- Bloque Resumen RBAC -->
+<div class="mt-1 p-4 rounded-lg bg-bg-surface-subtle/50 border border-dashed border-border-strong flex flex-col gap-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-primary-container">shield_person</span>
+<span class="font-label-ui text-label-ui text-text-primary font-semibold">Usuarios y Roles Activos</span>
+</div>
+<span class="font-mono-data text-caption-sm px-2 py-0.5 rounded bg-bg-surface border border-border-subtle font-semibold">
+                4 activos
+              </span>
+</div>
+<ul class="flex flex-col gap-2 font-body-md text-caption-sm text-text-secondary">
+<li class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-status-success-text"></span>
+<span><strong>1 Administrador general:</strong> Carlos Mendoza (acceso total a caja, turnos y ajustes)</span>
+</li>
+<li class="flex items-center gap-2">
+<span class="w-1.5 h-1.5 rounded-full bg-accent-on-dark-blue"></span>
+<span><strong>3 Barberos de planta:</strong> Mateo Ríos, Julián Pardo, Andrés Vega (agenda propia)</span>
+</li>
+</ul>
+<div class="pt-2 border-t border-border-subtle">
+<a class="inline-flex items-center gap-1.5 font-label-ui text-caption-sm text-primary-container font-semibold hover:text-brand-primary-hover hover:underline transition-colors group" href="#">
+<span>Administrar usuarios, contraseñas y permisos</span>
+<span class="material-symbols-outlined text-[16px] group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</a>
+</div>
+</div>
+</article>
+<!-- Indicador de auditoría ligera -->
+<div class="px-4 py-3 rounded-lg bg-surface-container-low border border-border-subtle flex items-center gap-3">
+<span class="material-symbols-outlined text-text-muted text-[18px]">verified_user</span>
+<span class="font-caption-sm text-caption-sm text-text-muted">
+            Configuración auditada y respaldada en servidor local sincronizado cada 15 minutos.
+          </span>
+</div>
+</aside>
+</main>
+<!-- Barra Inferior de Guardado -->
+<footer class="mt-4 pt-4 pb-6 border-t border-border-subtle flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-2.5 text-text-muted">
+<span class="material-symbols-outlined text-[18px]">history</span>
+<span class="font-body-md text-body-md">
+          Última modificación guardada: <strong class="text-text-primary font-medium">Hoy, 10:45 AM</strong> por <span class="font-semibold text-primary-container">Carlos Mendoza (Admin)</span>
+</span>
+</div>
+<div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+<button class="h-11 px-5 rounded-lg border-[1.5px] border-primary-container text-primary-container hover:bg-status-info-bg transition-colors font-label-ui text-label-ui font-semibold active:scale-[0.99]" id="btn-discard" type="button">
+          Descartar cambios
+        </button>
+<button class="h-11 px-7 rounded-lg bg-primary-container text-on-primary hover:bg-brand-primary-hover transition-colors font-label-ui text-label-ui font-semibold shadow-sm inline-flex items-center gap-2 active:scale-[0.99]" id="btn-save" type="button">
+<span class="material-symbols-outlined text-[18px]">save</span>
+<span>Guardar Configuración</span>
+</button>
+</div>
+</footer>
+</div>
+</div>
+<script>
+  // Micro-interacción: controles de horizonte de reserva
+  const horizonInput = document.getElementById('reservation-horizon');
+  const btnInc = document.getElementById('btn-increase-horizon');
+  const btnDec = document.getElementById('btn-decrease-horizon');
+
+  if (horizonInput && btnInc && btnDec) {
+    btnInc.addEventListener('click', () => {
+      let val = parseInt(horizonInput.value, 10) || 30;
+      if (val < 60) horizonInput.value = val + 1;
+    });
+    btnDec.addEventListener('click', () => {
+      let val = parseInt(horizonInput.value, 10) || 30;
+      if (val > 7) horizonInput.value = val - 1;
+    });
+  }
+
+  // Micro-interacción: cambio dinámico de estilo en selector de estado de citas
+  const radioOptions = document.querySelectorAll('input[name="booking-initial-state"]');
+  radioOptions.forEach(radio => {
+    radio.addEventListener('change', () => {
+      radioOptions.forEach(r => {
+        const parentLabel = r.closest('label');
+        if (r.checked) {
+          parentLabel.classList.add('border-2', 'border-primary-container', 'bg-status-info-bg/40');
+          parentLabel.classList.remove('border-border-strong', 'bg-bg-surface');
+        } else {
+          parentLabel.classList.remove('border-2', 'border-primary-container', 'bg-status-info-bg/40');
+          parentLabel.classList.add('border', 'border-border-strong', 'bg-bg-surface');
+        }
+      });
+    });
+  });
+
+  // Notificación táctil al guardar
+  const btnSave = document.getElementById('btn-save');
+  if (btnSave) {
+    btnSave.addEventListener('click', () => {
+      const originalText = btnSave.innerHTML;
+      btnSave.disabled = true;
+      btnSave.innerHTML = `<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span><span>Guardando...</span>`;
+      setTimeout(() => {
+        btnSave.innerHTML = `<span class="material-symbols-outlined text-[18px]" style="font-variation-settings: 'FILL' 1;">check</span><span>¡Guardado con éxito!</span>`;
+        btnSave.classList.replace('bg-primary-container', 'bg-status-success-text');
+        setTimeout(() => {
+          btnSave.innerHTML = originalText;
+          btnSave.classList.replace('bg-status-success-text', 'bg-primary-container');
+          btnSave.disabled = false;
+        }, 2200);
+      }, 700);
+    });
+  }
+</script></main></div></body></html>

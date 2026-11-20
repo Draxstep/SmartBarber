@@ -6,6 +6,7 @@ import { ProductoInventario } from '../domain/ProductoInventario.js';
 import { InventarioPgRepository } from '../repositories/InventarioPgRepository.js';
 import { runTransaction } from '../../../shared/database/transaction.js';
 import { NotFoundError, ValidationError, ForbiddenError } from '../../../shared/errors/domainErrors.js';
+import { pushService } from '../../../services/push.service.js';
 
 export class InventarioService {
   constructor(inventarioRepo = null) {
@@ -131,7 +132,7 @@ export class InventarioService {
       precioUnitarioCop = producto.precioVentaCop;
     }
 
-    return await this.inventarioRepo.registrarMovimiento({
+    const resultado = await this.inventarioRepo.registrarMovimiento({
       sedeId: user.sedeId,
       productoId,
       tipo: 'salida',
@@ -143,6 +144,21 @@ export class InventarioService {
       observacion: dto.observacion || null,
       usuarioId: user.id
     });
+
+    // Disparar Notificación Push VAPID si el producto queda en Stock bajo o Agotado (RN-11 / CU-018)
+    if (resultado?.producto && resultado.producto.stockActual <= resultado.producto.stockMinimo) {
+      pushService
+        .notificarAlertaInventario({
+          productoId: resultado.producto.productoId,
+          nombre: resultado.producto.nombre,
+          stockActual: resultado.producto.stockActual,
+          stockMinimo: resultado.producto.stockMinimo,
+          agotado: resultado.producto.stockActual === 0
+        })
+        .catch((err) => console.error('Error al despachar Push de alerta de inventario:', err));
+    }
+
+    return resultado;
   }
 
   async getKardex(productoId) {

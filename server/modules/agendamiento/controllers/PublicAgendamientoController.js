@@ -92,4 +92,18 @@ export class PublicAgendamientoController {
       next(error);
     }
   };
+
+  /**
+   * Cancelación en línea por parte del cliente con código único (RF-AGE-06).
+   */
+  cancelarReserva = async (req, res, next) => {
+    try {
+      const { codigo } = req.params;
+      const { motivo } = req.body || {};
+      const resultado = await this.citaService.cancelarReservaPublica(codigo, motivo);
+      return sendSuccess(res, resultado, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
 }
