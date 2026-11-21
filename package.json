@@ -13,6 +13,7 @@
     "heroku-postbuild": "npm run build",
     "dev:server": "node server/server.js",
     "db:migrate": "node server/database/migrator.js",
+    "db:clean": "node server/database/truncate.js",
     "db:seed": "node server/database/seed.js",
     "db:seed:prod": "node server/database/seed-prod.js",
     "db:smoke": "node server/scripts/smoke-test.js",
