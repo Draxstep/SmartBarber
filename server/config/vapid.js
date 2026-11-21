@@ -15,7 +15,15 @@ const VAPID_FILE = path.join(__dirname, '..', 'claves-vapid.json');
 
 let vapidKeys;
 
-if (fs.existsSync(VAPID_FILE)) {
+// 1. Prioridad: Variables de entorno en producción (ej. Heroku Config Vars)
+if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
+  vapidKeys = {
+    publicKey: process.env.VAPID_PUBLIC_KEY.trim(),
+    privateKey: process.env.VAPID_PRIVATE_KEY.trim()
+  };
+  console.log('🔑 Claves VAPID cargadas exitosamente desde variables de entorno.');
+} else if (fs.existsSync(VAPID_FILE)) {
+  // 2. Archivo local server/claves-vapid.json (desarrollo local)
   try {
     const raw = fs.readFileSync(VAPID_FILE, 'utf-8');
     vapidKeys = JSON.parse(raw);
@@ -25,10 +33,14 @@ if (fs.existsSync(VAPID_FILE)) {
 }
 
 if (!vapidKeys || !vapidKeys.publicKey || !vapidKeys.privateKey) {
-  // Generar nuevas claves VAPID
+  // 3. Fallback: Generar nuevas claves VAPID y guardar si el sistema de archivos lo permite
   vapidKeys = webpush.generateVAPIDKeys();
-  fs.writeFileSync(VAPID_FILE, JSON.stringify(vapidKeys, null, 2), 'utf-8');
-  console.log('🔑 Nuevas claves VAPID generadas en server/claves-vapid.json');
+  try {
+    fs.writeFileSync(VAPID_FILE, JSON.stringify(vapidKeys, null, 2), 'utf-8');
+    console.log('🔑 Nuevas claves VAPID generadas en server/claves-vapid.json');
+  } catch (_) {
+    console.log('🔑 Claves VAPID generadas en memoria para la sesión activa.');
+  }
 }
 
 const contactSubject = env.VAPID_SUBJECT || 'mailto:soporte@smartbarber.co';
