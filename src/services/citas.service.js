@@ -13,18 +13,24 @@ export const citasService = {
    * Conecta con /api/v1/public/disponibilidad.
    */
   async getDisponibilidad({ fecha, barberoId, duracionBloques = 1, servicioIds, duracionMinutos } = {}) {
-    const bloques = duracionBloques || (duracionMinutos ? Math.ceil(duracionMinutos / 30) : 1);
+    const rawBloques = Number(duracionBloques) || (duracionMinutos ? Math.ceil(duracionMinutos / 30) : 1);
+    const bloques = Math.max(1, rawBloques);
+    const hoyBogota = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0];
     const query = new URLSearchParams({
-      fecha: fecha || new Date().toISOString().split('T')[0],
+      fecha: fecha || hoyBogota,
       duracionBloques: bloques
     });
 
-    if (barberoId && barberoId !== 'any' && barberoId !== 'cualquiera') {
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (barberoId && barberoId !== 'any' && barberoId !== 'cualquiera' && uuidRegex.test(barberoId)) {
       query.append('barberoId', barberoId);
     }
     if (servicioIds) {
-      const idsStr = Array.isArray(servicioIds) ? servicioIds.join(',') : servicioIds;
-      query.append('servicioIds', idsStr);
+      const rawList = Array.isArray(servicioIds) ? servicioIds : String(servicioIds).split(',');
+      const validIds = rawList.map(id => String(id).trim()).filter(id => uuidRegex.test(id));
+      if (validIds.length > 0) {
+        query.append('servicioIds', validIds.join(','));
+      }
     }
 
     const response = await httpClient.get(`/public/disponibilidad?${query.toString()}`);

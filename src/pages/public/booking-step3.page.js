@@ -60,16 +60,21 @@ export function renderBookingStep3() {
   const currentDate = bookingStore.state.selectedDate;
   const currentTime = bookingStore.state.selectedTime; // null por defecto
 
-  const servicesSummaryText = services.map(s => s.nombre).join(' + ') || 'Servicios Seleccionados';
+  const servicesSummaryText = services.length > 0
+    ? services.map(s => s.nombre).join(' + ')
+    : 'Sin servicios seleccionados';
+  const durationText = totalDuration > 0
+    ? formatDurationBlocks(totalDuration)
+    : 'Pendiente de selección';
 
   return `
     <div class="flex flex-col gap-6">
       <div class="flex flex-col gap-1">
-        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C]">
+        <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C] scroll-mt-32">
           3. Elige el Día y la Hora
         </h2>
         <p class="font-sans text-xs sm:text-sm text-[#4F4A42]">
-          Duración total: <strong>${formatDurationBlocks(totalDuration)}</strong>
+          Duración total: <strong>${durationText}</strong>
         </p>
       </div>
 
@@ -257,6 +262,39 @@ export function attachStep3Listeners(onNavigate) {
   async function refreshSlots() {
     if (!container) return;
 
+    const date = bookingStore.state.selectedDate;
+    const barber = bookingStore.getSelectedBarber();
+    const barberId = barber?.id === 'any' ? null : barber?.id;
+    const blocks = bookingStore.getTotalBlocks();
+    const serviceIds = (bookingStore.state.selectedServiceIds || []).filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+
+    // Validación previa: Si no hay servicios o la duración es menor a 1 bloque, pausar y guiar al usuario
+    if (blocks < 1 || serviceIds.length === 0) {
+      if (statusText) statusText.textContent = 'Selecciona servicios para ver horarios';
+      updateContinueButtonUI(null);
+      container.innerHTML = `
+        <div class="col-span-full py-8 px-4 bg-[#FAF7F2] rounded-xl border border-[#D5CBB8] text-center flex flex-col items-center gap-2.5">
+          <span class="material-symbols-outlined text-[32px] text-[#1F3A5F]">content_cut</span>
+          <p class="font-sans font-bold text-sm text-[#1C1C1C]">No has seleccionado ningún servicio</p>
+          <p class="font-sans text-xs text-[#6B645A] max-w-sm">
+            Para calcular los turnos continuos disponibles es necesario elegir al menos un servicio en el Paso 1.
+          </p>
+          <button type="button" id="btn-go-step1" class="mt-1 min-h-[40px] px-4 py-2 rounded-md bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-colors shadow-xs">
+            <span class="material-symbols-outlined text-[16px]">arrow_back</span>
+            <span>Elegir Servicios</span>
+          </button>
+        </div>
+      `;
+      const btnGo = document.getElementById('btn-go-step1');
+      if (btnGo) {
+        btnGo.addEventListener('click', () => {
+          bookingStore.setStep(1);
+          onNavigate(1);
+        });
+      }
+      return;
+    }
+
     if (statusText) statusText.textContent = 'Consultando disponibilidad en vivo...';
 
     // Skeleton o indicador de carga
@@ -266,12 +304,6 @@ export function attachStep3Listeners(onNavigate) {
         <span class="font-sans text-xs font-medium">Verificando turnos disponibles en tiempo real...</span>
       </div>
     `;
-
-    const date = bookingStore.state.selectedDate;
-    const barber = bookingStore.getSelectedBarber();
-    const barberId = barber?.id === 'any' ? null : barber?.id;
-    const blocks = bookingStore.getTotalBlocks();
-    const serviceIds = bookingStore.state.selectedServiceIds;
 
     try {
       const res = await citasService.getDisponibilidad({

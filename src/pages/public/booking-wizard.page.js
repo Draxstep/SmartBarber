@@ -14,8 +14,18 @@ import { renderBookingStep5, attachStep5Listeners } from './booking-step5.page.j
 export function renderBookingWizard() {
   let currentStep = bookingStore.state.currentStep;
 
-  // Guardia defensiva: Si se intenta ver paso 4 sin haber elegido fecha y hora válida, retornar a paso 3
-  if (currentStep === 4 && (!bookingStore.state.selectedTime || !bookingStore.state.selectedDate)) {
+  // Guardia 1: Si no hay servicios seleccionados y estamos en paso > 1, volver al paso 1
+  if (currentStep > 1 && (!bookingStore.state.selectedServiceIds || bookingStore.state.selectedServiceIds.length === 0)) {
+    bookingStore.setStep(1);
+    currentStep = 1;
+  }
+  // Guardia 2: Si estamos en paso 3 y no hay barbero asignado, volver al paso 2
+  else if (currentStep === 3 && !bookingStore.state.selectedBarberId) {
+    bookingStore.setStep(2);
+    currentStep = 2;
+  }
+  // Guardia 3: Si se intenta ver paso 4 sin haber elegido fecha y hora válida, retornar a paso 3
+  else if (currentStep === 4 && (!bookingStore.state.selectedTime || !bookingStore.state.selectedDate)) {
     bookingStore.setStep(3);
     currentStep = 3;
   }
@@ -69,8 +79,8 @@ export function renderBookingWizard() {
       <!-- STEPPER HORIZONTAL -->
       ${renderBookingStepper(currentStep)}
 
-      <!-- CONTENEDOR CENTRAL DEL PASO ACTUAL -->
-      <main class="max-w-[680px] mx-auto w-full px-4 py-6" id="wizard-step-container">
+      <!-- CONTENEDOR CENTRAL DEL PASO ACTUAL (scroll-mt-32 para compensar header sticky de 118px) -->
+      <main class="max-w-[680px] mx-auto w-full px-4 pt-6 pb-8 scroll-mt-32" id="wizard-step-container">
         ${stepContent}
       </main>
     </div>
@@ -93,6 +103,8 @@ export function attachWizardListeners(onStepChange) {
       return;
     }
     bookingStore.setStep(step);
+    // Garantizar que cada paso inicie desde la parte superior de la pantalla
+    window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     if (typeof onStepChange === 'function') {
       onStepChange();
     }

@@ -14,7 +14,18 @@ class BookingStateStore {
     this.barbersCatalog = [];
     this.isInitialized = false;
     this.state = this.loadState();
-    this.init();
+    this.initPromise = this.init();
+  }
+
+  async ensureInitialized() {
+    if (this.isInitialized && this.servicesCatalog.length > 0) return;
+    await this.initPromise;
+  }
+
+  getTodayBogota() {
+    const nowUtc = new Date();
+    const nowBogota = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000);
+    return nowBogota.toISOString().slice(0, 10);
   }
 
   async init() {
@@ -27,8 +38,9 @@ class BookingStateStore {
       if (srvRes?.ok && Array.isArray(srvRes.data) && srvRes.data.length > 0) {
         this.servicesCatalog = srvRes.data;
         const validIds = this.servicesCatalog.map(s => s.id);
-        const hasValid = this.state.selectedServiceIds.some(id => validIds.includes(id));
-        if (!hasValid && this.servicesCatalog[0]) {
+        // Filtrar y conservar solo IDs reales que existan en el catálogo
+        this.state.selectedServiceIds = (this.state.selectedServiceIds || []).filter(id => validIds.includes(id));
+        if (this.state.selectedServiceIds.length === 0 && this.servicesCatalog[0]) {
           this.state.selectedServiceIds = [this.servicesCatalog[0].id];
           this.save();
         }
@@ -52,19 +64,33 @@ class BookingStateStore {
   }
 
   loadState() {
+    const today = this.getTodayBogota();
     try {
       const stored = sessionStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') {
+          // Si la fecha guardada quedó en el pasado, actualizar a hoy
+          if (!parsed.selectedDate || parsed.selectedDate < today) {
+            parsed.selectedDate = today;
+            parsed.selectedTime = null;
+          }
+          // Sanitizar formato UUID para evitar errores SQL en PostgreSQL (ej. 'serv-01')
+          const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+          if (Array.isArray(parsed.selectedServiceIds)) {
+            parsed.selectedServiceIds = parsed.selectedServiceIds.filter(id => uuidRegex.test(id));
+          } else {
+            parsed.selectedServiceIds = [];
+          }
+          return parsed;
+        }
       }
     } catch (_) {}
     return this.getInitialState();
   }
 
   getInitialState() {
-    const nowUtc = new Date();
-    const nowBogota = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000);
-    const today = nowBogota.toISOString().slice(0, 10);
+    const today = this.getTodayBogota();
     return {
       currentStep: 1,
       selectedServiceIds: [],

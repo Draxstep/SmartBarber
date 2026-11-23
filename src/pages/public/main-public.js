@@ -41,6 +41,9 @@ export async function renderApp() {
   const route = getRoute();
 
   if (route === 'wizard') {
+    if (!bookingStore.isInitialized || bookingStore.servicesCatalog.length === 0) {
+      await bookingStore.ensureInitialized();
+    }
     appRoot.innerHTML = renderBookingWizard();
     attachWizardListeners(() => renderApp());
   } else if (route === 'consultar') {

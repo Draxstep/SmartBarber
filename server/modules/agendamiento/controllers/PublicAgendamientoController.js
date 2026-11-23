@@ -29,12 +29,15 @@ export class PublicAgendamientoController {
     try {
       const { fecha, barberoId, sedeId, duracionBloques, servicioIds } = req.query;
 
-      let bloques = Number(duracionBloques) || 1;
-      if (servicioIds) {
-        const ids = servicioIds.split(',').map((id) => id.trim());
-        const servs = await this.servicioRepo.findByIds(ids);
-        if (servs.length > 0) {
-          bloques = servs.reduce((acc, s) => acc + s.duracionBloques, 0);
+      let bloques = Math.max(1, Number(duracionBloques) || 1);
+      if (servicioIds && typeof servicioIds === 'string' && servicioIds.trim().length > 0) {
+        const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+        const ids = servicioIds.split(',').map((id) => id.trim()).filter((id) => uuidRegex.test(id));
+        if (ids.length > 0) {
+          const servs = await this.servicioRepo.findByIds(ids);
+          if (servs.length > 0) {
+            bloques = servs.reduce((acc, s) => acc + s.duracionBloques, 0);
+          }
         }
       }
 
