@@ -112,7 +112,9 @@ export const barberosService = {
       fotoUrl: datos.fotoUrl || datos.foto || null,
       biografiaBreve: datos.biografiaBreve || datos.especialidad || null,
       porcentajeComision: Number(datos.porcentajeComision || datos.comisionPorcentaje || 50),
-      estado: datos.estado || 'activo'
+      estado: datos.estado || 'activo',
+      crearUsuario: Boolean(datos.crearUsuario),
+      contrasenaInicial: datos.contrasenaInicial || undefined
     };
 
     const response = await httpClient.post('/barberos', payload);
@@ -144,9 +146,36 @@ export const barberosService = {
 
   async cambiarEstadoBarbero(id, activo) {
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
-      throw new NetworkError('La desactivación de barbero requiere conexión obligatoria al servidor (CU-010).');
+      throw new NetworkError('El cambio de estado de barbero requiere conexión obligatoria al servidor (CU-010).');
     }
-    const response = await httpClient.patch(`/barberos/${id}/desactivar`, {});
+    const endpoint = activo ? `/barberos/${id}/activar` : `/barberos/${id}/desactivar`;
+    const response = await httpClient.patch(endpoint, {});
+    return response;
+  },
+
+  async getCitasFuturas(id) {
+    return await httpClient.get(`/barberos/${id}/citas-futuras`);
+  },
+
+  async getMiPerfil() {
+    const response = await httpClient.get('/barberos/me/perfil');
+    if (response?.data?.barbero) {
+      response.data.barbero = normalizeBarbero(response.data.barbero);
+    }
+    return response;
+  },
+
+  async actualizarMiPerfil(datos) {
+    const payload = {};
+    if (datos.nombrePublico !== undefined) payload.nombrePublico = datos.nombrePublico;
+    if (datos.telefono !== undefined) payload.telefono = datos.telefono;
+    if (datos.fotoUrl !== undefined) payload.fotoUrl = datos.fotoUrl;
+    if (datos.biografiaBreve !== undefined) payload.biografiaBreve = datos.biografiaBreve;
+
+    const response = await httpClient.put('/barberos/me/perfil', payload);
+    if (response?.data) {
+      return { ok: true, success: true, data: normalizeBarbero(response.data) };
+    }
     return response;
   },
 

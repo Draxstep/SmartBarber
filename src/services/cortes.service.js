@@ -294,5 +294,10 @@ export const cortesService = {
     }
 
     return response;
+  },
+
+  async getDashboardKpis(fecha = null) {
+    const url = `/cortes/dashboard-kpis${fecha ? `?fecha=${fecha}` : ''}`;
+    return await httpClient.get(url);
   }
 };

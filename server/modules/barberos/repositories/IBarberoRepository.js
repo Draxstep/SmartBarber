@@ -39,6 +39,10 @@ export class IBarberoRepository {
     throw new Error('Método desactivar no implementado');
   }
 
+  async activar(barberoId, options = {}) {
+    throw new Error('Método activar no implementado');
+  }
+
   async saveHorarios(barberoId, horarios, options = {}) {
     throw new Error('Método saveHorarios no implementado');
   }

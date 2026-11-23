@@ -253,6 +253,19 @@ export function renderBarberosPage() {
           <nav aria-label="Secciones del Barbero" class="flex items-center gap-6 mt-4 border-b border-[#D5CBB8]">
             <button
               type="button"
+              id="tab-btn-perfil"
+              class="pb-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
+                currentTab === 'perfil'
+                  ? 'border-[#1F3A5F] text-[#1F3A5F]'
+                  : 'border-transparent text-[#6B645A] hover:text-[#1C1C1C]'
+              }"
+            >
+              <span class="material-symbols-outlined text-[18px]">badge</span>
+              <span>Ficha & Comisión</span>
+            </button>
+
+            <button
+              type="button"
               id="tab-btn-horario"
               class="pb-3 text-xs font-semibold flex items-center gap-1.5 border-b-2 transition-colors ${
                 currentTab === 'horario'
@@ -282,7 +295,7 @@ export function renderBarberosPage() {
           </nav>
 
           <!-- CONTENIDO DE LA PESTAÑA ACTIVA -->
-          ${currentTab === 'horario' ? renderHorarioTab() : renderBloqueosTab()}
+          ${currentTab === 'perfil' ? renderPerfilTab(selectedBarber) : currentTab === 'horario' ? renderHorarioTab() : renderBloqueosTab()}
         </main>
       </section>
     </div>
@@ -384,6 +397,23 @@ export function renderBarberosPage() {
               value="Maestro Barbero"
               class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
             />
+          </div>
+
+          <div class="p-3 rounded-lg bg-[#E4ECF5] border border-[#7BA3D4]/40 flex flex-col gap-2">
+            <label class="flex items-center gap-2 cursor-pointer font-semibold text-[#1F3A5F]">
+              <input type="checkbox" id="new-barb-crear-usuario" checked class="w-4 h-4 text-[#1F3A5F] rounded" />
+              <span>Crear cuenta de acceso al Backoffice</span>
+            </label>
+            <div id="new-barb-pass-container" class="flex flex-col gap-1">
+              <label class="text-[11px] font-semibold text-[#1C1C1C]">Contraseña Inicial (mínimo 8 caracteres)</label>
+              <input
+                type="text"
+                id="new-barb-pass"
+                value="Barbero2026*"
+                class="h-9 px-3 bg-white border border-[#8C8272] rounded-lg text-xs font-mono text-[#1C1C1C]"
+              />
+              <span class="text-[10px] text-[#6B645A]">El barbero podrá cambiarla posteriormente en su perfil</span>
+            </div>
           </div>
 
           <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#D5CBB8] mt-2">
@@ -499,6 +529,172 @@ export function renderBarberosPage() {
         </form>
       </div>
     </dialog>
+
+    <!-- ========================================== -->
+    <!-- MODAL: ADVERTENCIA CITAS FUTURAS (RN-13)   -->
+    <!-- ========================================== -->
+    <dialog
+      id="dialog-citas-futuras-alerta"
+      class="p-0 rounded-2xl bg-[#FAF7F2] border border-[#D5CBB8] shadow-2xl backdrop:bg-black/50 max-w-lg w-full mx-auto my-auto"
+    >
+      <div class="p-6 flex flex-col gap-4">
+        <div class="flex items-start justify-between pb-3 border-b border-[#D5CBB8]">
+          <div class="flex items-center gap-2.5 text-[#B3261E]">
+            <span class="material-symbols-outlined text-[24px]">warning</span>
+            <div>
+              <h3 class="font-serif text-lg font-bold text-[#1C1C1C]">Atención: Citas Futuras Activas</h3>
+              <p class="text-xs text-[#6B645A]">Este barbero tiene turnos programados pendientes o confirmados</p>
+            </div>
+          </div>
+          <button type="button" id="btn-close-alerta-citas" class="text-[#6B645A] hover:text-[#1C1C1C]">
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-[#FCE8E6] text-[#B3261E] text-xs font-medium border border-[#B3261E]/30">
+          Si desactiva al barbero, estos turnos quedarán huérfanos en la agenda y los clientes no podrán ser atendidos a menos que los reasigne a otro barbero en la Agenda.
+        </div>
+
+        <div id="lista-citas-futuras-container" class="flex flex-col gap-2 max-h-56 overflow-y-auto">
+          <!-- Dinámico -->
+        </div>
+
+        <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-[#D5CBB8]">
+          <button
+            type="button"
+            id="btn-cancelar-desactivacion"
+            class="min-h-[44px] px-4 py-2 rounded-lg bg-white border border-[#8C8272] text-xs font-semibold text-[#4F4A42] hover:bg-[#FAF3E5]"
+          >
+            Volver a Agenda y Reasignar
+          </button>
+          <button
+            type="button"
+            id="btn-confirmar-desactivacion-forzada"
+            class="min-h-[44px] px-5 py-2 rounded-lg bg-[#B3261E] hover:bg-[#8e1c16] text-white text-xs font-semibold shadow-xs"
+          >
+            Confirmar Desactivación
+          </button>
+        </div>
+      </div>
+    </dialog>
+  `;
+}
+
+function renderPerfilTab(barber) {
+  return `
+    <div class="flex flex-col gap-5 mt-5">
+      <div class="p-3.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border-l-4 border-[#1F3A5F] text-xs">
+        <p class="font-semibold">Regla de Negocio RN-12 (Instantáneas de Comisión):</p>
+        <p class="mt-0.5">La comisión configurada en esta ficha aplicará exclusivamente a las nuevas citas y cobros futuros. Los cortes ya registrados en caja conservan su porcentaje histórico inalterable.</p>
+      </div>
+
+      <form id="form-editar-barbero" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Nombre Completo (Legal) <span class="text-[#8B1E1E]">*</span></label>
+          <input
+            type="text"
+            id="edit-barb-nombre"
+            required
+            value="${barber.nombreCompleto || barber.nombre || ''}"
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Nombre Público / Alias (Landing)</label>
+          <input
+            type="text"
+            id="edit-barb-nombre-publico"
+            value="${barber.nombrePublico || barber.nombre || ''}"
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Correo Electrónico <span class="text-[#8B1E1E]">*</span></label>
+          <input
+            type="email"
+            id="edit-barb-email"
+            required
+            value="${barber.email || barber.correo || ''}"
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Teléfono / WhatsApp <span class="text-[#8B1E1E]">*</span></label>
+          <input
+            type="tel"
+            id="edit-barb-telefono"
+            required
+            pattern="^3\\d{9}$"
+            value="${barber.telefono || ''}"
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] font-mono focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Sillón Asignado</label>
+          <select
+            id="edit-barb-sillon"
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+          >
+            <option value="Sillón 01" ${barber.sillon === 'Sillón 01' ? 'selected' : ''}>Sillón 01</option>
+            <option value="Sillón 02" ${barber.sillon === 'Sillón 02' ? 'selected' : ''}>Sillón 02</option>
+            <option value="Sillón 03" ${barber.sillon === 'Sillón 03' ? 'selected' : ''}>Sillón 03</option>
+            <option value="Sillón 04" ${barber.sillon === 'Sillón 04' ? 'selected' : ''}>Sillón 04 (Extraordinario)</option>
+          </select>
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Porcentaje de Comisión (%) <span class="text-[#8B1E1E]">*</span></label>
+          <div class="relative">
+            <input
+              type="number"
+              id="edit-barb-comision"
+              required
+              min="0"
+              max="100"
+              value="${barber.comisionPorcentaje || barber.porcentajeComision || 50}"
+              class="h-10 pl-3 pr-8 w-full bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+            />
+            <span class="absolute right-3 top-2.5 font-bold text-[#6B645A]">%</span>
+          </div>
+        </div>
+
+        <div class="md:col-span-2 flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">URL de Foto de Perfil (JPG, PNG, WebP &le; 2MB)</label>
+          <input
+            type="url"
+            id="edit-barb-foto"
+            value="${barber.foto || barber.fotoUrl || ''}"
+            placeholder="https://images.unsplash.com/..."
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+          />
+        </div>
+
+        <div class="md:col-span-2 flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Especialidad / Biografía Breve</label>
+          <textarea
+            id="edit-barb-bio"
+            rows="2"
+            maxlength="200"
+            class="p-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] resize-none"
+          >${barber.biografiaBreve || barber.especialidad || ''}</textarea>
+        </div>
+
+        <div class="md:col-span-2 flex justify-end gap-3 pt-3 border-t border-[#D5CBB8]">
+          <button
+            type="submit"
+            id="btn-guardar-ficha-barbero"
+            class="min-h-[44px] px-6 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs shadow-xs transition-colors flex items-center gap-2"
+          >
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span>Guardar Cambios de la Ficha</span>
+          </button>
+        </div>
+      </form>
+    </div>
   `;
 }
 
@@ -716,10 +912,17 @@ export function attachBarberosListeners(onDataChange) {
     });
   }
 
-  // 4. Cambio de Pestaña Horario vs. Bloqueos
+  // 4. Cambio de Pestañas (Ficha, Horario, Bloqueos)
+  const tabPerfil = document.getElementById('tab-btn-perfil');
   const tabHorario = document.getElementById('tab-btn-horario');
   const tabBloqueos = document.getElementById('tab-btn-bloqueos');
 
+  if (tabPerfil) {
+    tabPerfil.addEventListener('click', () => {
+      currentTab = 'perfil';
+      if (typeof onDataChange === 'function') onDataChange();
+    });
+  }
   if (tabHorario) {
     tabHorario.addEventListener('click', () => {
       currentTab = 'horario';
@@ -733,22 +936,117 @@ export function attachBarberosListeners(onDataChange) {
     });
   }
 
-  // 5. Toggle de Estado Activar / Desactivar Barbero (Borrado lógico)
+  // 4.1. Guardar Edición de Ficha del Barbero
+  const formEditar = document.getElementById('form-editar-barbero');
+  if (formEditar) {
+    formEditar.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nombreCompleto = document.getElementById('edit-barb-nombre')?.value.trim();
+      const nombrePublico = document.getElementById('edit-barb-nombre-publico')?.value.trim();
+      const correo = document.getElementById('edit-barb-email')?.value.trim();
+      const telefono = document.getElementById('edit-barb-telefono')?.value.trim();
+      const sillon = document.getElementById('edit-barb-sillon')?.value;
+      const porcentajeComision = Number(document.getElementById('edit-barb-comision')?.value);
+      const fotoUrl = document.getElementById('edit-barb-foto')?.value.trim();
+      const biografiaBreve = document.getElementById('edit-barb-bio')?.value.trim();
+
+      const btn = document.getElementById('btn-guardar-ficha-barbero');
+      if (btn) btn.disabled = true;
+
+      try {
+        await barberosService.actualizarBarbero(selectedBarberId, {
+          nombreCompleto,
+          nombrePublico,
+          correo,
+          telefono,
+          sillon,
+          porcentajeComision,
+          fotoUrl: fotoUrl || null,
+          biografiaBreve: biografiaBreve || null
+        });
+        alert('Ficha del barbero actualizada correctamente.');
+        await loadBarberosData();
+        if (typeof onDataChange === 'function') onDataChange();
+      } catch (err) {
+        alert('Error al actualizar barbero: ' + err.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    });
+  }
+
+  // 5. Toggle de Estado Activar / Desactivar Barbero (Borrado lógico con verificación de citas futuras)
   const toggleStatusBtn = document.getElementById('btn-toggle-barber-status');
+  const dialogAlertaCitas = document.getElementById('dialog-citas-futuras-alerta');
+  const btnCloseAlerta = document.getElementById('btn-close-alerta-citas');
+  const btnCancelarDesactivar = document.getElementById('btn-cancelar-desactivacion');
+  const btnConfirmarDesactivar = document.getElementById('btn-confirmar-desactivacion-forzada');
+  const containerCitas = document.getElementById('lista-citas-futuras-container');
+
+  if (btnCloseAlerta && dialogAlertaCitas) {
+    btnCloseAlerta.addEventListener('click', () => dialogAlertaCitas.close());
+  }
+  if (btnCancelarDesactivar && dialogAlertaCitas) {
+    btnCancelarDesactivar.addEventListener('click', () => dialogAlertaCitas.close());
+  }
+
   if (toggleStatusBtn) {
     toggleStatusBtn.addEventListener('click', async () => {
       const b = cachedBarberos.find(item => item.id === selectedBarberId);
       if (!b) return;
 
       const newStatus = b.activo === false;
-      const confirmMsg = newStatus
-        ? `¿Desea reactivar a ${b.nombre} para recibir reservas y turnos?`
-        : `¿Desea desactivar a ${b.nombre}? (Borrado lógico: conservará todo su historial contable y citas pasadas)`;
 
-      if (confirm(confirmMsg)) {
-        await barberosService.cambiarEstadoBarbero(selectedBarberId, newStatus);
-        await loadBarberosData();
-        if (typeof onDataChange === 'function') onDataChange();
+      if (newStatus) {
+        // Reactivar
+        if (confirm(`¿Desea reactivar a ${b.nombre} para recibir reservas y turnos?`)) {
+          await barberosService.cambiarEstadoBarbero(selectedBarberId, true);
+          await loadBarberosData();
+          if (typeof onDataChange === 'function') onDataChange();
+        }
+      } else {
+        // Desactivar: consultar citas futuras activas
+        toggleStatusBtn.disabled = true;
+        try {
+          const citasRes = await barberosService.getCitasFuturas(selectedBarberId);
+          const citasFuturas = citasRes?.data || [];
+
+          if (citasFuturas.length > 0 && dialogAlertaCitas && containerCitas) {
+            containerCitas.innerHTML = citasFuturas.map(c => `
+              <div class="p-2.5 rounded bg-white border border-[#D5CBB8] text-xs flex items-center justify-between">
+                <div class="flex flex-col">
+                  <span class="font-mono font-bold text-[#1F3A5F]">${c.codigo_reserva || 'SB-TURNO'}</span>
+                  <span class="text-[11px] text-[#6B645A]">${c.fecha} de ${c.hora_inicio?.slice(0, 5)} a ${c.hora_fin?.slice(0, 5)}</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${c.estado === 'confirmada' ? 'bg-[#E3EFE7] text-[#235D3A]' : 'bg-[#FDF1DC] text-[#8A5300]'} uppercase">
+                  ${c.estado}
+                </span>
+              </div>
+            `).join('');
+
+            dialogAlertaCitas.showModal();
+
+            if (btnConfirmarDesactivar) {
+              btnConfirmarDesactivar.onclick = async () => {
+                btnConfirmarDesactivar.disabled = true;
+                await barberosService.cambiarEstadoBarbero(selectedBarberId, false);
+                dialogAlertaCitas.close();
+                await loadBarberosData();
+                if (typeof onDataChange === 'function') onDataChange();
+              };
+            }
+          } else {
+            if (confirm(`¿Desea desactivar a ${b.nombre}? (Borrado lógico: conservará todo su historial contable y citas pasadas)`)) {
+              await barberosService.cambiarEstadoBarbero(selectedBarberId, false);
+              await loadBarberosData();
+              if (typeof onDataChange === 'function') onDataChange();
+            }
+          }
+        } catch (err) {
+          alert('Error al verificar estado del barbero: ' + err.message);
+        } finally {
+          toggleStatusBtn.disabled = false;
+        }
       }
     });
   }
@@ -801,6 +1099,8 @@ export function attachBarberosListeners(onDataChange) {
       const sillon = document.getElementById('new-barb-sillon')?.value;
       const comisionPorcentaje = document.getElementById('new-barb-comision')?.value;
       const especialidad = document.getElementById('new-barb-especialidad')?.value.trim();
+      const crearUsuario = document.getElementById('new-barb-crear-usuario')?.checked ?? true;
+      const contrasenaInicial = document.getElementById('new-barb-pass')?.value || 'Barbero2026*';
 
       try {
         const res = await barberosService.crearBarbero({
@@ -809,7 +1109,9 @@ export function attachBarberosListeners(onDataChange) {
           telefono,
           sillon,
           comisionPorcentaje,
-          especialidad
+          especialidad,
+          crearUsuario,
+          contrasenaInicial
         });
 
         if (res.ok) {

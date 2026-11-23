@@ -210,13 +210,24 @@ class BackofficeStateStore {
     const lowStock = this.products.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
     const outOfStock = this.products.filter(p => p.stockActual === 0);
 
+    // Calcular comisiones exactas según porcentaje del barbero o snapshots (RN-12)
+    const user = authService.getCurrentUser();
+    const activeBarb = this.barbers.find(b => b.id === user?.barberoId) || this.activeBarber;
+    const comisionRate = (activeBarb?.comisionPorcentaje ?? 50) / 100;
+    const comisionTotal = completed.reduce((sum, a) => {
+      if (a.comisionCalculadaCop !== undefined && a.comisionCalculadaCop !== null) {
+        return sum + Number(a.comisionCalculadaCop);
+      }
+      return sum + Math.round((a.price || 0) * comisionRate);
+    }, 0);
+
     return {
       ingresosHoy: totalIncome,
       turnosHoy: visible.length,
       pendientesHoy: pending.length,
       cortesRealizados: completed.length,
       alertasInventario: lowStock.length + outOfStock.length,
-      comisionBarbero: Math.round(totalIncome * 0.5)
+      comisionBarbero: comisionTotal
     };
   }
 

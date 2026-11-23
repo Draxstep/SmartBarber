@@ -8,6 +8,8 @@ import { BarberoPgRepository } from '../repositories/BarberoPgRepository.js';
 import { RegistroCortePgRepository } from '../../cortes/repositories/RegistroCortePgRepository.js';
 import { UsuarioPgRepository } from '../../seguridad/repositories/UsuarioPgRepository.js';
 import { NotFoundError, ValidationError, ForbiddenError } from '../../../shared/errors/domainErrors.js';
+import { getDatabasePool } from '../../../shared/database/connection.js';
+import bcrypt from 'bcryptjs';
 
 export class BarberoService {
   constructor(barberoRepo = null, corteRepo = null, usuarioRepo = null) {
@@ -35,6 +37,46 @@ export class BarberoService {
       }
     }
 
+    if (data.crearUsuario) {
+      const pool = getDatabasePool();
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+
+        const correo = data.correo.toLowerCase().trim();
+        const existing = await client.query('SELECT usuario_id FROM usuarios WHERE correo = $1 LIMIT 1', [correo]);
+        let usuarioId = null;
+
+        if (existing.rows.length > 0) {
+          usuarioId = existing.rows[0].usuario_id;
+        } else {
+          const pass = data.contrasenaInicial || 'Barbero2026*';
+          const hash = await bcrypt.hash(pass, 10);
+          const userRes = await client.query(
+            `INSERT INTO usuarios (sede_id, correo, contrasena_hash, rol, estado)
+             VALUES ($1, $2, $3, 'barbero', 'activo')
+             RETURNING usuario_id`,
+            [data.sedeId, correo, hash]
+          );
+          usuarioId = userRes.rows[0].usuario_id;
+        }
+
+        const barberoData = {
+          ...data,
+          usuarioId
+        };
+        const nuevo = new Barbero(barberoData);
+        const guardado = await this.barberoRepo.save(nuevo, { client });
+        await client.query('COMMIT');
+        return guardado;
+      } catch (err) {
+        await client.query('ROLLBACK');
+        throw err;
+      } finally {
+        client.release();
+      }
+    }
+
     const nuevo = new Barbero(data);
     return await this.barberoRepo.save(nuevo);
   }
@@ -55,6 +97,23 @@ export class BarberoService {
     return await this.barberoRepo.save(barbero);
   }
 
+  async updateMiPerfil(barberoId, data) {
+    const barbero = await this.getBarberoById(barberoId);
+
+    // Solo mutar campos permitidos al barbero
+    if (data.nombrePublico !== undefined) barbero.nombrePublico = data.nombrePublico;
+    if (data.telefono !== undefined) barbero.telefono = data.telefono;
+    if (data.fotoUrl !== undefined) barbero.fotoUrl = data.fotoUrl;
+    if (data.biografiaBreve !== undefined) barbero.biografiaBreve = data.biografiaBreve;
+
+    return await this.barberoRepo.save(barbero);
+  }
+
+  async getCitasFuturas(id) {
+    await this.getBarberoById(id);
+    return await this.barberoRepo.findCitasFuturasActivas(id);
+  }
+
   async desactivarBarbero(id) {
     const barbero = await this.barberoRepo.findById(id);
     if (!barbero) {
@@ -64,11 +123,12 @@ export class BarberoService {
     // Comprobar si tiene citas futuras activas (RF-BAR-02, CU-010)
     const citasFuturas = await this.barberoRepo.findCitasFuturasActivas(id);
 
-    // Desactivar perfil
+    // Desactivar perfil (borrado lógico RN-13)
     const desactivado = await this.barberoRepo.desactivar(id);
 
-    // Revocar sesiones si tiene usuario vinculado
+    // Desactivar cuenta de usuario y revocar sesiones si tiene usuario vinculado
     if (barbero.usuarioId) {
+      await this.usuarioRepo.cambiarEstado(barbero.usuarioId, 'inactivo').catch(() => {});
       await this.usuarioRepo.revocarSesionesActivas(barbero.usuarioId);
     }
 
@@ -78,6 +138,21 @@ export class BarberoService {
       totalCitasFuturasAfectadas: citasFuturas.length,
       citasFuturas
     };
+  }
+
+  async activarBarbero(id) {
+    const barbero = await this.barberoRepo.findById(id);
+    if (!barbero) {
+      throw new NotFoundError('Barbero', id);
+    }
+
+    const activado = await this.barberoRepo.activar(id);
+
+    if (barbero.usuarioId) {
+      await this.usuarioRepo.cambiarEstado(barbero.usuarioId, 'activo').catch(() => {});
+    }
+
+    return activado;
   }
 
   async getHorarios(barberoId) {

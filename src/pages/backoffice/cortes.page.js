@@ -6,7 +6,7 @@
  * y drawer de registro rápido Walk-in.
  */
 
-import { cortesService, barberosService, serviciosService } from '../../services/index.js';
+import { cortesService, barberosService, serviciosService, authService } from '../../services/index.js';
 import { formatCOP } from '../../utils/formatters.js';
 import { emitDataMutation } from '../../utils/event-bus.js';
 
@@ -36,6 +36,9 @@ export async function loadCortesData() {
 }
 
 export function renderCortesPage() {
+  const user = authService.getCurrentUser() || {};
+  const isBarbero = user.rol === 'barbero';
+
   const cortes = cachedCortes;
   const activos = cortes.filter(c => c.estado === 'activo');
   const anulados = cortes.filter(c => c.estado === 'anulado');
@@ -74,12 +77,12 @@ export function renderCortesPage() {
       <section class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-sans text-[11px] uppercase tracking-widest text-[#6B645A] font-semibold">Módulo Financiero y POS</span>
+            <span class="font-sans text-[11px] uppercase tracking-widest text-[#6B645A] font-semibold">${isBarbero ? 'Mis Servicios' : 'Módulo Financiero y POS'}</span>
             <span class="text-[#8C8272] text-xs">•</span>
-            <span class="font-sans text-xs text-[#4F4A42]">Arqueo en tiempo real</span>
+            <span class="font-sans text-xs text-[#4F4A42]">${isBarbero ? 'Mis cobros registrados' : 'Arqueo en tiempo real'}</span>
           </div>
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight mt-0.5">
-            Cortes y Caja Diaria
+            ${isBarbero ? 'Mis Cortes y Cobros' : 'Cortes y Caja Diaria'}
           </h1>
         </div>
 
@@ -202,6 +205,7 @@ export function renderCortesPage() {
             />
           </div>
 
+          ${isBarbero ? '' : `
           <!-- Selector de Barbero -->
           <div class="relative">
             <select
@@ -215,6 +219,7 @@ export function renderCortesPage() {
             </select>
             <span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[#6B645A] text-[18px] pointer-events-none">expand_more</span>
           </div>
+          `}
 
           <!-- Selector de Método de Pago -->
           <div class="relative">
@@ -405,6 +410,11 @@ export function renderCortesPage() {
                         >
                           Ver Motivo
                         </button>
+                      ` : isBarbero ? `
+                        <span class="inline-flex items-center gap-1 text-[11px] text-[#235D3A] font-semibold">
+                          <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                          <span>Cobrado</span>
+                        </span>
                       ` : `
                         <button
                           type="button"

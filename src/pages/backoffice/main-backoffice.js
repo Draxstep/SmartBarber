@@ -7,6 +7,7 @@
 
 import { renderBackofficeSidebar } from '../../components/backoffice-sidebar.js';
 import { renderBackofficeHeader } from '../../components/backoffice-header.js';
+import { renderDashboardPage, loadDashboardData, attachDashboardListeners } from './dashboard.page.js';
 import { renderAgendaPage, attachAgendaListeners } from './agenda.page.js';
 import { renderInventoryPage, loadInventoryKardexData, attachInventoryListeners } from './inventory.page.js';
 import { renderCortesPage, loadCortesData, attachCortesListeners } from './cortes.page.js';
@@ -14,6 +15,7 @@ import { renderBarberosPage, loadBarberosData, attachBarberosListeners } from '.
 import { renderServiciosPage, loadServiciosData, attachServiciosListeners } from './servicios.page.js';
 import { renderComisionesPage, loadComisionesData, attachComisionesListeners } from './comisiones.page.js';
 import { renderConfiguracionPage, attachConfiguracionListeners } from './configuracion.page.js';
+import { renderPerfilPage, loadPerfilData, attachPerfilListeners } from './perfil.page.js';
 import { renderLoginPage, attachLoginListeners } from './login.page.js';
 import { renderForbiddenPage, renderNotFoundPage } from './error.page.js';
 import { authService, inventarioService, sedesService } from '../../services/index.js';
@@ -35,6 +37,14 @@ const appRoot = document.getElementById('app');
  * Cada módulo define de forma cohesiva sus permisos RBAC, precarga de datos, renderizado y eventos.
  */
 export const BACKOFFICE_ROUTES = {
+  dashboard: {
+    id: 'dashboard',
+    title: 'Dashboard Ejecutivo',
+    roles: ['administrador'],
+    loader: async () => await loadDashboardData(),
+    render: () => renderDashboardPage(),
+    attachListeners: (refresh) => attachDashboardListeners(refresh)
+  },
   agenda: {
     id: 'agenda',
     title: 'Agenda y Turnos',
@@ -90,6 +100,14 @@ export const BACKOFFICE_ROUTES = {
     loader: async () => {},
     render: () => renderConfiguracionPage(),
     attachListeners: () => attachConfiguracionListeners()
+  },
+  perfil: {
+    id: 'perfil',
+    title: 'Mi Perfil',
+    roles: ['administrador', 'barbero'],
+    loader: async () => await loadPerfilData(),
+    render: () => renderPerfilPage(),
+    attachListeners: (refresh) => attachPerfilListeners(refresh)
   }
 };
 
@@ -98,9 +116,11 @@ const VALID_ROUTES = Object.keys(BACKOFFICE_ROUTES);
 let sedeActivaNombre = 'SmartBarber Studio · Bogotá';
 let totalAlertasInventario = 0;
 
-function getActiveRoute() {
+function getActiveRoute(user = null) {
   const hash = window.location.hash.toLowerCase().replace('#', '').trim();
-  if (!hash) return 'agenda';
+  if (!hash) {
+    return user?.rol === 'administrador' ? 'dashboard' : 'agenda';
+  }
   return hash.split('?')[0];
 }
 
@@ -120,7 +140,7 @@ export async function renderBackoffice() {
     return;
   }
 
-  const currentRoute = getActiveRoute();
+  const currentRoute = getActiveRoute(currentUser);
   const currentRole = currentUser.rol || 'barbero';
   const routeConfig = BACKOFFICE_ROUTES[currentRoute];
 
@@ -433,7 +453,7 @@ window.addEventListener('hashchange', renderBackoffice);
 
 // Suscripción al bus de mutación de datos para actualización reactiva instantánea
 onDataMutation(async (detail) => {
-  const currentRoute = getActiveRoute();
+  const currentRoute = getActiveRoute(currentUser);
   if (
     (detail.entity === 'citas' && currentRoute === 'agenda') ||
     (detail.entity === 'cortes' && (currentRoute === 'cortes' || currentRoute === 'agenda')) ||

@@ -84,4 +84,15 @@ export class CorteController {
       next(error);
     }
   };
+
+  getDashboardKpis = async (req, res, next) => {
+    try {
+      const sedeId = req.user.sedeId;
+      const { fecha } = req.query;
+      const kpis = await this.corteService.getDashboardKpis({ sedeId, fecha }, req.user);
+      return sendSuccess(res, kpis, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
 }

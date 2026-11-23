@@ -130,6 +130,15 @@ export class UsuarioPgRepository extends IUsuarioRepository {
     }
   }
 
+  async cambiarEstado(usuarioId, estado, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      await executor.query('UPDATE usuarios SET estado = $1 WHERE usuario_id = $2', [estado, usuarioId]);
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al cambiar estado del usuario ${usuarioId}`);
+    }
+  }
+
   async revocarSesionesActivas(usuarioId, { client } = {}) {
     const executor = client || this.pool;
     try {

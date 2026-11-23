@@ -5,7 +5,7 @@
  * exclusión estricta de anulados, KPIs consolidados y exportación CSV descargable (CU-013).
  */
 
-import { cortesService, barberosService } from '../../services/index.js';
+import { cortesService, barberosService, authService } from '../../services/index.js';
 import { formatCOP } from '../../utils/formatters.js';
 
 let cachedLiquidacion = null;
@@ -35,6 +35,9 @@ export async function loadComisionesData() {
 }
 
 export function renderComisionesPage() {
+  const user = authService.getCurrentUser() || {};
+  const isBarbero = user.rol === 'barbero';
+
   const data = cachedLiquidacion || {
     totalCortes: 0,
     totalRecaudado: 0,
@@ -73,7 +76,7 @@ export function renderComisionesPage() {
             <span class="text-[#6B645A] text-xs">Semana 47 · Calendario Operativo</span>
           </div>
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
-            Liquidación de Comisiones
+            ${isBarbero ? 'Mis Comisiones Devengadas' : 'Liquidación de Comisiones'}
           </h1>
         </div>
 
@@ -138,6 +141,7 @@ export function renderComisionesPage() {
             </div>
           </div>
 
+          ${isBarbero ? '' : `
           <!-- Selector de Barbero -->
           <div class="flex items-center gap-2.5">
             <label class="text-xs font-semibold text-[#4F4A42] whitespace-nowrap uppercase tracking-wider" for="select-barbero-comision">
@@ -156,6 +160,7 @@ export function renderComisionesPage() {
               <span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[#6B645A] pointer-events-none text-[18px]">unfold_more</span>
             </div>
           </div>
+          `}
         </div>
 
         <!-- Banner Informativo de Auditoría -->
@@ -168,11 +173,11 @@ export function renderComisionesPage() {
       </section>
 
       <!-- 3 TARJETAS KPI -->
-      <section aria-label="Métricas consolidadas de liquidación" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <section aria-label="Métricas consolidadas de liquidación" class="grid grid-cols-1 ${isBarbero ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4">
         <!-- KPI 1 -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">TOTAL FACTURADO SERVICIOS</span>
+            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">${isBarbero ? 'TOTAL FACTURADO POR MÍ' : 'TOTAL FACTURADO SERVICIOS'}</span>
             <div class="w-8 h-8 rounded-lg bg-[#E8DFCE] flex items-center justify-center text-[#4F4A42]">
               <span class="material-symbols-outlined text-[18px]">receipt_long</span>
             </div>
@@ -190,7 +195,7 @@ export function renderComisionesPage() {
         <!-- KPI 2 -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">COMISIONES REFERENCIALES</span>
+            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">${isBarbero ? 'MI COMISIÓN A LIQUIDAR' : 'COMISIONES REFERENCIALES'}</span>
             <div class="w-8 h-8 rounded-lg bg-[#E4ECF5] flex items-center justify-center text-[#1F3A5F]">
               <span class="material-symbols-outlined text-[18px]">percent</span>
             </div>
@@ -200,12 +205,13 @@ export function renderComisionesPage() {
               ${formatCOP(totalComisiones)} <span class="text-xs font-normal text-[#6B645A]">COP</span>
             </div>
             <p class="mt-1 text-xs text-[#4F4A42]">
-              Esquema promedio <strong>50% por servicio</strong>
+              ${isBarbero ? 'Comisiones acumuladas del periodo' : 'Esquema promedio 50% por servicio'}
             </p>
           </div>
         </div>
 
-        <!-- KPI 3 -->
+        ${isBarbero ? '' : `
+        <!-- KPI 3 (Exclusivo Administrador) -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
             <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">MARGEN BRUTO SEDE</span>
@@ -222,6 +228,7 @@ export function renderComisionesPage() {
             </p>
           </div>
         </div>
+        `}
       </section>
 
       <!-- TABLA RESUMEN POR BARBERO -->

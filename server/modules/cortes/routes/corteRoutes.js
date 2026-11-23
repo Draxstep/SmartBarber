@@ -15,6 +15,7 @@ const controller = new CorteController();
 corteRouter.use(authenticate);
 
 // 1. Consulta de historial de cortes y resumen diario (CU-006, CU-007)
+corteRouter.get('/dashboard-kpis', authorize(['administrador']), controller.getDashboardKpis);
 corteRouter.get('/historial', controller.getHistorial);
 corteRouter.get('/resumen', controller.getResumenIngresos);
 

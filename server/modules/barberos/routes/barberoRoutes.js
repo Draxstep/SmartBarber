@@ -7,12 +7,16 @@ import { BarberoController } from '../controllers/BarberoController.js';
 import { authenticate } from '../../../shared/middlewares/authenticate.js';
 import { authorize } from '../../../shared/middlewares/authorize.js';
 import { validate } from '../../../shared/middlewares/validate.js';
-import { createBarberoSchema, updateBarberoSchema, createBloqueoSchema } from '../dto/barberoDto.js';
+import { createBarberoSchema, updateBarberoSchema, createBloqueoSchema, updateMiPerfilSchema } from '../dto/barberoDto.js';
 
 export const barberoRouter = Router();
 const controller = new BarberoController();
 
 barberoRouter.use(authenticate);
+
+// Perfil propio (Barbero y Administrador) - Debe ir antes de /:id
+barberoRouter.get('/me/perfil', authorize(['administrador', 'barbero']), controller.getMiPerfil);
+barberoRouter.put('/me/perfil', authorize(['administrador', 'barbero']), validate({ body: updateMiPerfilSchema }), controller.updateMiPerfil);
 
 // Listado y consulta individual
 barberoRouter.get('/', controller.list);
@@ -55,4 +59,16 @@ barberoRouter.patch(
   '/:id/desactivar',
   authorize(['administrador']),
   controller.desactivar
+);
+
+barberoRouter.patch(
+  '/:id/activar',
+  authorize(['administrador']),
+  controller.activar
+);
+
+barberoRouter.get(
+  '/:id/citas-futuras',
+  authorize(['administrador']),
+  controller.getCitasFuturas
 );

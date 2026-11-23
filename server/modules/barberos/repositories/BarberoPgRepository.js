@@ -188,6 +188,19 @@ export class BarberoPgRepository extends IBarberoRepository {
     }
   }
 
+  async activar(barberoId, { client } = {}) {
+    const executor = client || this.pool;
+    try {
+      const result = await executor.query(
+        "UPDATE barberos SET estado = 'activo' WHERE barbero_id = $1 RETURNING *",
+        [barberoId]
+      );
+      return BarberoMapper.barberoToDomain(result.rows[0]);
+    } catch (error) {
+      throw mapDatabaseError(error, `Error al activar al barbero ${barberoId}`);
+    }
+  }
+
   async saveHorarios(barberoId, horarios, { client } = {}) {
     const executor = client || this.pool;
     try {

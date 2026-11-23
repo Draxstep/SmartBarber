@@ -9,6 +9,7 @@ import { BarberoPgRepository } from '../../barberos/repositories/BarberoPgReposi
 import { ServicioPgRepository } from '../../servicios/repositories/ServicioPgRepository.js';
 import { ClientePgRepository } from '../../clientes/repositories/ClientePgRepository.js';
 import { runTransaction } from '../../../shared/database/transaction.js';
+import { getDatabasePool } from '../../../shared/database/connection.js';
 import {
   NotFoundError,
   ValidationError,
@@ -309,5 +310,102 @@ export class CorteService {
 
       return anulado;
     });
+  }
+
+  /**
+   * Métricas y KPIs consolidados para el Dashboard Ejecutivo del Administrador
+   */
+  async getDashboardKpis({ sedeId, fecha }, user) {
+    if (user.rol !== 'administrador') {
+      throw new ForbiddenError('Solo el administrador puede consultar métricas ejecutivas de negocio.');
+    }
+
+    const nowBogota = new Date(Date.now() - 5 * 60 * 60 * 1000);
+    const today = fecha || nowBogota.toISOString().slice(0, 10);
+    const fechaInicio = `${today}T00:00:00-05:00`;
+    const fechaFin = `${today}T23:59:59-05:00`;
+
+    // 1. Cortes del día (activos)
+    const cortes = await this.corteRepo.findHistorialDiario({
+      sedeId,
+      fechaInicio,
+      fechaFin,
+      barberoId: null,
+      estado: 'activo'
+    });
+
+    const ingresosHoyCop = cortes.reduce((sum, c) => sum + (c.precioCobradoCop || c.precio || 0), 0);
+    const comisionesHoyCop = cortes.reduce((sum, c) => sum + (c.comisionCalculadaCop || 0), 0);
+    const margenNetoSedeCop = Math.max(0, ingresosHoyCop - comisionesHoyCop);
+
+    // 2. Citas del día por estado
+    const citas = await this.citaRepo.findAgenda({
+      sedeId,
+      fecha: today,
+      barberoId: null
+    });
+
+    const citasCompletadas = citas.filter(c => c.estado === 'completada').length;
+    const citasPorAtender = citas.filter(c => c.estado === 'confirmada' || c.estado === 'pendiente').length;
+    const citasNoAsistio = citas.filter(c => c.estado === 'no_asistio').length;
+    const citasCanceladas = citas.filter(c => c.estado === 'cancelada').length;
+
+    // 3. Rendimiento por barbero
+    const barberos = await this.barberoRepo.findBySede(sedeId, { activosSolo: false });
+    const rendimientoBarberos = barberos.map(b => {
+      const cortesBarbero = cortes.filter(c => c.barberoId === b.barberoId);
+      const totalIngresos = cortesBarbero.reduce((sum, c) => sum + (c.precioCobradoCop || c.precio || 0), 0);
+      const totalComisiones = cortesBarbero.reduce((sum, c) => sum + (c.comisionCalculadaCop || 0), 0);
+      return {
+        barberoId: b.barberoId,
+        nombre: b.nombrePublico || b.nombreCompleto,
+        sillon: b.sillon || 'Sillón',
+        porcentajeComision: b.porcentajeComision,
+        activo: b.estado === 'activo',
+        cortesCount: cortesBarbero.length,
+        ingresosCop: totalIngresos,
+        comisionesCop: totalComisiones
+      };
+    });
+
+    // 4. Conteo de alertas de inventario
+    let alertasInventario = { total: 0, bajo: 0, agotado: 0 };
+    try {
+      const pool = getDatabasePool();
+      const invRes = await pool.query(
+        `SELECT 
+          COUNT(*) FILTER (WHERE stock_actual <= stock_minimo AND stock_actual > 0) AS bajo,
+          COUNT(*) FILTER (WHERE stock_actual = 0) AS agotado
+         FROM productos_inventario
+         WHERE sede_id = $1 AND activo = true`,
+        [sedeId]
+      );
+      if (invRes.rows[0]) {
+        const bajo = parseInt(invRes.rows[0].bajo || 0, 10);
+        const agotado = parseInt(invRes.rows[0].agotado || 0, 10);
+        alertasInventario = {
+          total: bajo + agotado,
+          bajo,
+          agotado
+        };
+      }
+    } catch (_) {}
+
+    return {
+      fecha: today,
+      ingresosHoyCop,
+      comisionesHoyCop,
+      margenNetoSedeCop,
+      cortesTotalHoy: cortes.length,
+      citas: {
+        total: citas.length,
+        completadas: citasCompletadas,
+        porAtender: citasPorAtender,
+        noAsistio: citasNoAsistio,
+        canceladas: citasCanceladas
+      },
+      alertasInventario,
+      rendimientoBarberos
+    };
   }
 }

@@ -15,10 +15,19 @@ export const createBarberoSchema = z.object({
   fotoUrl: z.string().url().nullable().optional(),
   biografiaBreve: z.string().trim().max(200).nullable().optional(),
   porcentajeComision: z.number().min(0).max(100).nullable().optional(),
-  estado: z.enum([EstadoRegistro.ACTIVO, EstadoRegistro.INACTIVO]).default(EstadoRegistro.ACTIVO)
+  estado: z.enum([EstadoRegistro.ACTIVO, EstadoRegistro.INACTIVO]).default(EstadoRegistro.ACTIVO),
+  crearUsuario: z.boolean().optional().default(false),
+  contrasenaInicial: z.string().min(8, 'La contraseña debe tener al menos 8 caracteres').optional()
 });
 
 export const updateBarberoSchema = createBarberoSchema.partial();
+
+export const updateMiPerfilSchema = z.object({
+  nombrePublico: z.string().trim().max(80).nullable().optional(),
+  telefono: z.string().trim().min(7, 'El teléfono debe tener al menos 7 caracteres').max(20).optional(),
+  fotoUrl: z.string().url('URL de imagen inválida').nullable().optional(),
+  biografiaBreve: z.string().trim().max(200).nullable().optional()
+});
 
 export const createBloqueoSchema = z.object({
   sedeId: z.string().uuid('ID de sede inválido').optional(),

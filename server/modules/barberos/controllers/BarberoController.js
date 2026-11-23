@@ -62,6 +62,61 @@ export class BarberoController {
     }
   };
 
+  activar = async (req, res, next) => {
+    try {
+      const resultado = await this.barberoService.activarBarbero(req.params.id);
+      return sendSuccess(res, resultado, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getCitasFuturas = async (req, res, next) => {
+    try {
+      const citas = await this.barberoService.getCitasFuturas(req.params.id);
+      return sendSuccess(res, citas, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  getMiPerfil = async (req, res, next) => {
+    try {
+      const barberoId = req.user.barberoId;
+      if (!barberoId) {
+        return sendSuccess(res, {
+          usuario: req.user,
+          barbero: null,
+          horarios: []
+        }, 200);
+      }
+      const [barbero, horarios] = await Promise.all([
+        this.barberoService.getBarberoById(barberoId),
+        this.barberoService.getHorarios(barberoId)
+      ]);
+      return sendSuccess(res, {
+        usuario: req.user,
+        barbero,
+        horarios
+      }, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  updateMiPerfil = async (req, res, next) => {
+    try {
+      const barberoId = req.user.barberoId;
+      if (!barberoId) {
+        throw new ForbiddenError('No tiene un perfil de barbero asociado a su usuario.');
+      }
+      const actualizado = await this.barberoService.updateMiPerfil(barberoId, req.body);
+      return sendSuccess(res, actualizado, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getHorarios = async (req, res, next) => {
     try {
       const horarios = await this.barberoService.getHorarios(req.params.id);

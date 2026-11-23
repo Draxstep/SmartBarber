@@ -6,13 +6,15 @@
  */
 
 export const ALL_NAV_ITEMS = [
-  { id: 'agenda', label: 'Agenda y Turnos', icon: 'calendar_month', path: '#agenda', roles: ['admin', 'administrador', 'barbero'] },
-  { id: 'cortes', label: 'Historial y Caja', icon: 'point_of_sale', path: '#cortes', roles: ['admin', 'administrador', 'barbero'] },
-  { id: 'barberos', label: 'Barberos y Horarios', icon: 'badge', path: '#barberos', roles: ['admin', 'administrador'] },
+  { id: 'dashboard', label: 'Dashboard Ejecutivo', icon: 'dashboard', path: '#dashboard', roles: ['admin', 'administrador'] },
+  { id: 'agenda', label: 'Agenda y Turnos', icon: 'calendar_month', path: '#agenda', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mi Agenda' },
+  { id: 'cortes', label: 'Historial y Caja', icon: 'point_of_sale', path: '#cortes', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mis Cortes' },
+  { id: 'barberos', label: 'Equipo de Barberos', icon: 'badge', path: '#barberos', roles: ['admin', 'administrador'] },
   { id: 'servicios', label: 'Servicios y Tarifas', icon: 'content_cut', path: '#servicios', roles: ['admin', 'administrador'] },
-  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, roles: ['admin', 'administrador', 'barbero'] },
-  { id: 'comisiones', label: 'Liquidación Comisiones', icon: 'percent', path: '#comisiones', roles: ['admin', 'administrador', 'barbero'] },
-  { id: 'configuracion', label: 'Configuración', icon: 'settings', path: '#configuracion', roles: ['admin', 'administrador'] }
+  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Venta Mostrador' },
+  { id: 'comisiones', label: 'Liquidación Comisiones', icon: 'percent', path: '#comisiones', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mis Comisiones' },
+  { id: 'configuracion', label: 'Configuración', icon: 'settings', path: '#configuracion', roles: ['admin', 'administrador'] },
+  { id: 'perfil', label: 'Mi Perfil', icon: 'account_circle', path: '#perfil', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mi Perfil' }
 ];
 
 /**
@@ -42,6 +44,7 @@ export function renderBackofficeSidebar({
 
   const itemsHtml = visibleItems.map(item => {
     const isActive = item.id === activeRoute;
+    const label = currentRole === 'barbero' && item.barberLabel ? item.barberLabel : item.label;
 
     const baseClasses = 'flex items-center justify-between h-[44px] px-3 rounded-lg transition-all duration-150 font-sans text-sm font-medium';
     const activeClasses = isActive
@@ -65,7 +68,7 @@ export function renderBackofficeSidebar({
       >
         <div class="flex items-center gap-3">
           <span class="material-symbols-outlined text-[20px] ${iconColor}" aria-hidden="true">${item.icon}</span>
-          <span>${item.label}</span>
+          <span>${label}</span>
         </div>
         ${badgeHtml}
       </a>
