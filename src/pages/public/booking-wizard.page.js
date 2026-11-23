@@ -19,10 +19,9 @@ export function renderBookingWizard() {
     bookingStore.setStep(1);
     currentStep = 1;
   }
-  // Guardia 2: Si estamos en paso 3 y no hay barbero asignado, volver al paso 2
+  // Guardia 2: Si estamos en paso 3 y no hay barbero asignado, asignar por defecto 'any' (RN-04)
   else if (currentStep === 3 && !bookingStore.state.selectedBarberId) {
-    bookingStore.setStep(2);
-    currentStep = 2;
+    bookingStore.setBarber('any');
   }
   // Guardia 3: Si se intenta ver paso 4 sin haber elegido fecha y hora válida, retornar a paso 3
   else if (currentStep === 4 && (!bookingStore.state.selectedTime || !bookingStore.state.selectedDate)) {

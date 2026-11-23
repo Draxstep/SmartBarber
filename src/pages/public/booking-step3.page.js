@@ -259,8 +259,47 @@ export function attachStep3Listeners(onNavigate) {
     });
   }
 
+  function selectDate(selectedDate) {
+    if (!selectedDate || selectedDate === bookingStore.state.selectedDate) return;
+
+    // Al cambiar de fecha, invalidar la hora seleccionada
+    bookingStore.setDateTime(selectedDate, null);
+    updateContinueButtonUI(null);
+
+    // Actualizar estado visual de los botones de día
+    if (daysContainer) {
+      const allDayButtons = daysContainer.querySelectorAll('button[data-date]');
+      allDayButtons.forEach(b => {
+        const isSelected = b.getAttribute('data-date') === selectedDate;
+        b.className = `min-h-[64px] min-w-[62px] sm:min-w-[70px] rounded-lg flex flex-col items-center justify-center p-2 border transition-all text-center shrink-0 cursor-pointer ${
+          isSelected
+            ? 'bg-[#1F3A5F] text-white border-[#1F3A5F] shadow-sm ring-2 ring-[#1F3A5F] ring-offset-1'
+            : 'bg-[#FAF7F2] text-[#1C1C1C] border-[#D5CBB8] hover:border-[#8C8272] hover:bg-white'
+        }`;
+      });
+    }
+
+    // Recalcular disponibilidad para el nuevo día
+    refreshSlots();
+  }
+
   async function refreshSlots() {
     if (!container) return;
+
+    // Guardia de modo offline
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      if (statusText) statusText.textContent = 'Modo sin conexión';
+      container.innerHTML = `
+        <div class="col-span-full py-8 px-4 bg-[#FAF7F2] rounded-xl border border-[#D5CBB8] text-center flex flex-col items-center gap-2.5">
+          <span class="material-symbols-outlined text-[32px] text-[#8C8272]">wifi_off</span>
+          <p class="font-sans font-bold text-sm text-[#1C1C1C]">Consulta de disponibilidad requiere conexión</p>
+          <p class="font-sans text-xs text-[#6B645A] max-w-sm">
+            Para garantizar que no haya cruces de horario, la verificación de turnos en vivo se realiza en tiempo real. Por favor conecta tu dispositivo a internet para ver los horarios.
+          </p>
+        </div>
+      `;
+      return;
+    }
 
     const date = bookingStore.state.selectedDate;
     const barber = bookingStore.getSelectedBarber();
@@ -297,9 +336,9 @@ export function attachStep3Listeners(onNavigate) {
 
     if (statusText) statusText.textContent = 'Consultando disponibilidad en vivo...';
 
-    // Skeleton o indicador de carga
+    // Skeleton o indicador de carga accesible
     container.innerHTML = `
-      <div class="col-span-full py-12 flex flex-col items-center justify-center gap-2 text-[#6B645A]">
+      <div class="col-span-full py-12 flex flex-col items-center justify-center gap-2 text-[#6B645A]" aria-busy="true">
         <span class="material-symbols-outlined animate-spin text-[26px] text-[#1F3A5F]">progress_activity</span>
         <span class="font-sans text-xs font-medium">Verificando turnos disponibles en tiempo real...</span>
       </div>
@@ -333,15 +372,44 @@ export function attachStep3Listeners(onNavigate) {
         }
 
         if (availableCount === 0) {
+          const isTodayDate = date === availableDays[0]?.date;
+          const nextDay = availableDays.length > 1 ? availableDays[1] : null;
+
           container.innerHTML = `
-            <div class="col-span-full py-8 px-4 bg-[#FAF7F2] rounded-xl border border-[#D5CBB8] text-center flex flex-col items-center gap-2">
+            <div class="col-span-full py-8 px-4 bg-[#FAF7F2] rounded-xl border border-[#D5CBB8] text-center flex flex-col items-center gap-3">
               <span class="material-symbols-outlined text-[32px] text-[#8C8272]">event_busy</span>
-              <p class="font-sans font-bold text-sm text-[#1C1C1C]">No hay turnos disponibles para esta fecha</p>
-              <p class="font-sans text-xs text-[#6B645A] max-w-sm">
-                Todos los bloques están reservados o fuera del turno laboral. Selecciona otro día en el calendario o elige otro barbero.
+              <p class="font-sans font-bold text-sm text-[#1C1C1C]">
+                ${isTodayDate ? 'No quedan turnos disponibles para hoy' : 'No hay turnos disponibles para esta fecha'}
               </p>
+              <p class="font-sans text-xs text-[#6B645A] max-w-sm">
+                ${isTodayDate
+                  ? 'La jornada de atención de hoy ha finalizado o los bloques ya han sido reservados. Puedes consultar los turnos del siguiente día hábil:'
+                  : 'Todos los bloques están reservados o corresponden al día de descanso del barbero. Selecciona otro día en el calendario superior.'}
+              </p>
+              ${nextDay ? `
+                <button
+                  type="button"
+                  id="btn-suggest-next-day"
+                  data-next-date="${nextDay.date}"
+                  class="mt-1 min-h-[44px] px-5 py-2.5 rounded-md bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold flex items-center gap-2 cursor-pointer transition-colors shadow-xs active:scale-[0.98]"
+                >
+                  <span class="material-symbols-outlined text-[16px]">calendar_today</span>
+                  <span>Ver turnos de ${nextDay.dayName} ${nextDay.dayNum} ${nextDay.month}</span>
+                  <span class="material-symbols-outlined text-[16px]">arrow_forward</span>
+                </button>
+              ` : ''}
             </div>
           `;
+
+          const btnSuggest = document.getElementById('btn-suggest-next-day');
+          if (btnSuggest) {
+            btnSuggest.addEventListener('click', () => {
+              const targetDate = btnSuggest.getAttribute('data-next-date');
+              if (targetDate) {
+                selectDate(targetDate);
+              }
+            });
+          }
           return;
         }
 
@@ -420,25 +488,7 @@ export function attachStep3Listeners(onNavigate) {
       if (!btn) return;
 
       const selectedDate = btn.getAttribute('data-date');
-      if (selectedDate === bookingStore.state.selectedDate) return;
-
-      // Al cambiar de fecha, invalidar la hora seleccionada
-      bookingStore.setDateTime(selectedDate, null);
-      updateContinueButtonUI(null);
-
-      // Actualizar estado visual de los botones de día
-      const allDayButtons = daysContainer.querySelectorAll('button[data-date]');
-      allDayButtons.forEach(b => {
-        const isSelected = b.getAttribute('data-date') === selectedDate;
-        b.className = `min-h-[64px] min-w-[62px] sm:min-w-[70px] rounded-lg flex flex-col items-center justify-center p-2 border transition-all text-center shrink-0 cursor-pointer ${
-          isSelected
-            ? 'bg-[#1F3A5F] text-white border-[#1F3A5F] shadow-sm ring-2 ring-[#1F3A5F] ring-offset-1'
-            : 'bg-[#FAF7F2] text-[#1C1C1C] border-[#D5CBB8] hover:border-[#8C8272] hover:bg-white'
-        }`;
-      });
-
-      // Recalcular disponibilidad para el nuevo día
-      refreshSlots();
+      selectDate(selectedDate);
     });
   }
 

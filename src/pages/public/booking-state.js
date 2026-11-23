@@ -75,6 +75,10 @@ class BookingStateStore {
             parsed.selectedDate = today;
             parsed.selectedTime = null;
           }
+          // Garantizar barbero por defecto 'any' (RN-04)
+          if (!parsed.selectedBarberId) {
+            parsed.selectedBarberId = 'any';
+          }
           // Sanitizar formato UUID para evitar errores SQL en PostgreSQL (ej. 'serv-01')
           const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
           if (Array.isArray(parsed.selectedServiceIds)) {
@@ -226,7 +230,10 @@ class BookingStateStore {
       return this.state.selectedServiceIds.length > 0;
     }
     if (targetStep === 3) {
-      return this.state.selectedServiceIds.length > 0 && !!this.state.selectedBarberId;
+      if (!this.state.selectedBarberId) {
+        this.setBarber('any');
+      }
+      return this.state.selectedServiceIds.length > 0;
     }
     if (targetStep === 4) {
       return this.state.selectedServiceIds.length > 0 && !!this.state.selectedDate && !!this.state.selectedTime;

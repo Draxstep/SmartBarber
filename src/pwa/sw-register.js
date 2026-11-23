@@ -23,6 +23,7 @@ export async function registrarServiceWorker() {
 
       nuevoWorker.addEventListener("statechange", () => {
         if (nuevoWorker.state === "installed" && navigator.serviceWorker.controller) {
+          nuevoWorker.postMessage({ type: "SKIP_WAITING" });
           mostrarBannerActualizacion(nuevoWorker);
         }
       });
