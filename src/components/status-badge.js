@@ -68,16 +68,28 @@ const STATUS_CONFIGS = {
 
 /**
  * Renderiza un badge semántico accesible.
- * @param {string} status - Clave de estado (ej: 'pendiente', 'confirmada', 'stock_bajo', etc.)
+ * Admite firma posicional (status, options) o por objeto ({ status, label/customLabel, size }).
+ * @param {string|Object} statusOrOptions - Clave de estado o configuración
  * @param {Object} [options]
  * @param {string} [options.customLabel] - Sobrescribe la etiqueta de texto por defecto
  * @param {'sm'|'md'} [options.size] - Tamaño del badge ('sm' para tablas, 'md' para tarjetas)
  * @returns {string} HTML string
  */
-export function renderStatusBadge(status, { customLabel = '', size = 'md' } = {}) {
-  const normalizedKey = (status || '').toLowerCase().replace(/[\s-]/g, '_');
+export function renderStatusBadge(statusOrOptions, options = {}) {
+  let status = statusOrOptions;
+  let customLabel = options.customLabel || '';
+  let size = options.size || 'md';
+
+  if (typeof statusOrOptions === 'object' && statusOrOptions !== null) {
+    status = statusOrOptions.status || '';
+    customLabel = statusOrOptions.customLabel || statusOrOptions.label || customLabel;
+    size = statusOrOptions.size || size;
+  }
+
+  const rawKey = typeof status === 'string' ? status : String(status || '');
+  const normalizedKey = rawKey.toLowerCase().replace(/[\s-]/g, '_');
   const config = STATUS_CONFIGS[normalizedKey] || {
-    label: customLabel || status || 'Desconocido',
+    label: customLabel || rawKey || 'Desconocido',
     icon: 'info',
     bg: 'bg-[#E8DFCE]',
     text: 'text-[#4F4A42]',

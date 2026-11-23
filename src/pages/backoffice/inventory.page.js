@@ -254,11 +254,11 @@ export function renderInventoryPage(options = {}) {
                 const min = p.stockMinimo ?? 0;
                 let statusBadge;
                 if (stock === 0) {
-                  statusBadge = renderStatusBadge({ status: 'agotado', label: 'Agotado' });
+                  statusBadge = renderStatusBadge('agotado', { customLabel: 'Agotado', size: 'sm' });
                 } else if (stock <= min) {
-                  statusBadge = renderStatusBadge({ status: 'stock_bajo', label: 'Bajo' });
+                  statusBadge = renderStatusBadge('stock_bajo', { customLabel: 'Bajo', size: 'sm' });
                 } else {
-                  statusBadge = renderStatusBadge({ status: 'disponible', label: 'Óptimo' });
+                  statusBadge = renderStatusBadge('disponible', { customLabel: 'Óptimo', size: 'sm' });
                 }
 
                 return `
