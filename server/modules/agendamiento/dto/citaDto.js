@@ -79,6 +79,12 @@ export const consultaDisponibilidadSchema = z.object({
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de fecha YYYY-MM-DD inválido'),
   duracionBloques: z.coerce.number().int().min(1).max(12).optional(),
   servicioIds: z.string().optional(), // separados por comas
-  barberoId: z.string().uuid().optional(),
-  sedeId: z.string().uuid().optional()
+  barberoId: z.string().trim().optional().transform((val) => {
+    if (!val || val === 'any' || val === 'cualquiera') return undefined;
+    return val;
+  }).pipe(z.string().uuid().optional()),
+  sedeId: z.string().trim().optional().transform((val) => {
+    if (!val || val === 'null' || val === 'undefined') return undefined;
+    return val;
+  }).pipe(z.string().uuid().optional())
 });

@@ -305,10 +305,10 @@ export function attachStep3Listeners(onNavigate) {
     const barber = bookingStore.getSelectedBarber();
     const barberoId = barber?.id === 'any' ? null : barber?.id;
     const blocks = bookingStore.getTotalBlocks();
-    const serviceIds = (bookingStore.state.selectedServiceIds || []).filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
+    const servicioIds = (bookingStore.state.selectedServiceIds || []).filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
 
     // Validación previa: Si no hay servicios o la duración es menor a 1 bloque, pausar y guiar al usuario
-    if (blocks < 1 || serviceIds.length === 0) {
+    if (blocks < 1 || servicioIds.length === 0) {
       if (statusText) statusText.textContent = 'Selecciona servicios para ver horarios';
       updateContinueButtonUI(null);
       container.innerHTML = `
@@ -372,6 +372,7 @@ export function attachStep3Listeners(onNavigate) {
         }
 
         if (availableCount === 0) {
+          const availableDays = getAvailableDays(14);
           const isTodayDate = date === availableDays[0]?.date;
           const nextDay = availableDays.length > 1 ? availableDays[1] : null;
 

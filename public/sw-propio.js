@@ -62,6 +62,10 @@ setCatchHandler(async ({ request }) => {
 });
 
 // Control de actualización controlada (RF-PWA-08) e invalidación de caché reactiva
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
