@@ -1,8 +1,9 @@
 /**
- * Backoffice Inventario & Kardex Page
- * Búsqueda reactiva, filtros por estado, modales de Entrada, Salida, Nuevo Producto
- * y Libro Mayor de Movimientos Kardex con exportación CSV (Bloque 3).
- * Fiel a docs/stitch/smartbarber_inventario_de_productos_y_kardex y smartbarber_historial_de_movimientos_kardex.
+ * Backoffice Inventario & Venta de Productos Page
+ * Catálogo reactivo, filtros por estado, modal de Venta al Público con los 5 métodos de pago de Colombia,
+ * salidas por consumo en sillón (CU-018), modales administrativos de Entrada (CU-017), Alta de Producto (CU-016)
+ * y Libro Mayor de Movimientos Kardex con exportación CSV (CU-019).
+ * Adaptativo por rol (Administrador vs. Barbero) con estricto resguardo de confidencialidad comercial.
  */
 
 import { backofficeStore } from './backoffice-state.js';
@@ -14,70 +15,120 @@ import { openDialog } from '../../components/ui-dialog.js';
 
 let cachedKardexMovements = [];
 
-export async function loadInventoryKardexData() {
-  const [kdxRes, prodRes] = await Promise.all([
-    inventarioService.getMovimientosKardex(),
-    inventarioService.getProductos()
-  ]);
-  if (kdxRes.ok) cachedKardexMovements = kdxRes.data;
-  if (prodRes.ok) backofficeStore.products = prodRes.data;
+export async function loadInventoryKardexData(userRole = 'administrador') {
+  try {
+    const isBarbero = userRole === 'barbero';
+    if (isBarbero) {
+      // El barbero solo consulta productos activos disponibles (CU-018)
+      const prodRes = await inventarioService.getProductos();
+      if (prodRes?.ok && Array.isArray(prodRes.data)) {
+        backofficeStore.products = prodRes.data;
+      }
+    } else {
+      // El administrador consulta catálogo completo y movimientos Kardex
+      const [kdxRes, prodRes] = await Promise.all([
+        inventarioService.getMovimientosKardex().catch(() => ({ ok: false, data: [] })),
+        inventarioService.getProductos().catch(() => ({ ok: false, data: [] }))
+      ]);
+      if (kdxRes?.ok && Array.isArray(kdxRes.data)) {
+        cachedKardexMovements = kdxRes.data;
+      }
+      if (prodRes?.ok && Array.isArray(prodRes.data)) {
+        backofficeStore.products = prodRes.data;
+      }
+    }
+  } catch (err) {
+    console.warn('⚠️ Error en carga de inventario/kardex, recurriendo a estado local:', err.message);
+  }
 }
 
-export function renderInventoryPage() {
+export function renderInventoryPage(options = {}) {
+  const userRole = (typeof options === 'string' ? options : options?.userRole) || 'administrador';
+  const isBarbero = userRole === 'barbero';
+
   const products = backofficeStore.getFilteredProducts();
   const allProducts = backofficeStore.products;
 
-  const totalValueCOP = allProducts.reduce((sum, p) => sum + (p.stockActual * p.precioVenta), 0);
-  const optimalCount = allProducts.filter(p => p.stockActual > p.stockMinimo).length;
-  const lowCount = allProducts.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo).length;
-  const outCount = allProducts.filter(p => p.stockActual === 0).length;
+  const totalValueCOP = allProducts.reduce((sum, p) => sum + ((p.stockActual || 0) * (p.precioVenta || 0)), 0);
+  const optimalCount = allProducts.filter(p => (p.stockActual || 0) > (p.stockMinimo || 0)).length;
+  const lowCount = allProducts.filter(p => (p.stockActual || 0) > 0 && (p.stockActual || 0) <= (p.stockMinimo || 0)).length;
+  const outCount = allProducts.filter(p => (p.stockActual || 0) === 0).length;
 
   const currentFilter = backofficeStore.inventoryStatusFilter;
 
   return `
     <div class="flex flex-col gap-6 animate-fadeIn">
-      <!-- HEADER CON ACCIONES -->
+      <!-- HEADER CON ACCIONES SEGÚN ROL -->
       <header class="flex flex-col gap-2">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
-              Inventario de Productos & Kardex
+              ${isBarbero ? 'Catálogo & Venta de Productos' : 'Inventario de Productos & Kardex'}
             </h1>
+            ${isBarbero ? `
+              <p class="font-sans text-xs text-[#4F4A42] mt-0.5">
+                Venta directa en mostrador (ceras, geles, aceites) y registro de consumo en sillón.
+              </p>
+            ` : ''}
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button
-              id="btn-inv-kardex"
-              type="button"
-              class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border border-[#1F3A5F]/20 font-semibold text-xs hover:bg-[#d5e3ff] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-xs"
-            >
-              <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-              <span>Historial Kardex</span>
-            </button>
-            <button
-              id="btn-inv-entrada"
-              type="button"
-              class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#235D3A] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
-            >
-              <span class="material-symbols-outlined text-[18px] text-[#235D3A]">arrow_downward</span>
-              <span>+ Entrada Stock</span>
-            </button>
-            <button
-              id="btn-inv-salida"
-              type="button"
-              class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#8B1E1E] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
-            >
-              <span class="material-symbols-outlined text-[18px] text-[#8B1E1E]">arrow_upward</span>
-              <span>- Salida Stock</span>
-            </button>
-            <button
-              id="btn-inv-nuevo"
-              type="button"
-              class="min-h-[40px] px-4 py-1.5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 active:scale-[0.98]"
-            >
-              <span class="material-symbols-outlined text-[18px]">add</span>
-              <span>+ Nuevo Producto</span>
-            </button>
+            ${isBarbero ? `
+              <!-- Acciones exclusivas del Barbero (CU-018) -->
+              <button
+                id="btn-inv-consumo"
+                type="button"
+                class="min-h-[44px] px-3.5 py-2 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#1F3A5F] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
+                title="Registrar insumo utilizado en atención de cabina"
+              >
+                <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]">content_cut</span>
+                <span>- Consumo Sillón</span>
+              </button>
+
+              <button
+                id="btn-inv-salida"
+                type="button"
+                class="min-h-[44px] px-4 py-2 rounded-lg bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-2 active:scale-[0.98]"
+                title="Registrar venta de cera, gel o producto a cliente"
+              >
+                <span class="material-symbols-outlined text-[20px]">point_of_sale</span>
+                <span>+ Vender Producto</span>
+              </button>
+            ` : `
+              <!-- Acciones completas del Administrador (CU-016 a CU-019) -->
+              <button
+                id="btn-inv-kardex"
+                type="button"
+                class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border border-[#1F3A5F]/20 font-semibold text-xs hover:bg-[#d5e3ff] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-xs"
+              >
+                <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                <span>Historial Kardex</span>
+              </button>
+              <button
+                id="btn-inv-entrada"
+                type="button"
+                class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#235D3A] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
+              >
+                <span class="material-symbols-outlined text-[18px] text-[#235D3A]">arrow_downward</span>
+                <span>+ Entrada Stock</span>
+              </button>
+              <button
+                id="btn-inv-salida"
+                type="button"
+                class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#8B1E1E] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
+              >
+                <span class="material-symbols-outlined text-[18px] text-[#8B1E1E]">arrow_upward</span>
+                <span>- Salida / Venta</span>
+              </button>
+              <button
+                id="btn-inv-nuevo"
+                type="button"
+                class="min-h-[40px] px-4 py-1.5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 active:scale-[0.98]"
+              >
+                <span class="material-symbols-outlined text-[18px]">add</span>
+                <span>+ Nuevo Producto</span>
+              </button>
+            `}
           </div>
         </div>
 
@@ -88,9 +139,9 @@ export function renderInventoryPage() {
       <!-- 4 TARJETAS KPI -->
       <section aria-label="Resumen de inventario" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         ${renderKpiCard({
-          label: 'Total Referencias',
+          label: isBarbero ? 'Productos Disponibles' : 'Total Referencias',
           value: allProducts.length,
-          caption: `Valoración: ${formatCOP(totalValueCOP)}`,
+          caption: isBarbero ? 'Catálogo activo para mostrador' : `Valoración: ${formatCOP(totalValueCOP)}`,
           icon: 'inventory_2',
           iconBg: 'bg-[#E4ECF5]',
           iconColor: 'text-[#1F3A5F]'
@@ -99,7 +150,7 @@ export function renderInventoryPage() {
         ${renderKpiCard({
           label: 'En Nivel Óptimo',
           value: optimalCount,
-          caption: 'Con stock por encima del mínimo',
+          caption: 'Con stock suficiente para la jornada',
           icon: 'check_circle',
           iconBg: 'bg-[#E3EFE7]',
           iconColor: 'text-[#235D3A]'
@@ -117,7 +168,7 @@ export function renderInventoryPage() {
         ${renderKpiCard({
           label: 'Productos Agotados',
           value: outCount,
-          caption: 'Requieren orden de reposición inmediata',
+          caption: isBarbero ? 'No disponibles para venta' : 'Requieren reposición inmediata',
           icon: 'cancel',
           iconBg: 'bg-[#FCE8E6]',
           iconColor: 'text-[#B3261E]'
@@ -132,7 +183,7 @@ export function renderInventoryPage() {
             id="inv-search-input"
             type="search"
             value="${backofficeStore.inventorySearchQuery}"
-            placeholder="Buscar por SKU, producto o categoría..."
+            placeholder="Buscar cera, gel, aceite o categoría..."
             class="w-full h-10 pl-9 pr-3 rounded-lg bg-white border border-[#8C8272] text-xs text-[#1C1C1C] placeholder-[#6B645A] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
           />
         </div>
@@ -175,20 +226,20 @@ export function renderInventoryPage() {
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
-                <th class="py-3 px-4 font-semibold">SKU / Referencia</th>
-                <th class="py-3 px-4 font-semibold min-w-[240px]">Producto</th>
+                <th class="py-3 px-4 font-semibold">SKU / Ref</th>
+                <th class="py-3 px-4 font-semibold min-w-[220px]">Producto</th>
                 <th class="py-3 px-4 font-semibold">Categoría</th>
-                <th class="py-3 px-4 font-semibold text-center">Stock Físico</th>
-                <th class="py-3 px-4 font-semibold text-center">Nivel Mínimo</th>
+                <th class="py-3 px-4 font-semibold text-center">Stock Disponible</th>
+                ${!isBarbero ? `<th class="py-3 px-4 font-semibold text-center">Mínimo</th>` : ''}
                 <th class="py-3 px-4 font-semibold text-right">Precio Venta (COP)</th>
                 <th class="py-3 px-4 font-semibold text-center">Estado</th>
-                <th class="py-3 px-4 font-semibold text-right min-w-[140px]">Acciones</th>
+                <th class="py-3 px-4 font-semibold text-right min-w-[120px]">Acción</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
               ${products.length === 0 ? `
                 <tr>
-                  <td colspan="8" class="py-12 text-center text-[#6B645A]">
+                  <td colspan="${isBarbero ? 7 : 8}" class="py-12 text-center text-[#6B645A]">
                     <div class="flex flex-col items-center gap-2">
                       <span class="material-symbols-outlined text-[32px] text-[#8C8272]">inventory_2</span>
                       <p class="font-medium text-sm">No se encontraron productos con el filtro aplicado.</p>
@@ -199,10 +250,12 @@ export function renderInventoryPage() {
                   </td>
                 </tr>
               ` : products.map(p => {
+                const stock = p.stockActual ?? 0;
+                const min = p.stockMinimo ?? 0;
                 let statusBadge;
-                if (p.stockActual === 0) {
+                if (stock === 0) {
                   statusBadge = renderStatusBadge({ status: 'agotado', label: 'Agotado' });
-                } else if (p.stockActual <= p.stockMinimo) {
+                } else if (stock <= min) {
                   statusBadge = renderStatusBadge({ status: 'stock_bajo', label: 'Bajo' });
                 } else {
                   statusBadge = renderStatusBadge({ status: 'disponible', label: 'Óptimo' });
@@ -215,19 +268,23 @@ export function renderInventoryPage() {
                     </td>
                     <td class="py-3 px-4">
                       <div class="font-sans font-bold text-xs text-[#1C1C1C]">${p.nombre}</div>
-                      <div class="text-[10px] text-[#6B645A] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
+                      ${!isBarbero ? `
+                        <div class="text-[10px] text-[#6B645A] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
+                      ` : ''}
                     </td>
                     <td class="py-3 px-4 text-[#4F4A42]">
                       <span class="bg-[#E8DFCE]/50 px-2 py-0.5 rounded text-[11px] font-medium border border-[#D5CBB8]/40">
                         ${p.categoria}
                       </span>
                     </td>
-                    <td class="py-3 px-4 text-center font-mono font-bold text-sm ${p.stockActual === 0 ? 'text-[#B3261E]' : p.stockActual <= p.stockMinimo ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
-                      ${p.stockActual}
+                    <td class="py-3 px-4 text-center font-mono font-bold text-sm ${stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
+                      ${stock}
                     </td>
-                    <td class="py-3 px-4 text-center font-mono text-xs text-[#6B645A]">
-                      ${p.stockMinimo}
-                    </td>
+                    ${!isBarbero ? `
+                      <td class="py-3 px-4 text-center font-mono text-xs text-[#6B645A]">
+                        ${min}
+                      </td>
+                    ` : ''}
                     <td class="py-3 px-4 text-right font-mono font-bold text-xs text-[#1C1C1C] tabular-nums">
                       ${formatCOP(p.precioVenta)}
                     </td>
@@ -235,24 +292,40 @@ export function renderInventoryPage() {
                       ${statusBadge}
                     </td>
                     <td class="py-3 px-4 text-right">
-                      <div class="inline-flex items-center justify-end gap-1">
-                        <button
-                          type="button"
-                          data-quick-entry="${p.sku}"
-                          class="p-1 rounded text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
-                          title="Entrada rápida de stock"
-                        >
-                          <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                        </button>
-                        <button
-                          type="button"
-                          data-quick-exit="${p.sku}"
-                          class="p-1 rounded text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
-                          title="Descontar stock"
-                        >
-                          <span class="material-symbols-outlined text-[18px]">remove_circle</span>
-                        </button>
-                      </div>
+                      ${isBarbero ? `
+                        ${stock > 0 ? `
+                          <button
+                            type="button"
+                            data-quick-sell="${p.sku}"
+                            class="min-h-[36px] px-3 py-1 rounded-md bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs"
+                            title="Vender ${p.nombre}"
+                          >
+                            <span class="material-symbols-outlined text-[15px]">point_of_sale</span>
+                            <span>Vender</span>
+                          </button>
+                        ` : `
+                          <span class="text-[11px] text-[#B3261E] font-medium font-sans">Agotado</span>
+                        `}
+                      ` : `
+                        <div class="inline-flex items-center justify-end gap-1">
+                          <button
+                            type="button"
+                            data-quick-entry="${p.sku}"
+                            class="p-1 rounded text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                            title="Entrada de reposición"
+                          >
+                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                          </button>
+                          <button
+                            type="button"
+                            data-quick-exit="${p.sku}"
+                            class="p-1 rounded text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
+                            title="Descontar stock / Venta"
+                          >
+                            <span class="material-symbols-outlined text-[18px]">remove_circle</span>
+                          </button>
+                        </div>
+                      `}
                     </td>
                   </tr>
                 `;
@@ -262,142 +335,128 @@ export function renderInventoryPage() {
         </div>
 
         <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between text-xs text-[#4F4A42]">
-          <span>Mostrando <strong>${products.length}</strong> de <strong>${allProducts.length}</strong> productos registrados</span>
-          <span class="font-mono text-[11px] text-[#6B645A]">Valoración total: ${formatCOP(totalValueCOP)}</span>
+          <span>Mostrando <strong>${products.length}</strong> de <strong>${allProducts.length}</strong> referencias registradas</span>
+          ${!isBarbero ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total: ${formatCOP(totalValueCOP)}</span>` : ''}
         </div>
       </section>
     </div>
 
-    <!-- ========================================== -->
-    <!-- MODAL / DRAWER: LIBRO MAYOR KARDEX         -->
-    <!-- ========================================== -->
-    <dialog
-      id="dialog-kardex-ledger"
-      class="p-0 rounded-2xl bg-[#FAF7F2] border border-[#D5CBB8] shadow-2xl backdrop:bg-black/50 max-w-4xl w-full mx-auto my-auto"
-    >
-      <div class="p-6 flex flex-col gap-5">
-        <!-- Header -->
-        <div class="flex items-start justify-between pb-3 border-b border-[#D5CBB8]">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-lg bg-[#1F3A5F] text-white flex items-center justify-center">
-              <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+    ${!isBarbero ? `
+      <!-- ========================================== -->
+      <!-- MODAL: LIBRO MAYOR KARDEX (ADMIN ONLY)     -->
+      <!-- ========================================== -->
+      <dialog
+        id="dialog-kardex-ledger"
+        class="p-0 rounded-2xl bg-[#FAF7F2] border border-[#D5CBB8] shadow-2xl backdrop:bg-black/50 max-w-4xl w-full mx-auto my-auto"
+      >
+        <div class="p-6 flex flex-col gap-5">
+          <!-- Header -->
+          <div class="flex items-start justify-between pb-3 border-b border-[#D5CBB8]">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-[#1F3A5F] text-white flex items-center justify-center">
+                <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+              </div>
+              <div>
+                <h2 class="font-serif text-xl font-bold text-[#1C1C1C]">Historial de Movimientos (Kardex)</h2>
+              </div>
             </div>
-            <div>
-              <h2 class="font-serif text-xl font-bold text-[#1C1C1C]">Historial de Movimientos (Kardex)</h2>
-            </div>
+            <button type="button" id="btn-close-kardex-modal" class="text-[#6B645A] hover:text-[#1C1C1C] p-1">
+              <span class="material-symbols-outlined text-[22px]">close</span>
+            </button>
           </div>
-          <button type="button" id="btn-close-kardex-modal" class="text-[#6B645A] hover:text-[#1C1C1C] p-1">
-            <span class="material-symbols-outlined text-[22px]">close</span>
-          </button>
-        </div>
 
-        <!-- 4 Summary KPI Strip -->
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-          <div class="p-3 bg-white border border-[#D5CBB8] rounded-lg">
-            <span class="text-[#6B645A] uppercase font-bold text-[10px]">Movimientos Mes</span>
-            <div class="font-mono text-xl font-bold text-[#1C1C1C] mt-1">142</div>
-            <span class="text-[10px] text-[#235D3A] font-semibold">+12% vs mes anterior</span>
-          </div>
-          <div class="p-3 bg-white border border-[#D5CBB8] rounded-lg">
-            <span class="text-[#6B645A] uppercase font-bold text-[10px]">Entradas del Período</span>
-            <div class="font-mono text-xl font-bold text-[#235D3A] mt-1">+16 uds</div>
-            <span class="text-[10px] text-[#4F4A42]">Reposición proveedor</span>
-          </div>
-          <div class="p-3 bg-white border border-[#D5CBB8] rounded-lg">
-            <span class="text-[#6B645A] uppercase font-bold text-[10px]">Salidas por Venta/Uso</span>
-            <div class="font-mono text-xl font-bold text-[#B3261E] mt-1">-5 uds</div>
-            <span class="text-[10px] text-[#4F4A42]">Ventas + Sillón</span>
-          </div>
-          <div class="p-3 bg-white border border-[#D5CBB8] rounded-lg">
-            <span class="text-[#6B645A] uppercase font-bold text-[10px]">Auditoría Kardex</span>
-            <div class="font-mono text-xl font-bold text-[#1F3A5F] mt-1">100% OK</div>
-            <span class="text-[10px] text-[#235D3A] font-semibold">Caja cuadrada</span>
-          </div>
-        </div>
-
-        <!-- Tabla de Movimientos Kardex -->
-        <div class="overflow-x-auto bg-white border border-[#D5CBB8] rounded-lg max-h-80 overflow-y-auto">
-          <table class="w-full text-left border-collapse text-xs">
-            <thead class="sticky top-0 bg-[#E8DFCE] text-[#4F4A42] text-[11px] uppercase tracking-wider font-semibold">
-              <tr>
-                <th class="py-2.5 px-3">ID / Fecha</th>
-                <th class="py-2.5 px-3">Producto / SKU</th>
-                <th class="py-2.5 px-3">Tipo & Subtipo</th>
-                <th class="py-2.5 px-3 text-center">Cant.</th>
-                <th class="py-2.5 px-3 text-center">Balance Stock</th>
-                <th class="py-2.5 px-3">Referencia / Factura</th>
-                <th class="py-2.5 px-3">Responsable</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-[#D5CBB8]/50 text-xs">
-              ${cachedKardexMovements.map(k => `
-                <tr class="hover:bg-[#FAF3E5] transition-colors">
-                  <td class="py-2.5 px-3">
-                    <span class="font-mono font-bold text-[#1F3A5F]">${k.id}</span>
-                    <span class="block text-[10px] text-[#6B645A]">${k.fechaFormato || ''}</span>
-                  </td>
-                  <td class="py-2.5 px-3">
-                    <span class="font-semibold text-[#1C1C1C]">${k.productoNombre}</span>
-                    <span class="block text-[10px] font-mono text-[#6B645A]">${k.sku}</span>
-                  </td>
-                  <td class="py-2.5 px-3">
-                    ${k.tipo === 'entrada' ? `
-                      <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold">
-                        <span class="material-symbols-outlined text-[13px]">arrow_circle_up</span>
-                        <span>${k.subtipoLabel || 'Entrada'}</span>
-                      </span>
-                    ` : `
-                      <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold">
-                        <span class="material-symbols-outlined text-[13px]">arrow_circle_down</span>
-                        <span>${k.subtipoLabel || 'Salida'}</span>
-                      </span>
-                    `}
-                  </td>
-                  <td class="py-2.5 px-3 text-center font-mono font-bold ${k.tipo === 'entrada' ? 'text-[#235D3A]' : 'text-[#B3261E]'}">
-                    ${k.tipo === 'entrada' ? `+${k.cantidad}` : `-${k.cantidad}`}
-                  </td>
-                  <td class="py-2.5 px-3 text-center font-mono">
-                    <span class="text-[#6B645A]">${k.stockPrevio}</span>
-                    <span class="text-[#1C1C1C] mx-1">&rarr;</span>
-                    <strong class="text-[#1C1C1C]">${k.stockNuevo}</strong>
-                  </td>
-                  <td class="py-2.5 px-3 font-mono text-[11px] text-[#4F4A42]">
-                    ${k.referencia || 'Operación directa'}
-                  </td>
-                  <td class="py-2.5 px-3 text-[11px] text-[#6B645A]">
-                    ${k.responsable || 'Carlos Mendoza'}
-                  </td>
+          <!-- Tabla de Movimientos Kardex -->
+          <div class="overflow-x-auto bg-white border border-[#D5CBB8] rounded-lg max-h-80 overflow-y-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-[#E8DFCE] text-[#4F4A42] text-[11px] uppercase tracking-wider font-semibold">
+                <tr>
+                  <th class="py-2.5 px-3">ID / Fecha</th>
+                  <th class="py-2.5 px-3">Producto / SKU</th>
+                  <th class="py-2.5 px-3">Tipo & Subtipo</th>
+                  <th class="py-2.5 px-3 text-center">Cant.</th>
+                  <th class="py-2.5 px-3 text-center">Balance Stock</th>
+                  <th class="py-2.5 px-3">Referencia / Factura</th>
+                  <th class="py-2.5 px-3">Responsable</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody class="divide-y divide-[#D5CBB8]/50 text-xs">
+                ${cachedKardexMovements.length === 0 ? `
+                  <tr>
+                    <td colspan="7" class="py-8 text-center text-[#6B645A]">
+                      No hay movimientos registrados en el Kardex.
+                    </td>
+                  </tr>
+                ` : cachedKardexMovements.map(k => `
+                  <tr class="hover:bg-[#FAF3E5] transition-colors">
+                    <td class="py-2.5 px-3">
+                      <span class="font-mono font-bold text-[#1F3A5F]">${k.id}</span>
+                      <span class="block text-[10px] text-[#6B645A]">${k.fechaFormato || ''}</span>
+                    </td>
+                    <td class="py-2.5 px-3">
+                      <span class="font-semibold text-[#1C1C1C]">${k.productoNombre}</span>
+                      <span class="block text-[10px] font-mono text-[#6B645A]">${k.sku}</span>
+                    </td>
+                    <td class="py-2.5 px-3">
+                      ${k.tipo === 'entrada' ? `
+                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold">
+                          <span class="material-symbols-outlined text-[13px]">arrow_circle_up</span>
+                          <span>${k.subtipoLabel || 'Entrada'}</span>
+                        </span>
+                      ` : `
+                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold">
+                          <span class="material-symbols-outlined text-[13px]">arrow_circle_down</span>
+                          <span>${k.subtipoLabel || 'Salida'}</span>
+                        </span>
+                      `}
+                    </td>
+                    <td class="py-2.5 px-3 text-center font-mono font-bold ${k.tipo === 'entrada' ? 'text-[#235D3A]' : 'text-[#B3261E]'}">
+                      ${k.tipo === 'entrada' ? `+${k.cantidad}` : `-${k.cantidad}`}
+                    </td>
+                    <td class="py-2.5 px-3 text-center font-mono">
+                      <span class="text-[#6B645A]">${k.stockPrevio}</span>
+                      <span class="text-[#1C1C1C] mx-1">&rarr;</span>
+                      <strong class="text-[#1C1C1C]">${k.stockNuevo}</strong>
+                    </td>
+                    <td class="py-2.5 px-3 font-mono text-[11px] text-[#4F4A42]">
+                      ${k.referencia || 'Operación directa'}
+                    </td>
+                    <td class="py-2.5 px-3 text-[11px] text-[#6B645A]">
+                      ${k.responsable || 'Carlos Mendoza'}
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
 
-        <!-- Footer Modal -->
-        <div class="flex items-center justify-between pt-2 border-t border-[#D5CBB8]">
-          <button
-            type="button"
-            id="btn-export-kardex-csv"
-            class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-[#8C8272] text-xs font-semibold text-[#1F3A5F] hover:bg-[#FAF3E5] transition-colors"
-          >
-            <span class="material-symbols-outlined text-[18px]">download</span>
-            <span>Descargar Kardex CSV</span>
-          </button>
+          <!-- Footer Modal -->
+          <div class="flex items-center justify-between pt-2 border-t border-[#D5CBB8]">
+            <button
+              type="button"
+              id="btn-export-kardex-csv"
+              class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-white border border-[#8C8272] text-xs font-semibold text-[#1F3A5F] hover:bg-[#FAF3E5] transition-colors"
+            >
+              <span class="material-symbols-outlined text-[18px]">download</span>
+              <span>Descargar Kardex CSV</span>
+            </button>
 
-          <button
-            type="button"
-            id="btn-cerrar-kardex"
-            class="min-h-[44px] px-5 py-2 rounded-lg bg-[#1F3A5F] text-white text-xs font-semibold hover:bg-[#162B47] transition-colors"
-          >
-            Cerrar Libro
-          </button>
+            <button
+              type="button"
+              id="btn-cerrar-kardex"
+              class="min-h-[44px] px-5 py-2 rounded-lg bg-[#1F3A5F] text-white text-xs font-semibold hover:bg-[#162B47] transition-colors"
+            >
+              Cerrar Libro
+            </button>
+          </div>
         </div>
-      </div>
-    </dialog>
+      </dialog>
+    ` : ''}
   `;
 }
 
-export function attachInventoryListeners(onUpdate) {
+export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
+  const isBarbero = userRole === 'barbero';
+
   // Búsqueda reactiva
   const searchInput = document.getElementById('inv-search-input');
   if (searchInput) {
@@ -421,47 +480,78 @@ export function attachInventoryListeners(onUpdate) {
     });
   });
 
-  // Botón Entrada Stock
-  const btnEntrada = document.getElementById('btn-inv-entrada');
-  if (btnEntrada) {
-    btnEntrada.addEventListener('click', () => openStockEntryModal(onUpdate));
-  }
-
-  // Botón Salida Stock
+  // Botón Salida / Venta Stock (Disponible para Barbero y Admin)
   const btnSalida = document.getElementById('btn-inv-salida');
   if (btnSalida) {
-    btnSalida.addEventListener('click', () => openStockExitModal(onUpdate));
+    btnSalida.addEventListener('click', () => openStockExitModal(onUpdate, '', 'venta_publico', userRole));
   }
 
-  // Botón Nuevo Producto
-  const btnNuevo = document.getElementById('btn-inv-nuevo');
-  if (btnNuevo) {
-    btnNuevo.addEventListener('click', () => openNuevoProductoModal(onUpdate));
+  // Botón Consumo en Sillón (Exclusivo Barbero)
+  const btnConsumo = document.getElementById('btn-inv-consumo');
+  if (btnConsumo) {
+    btnConsumo.addEventListener('click', () => openStockExitModal(onUpdate, '', 'consumo_interno', userRole));
   }
 
-  // Botón Historial Kardex
-  const btnKardex = document.getElementById('btn-inv-kardex');
-  const dialogKardex = document.getElementById('dialog-kardex-ledger');
-  const closeKardexX = document.getElementById('btn-close-kardex-modal');
-  const closeKardexBtn = document.getElementById('btn-cerrar-kardex');
-  const exportKardexBtn = document.getElementById('btn-export-kardex-csv');
-
-  if (btnKardex && dialogKardex) {
-    btnKardex.addEventListener('click', async () => {
-      await loadInventoryKardexData();
-      dialogKardex.showModal();
+  // Venta rápida desde la fila de tabla (Barbero)
+  const sellBtns = document.querySelectorAll('button[data-quick-sell]');
+  sellBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sku = btn.getAttribute('data-quick-sell');
+      openStockExitModal(onUpdate, sku, 'venta_publico', userRole);
     });
-  }
+  });
 
-  const closeKardexModal = () => {
-    if (dialogKardex) dialogKardex.close();
-  };
-  if (closeKardexX) closeKardexX.addEventListener('click', closeKardexModal);
-  if (closeKardexBtn) closeKardexBtn.addEventListener('click', closeKardexModal);
+  // Acciones exclusivas del Administrador
+  if (!isBarbero) {
+    const btnEntrada = document.getElementById('btn-inv-entrada');
+    if (btnEntrada) {
+      btnEntrada.addEventListener('click', () => openStockEntryModal(onUpdate));
+    }
 
-  if (exportKardexBtn) {
-    exportKardexBtn.addEventListener('click', () => {
-      exportarKardexCSV(cachedKardexMovements);
+    const btnNuevo = document.getElementById('btn-inv-nuevo');
+    if (btnNuevo) {
+      btnNuevo.addEventListener('click', () => openNuevoProductoModal(onUpdate));
+    }
+
+    const btnKardex = document.getElementById('btn-inv-kardex');
+    const dialogKardex = document.getElementById('dialog-kardex-ledger');
+    const closeKardexX = document.getElementById('btn-close-kardex-modal');
+    const closeKardexBtn = document.getElementById('btn-cerrar-kardex');
+    const exportKardexBtn = document.getElementById('btn-export-kardex-csv');
+
+    if (btnKardex && dialogKardex) {
+      btnKardex.addEventListener('click', async () => {
+        await loadInventoryKardexData('administrador');
+        dialogKardex.showModal();
+      });
+    }
+
+    const closeKardexModal = () => {
+      if (dialogKardex) dialogKardex.close();
+    };
+    if (closeKardexX) closeKardexX.addEventListener('click', closeKardexModal);
+    if (closeKardexBtn) closeKardexBtn.addEventListener('click', closeKardexModal);
+
+    if (exportKardexBtn) {
+      exportKardexBtn.addEventListener('click', () => {
+        exportarKardexCSV(cachedKardexMovements);
+      });
+    }
+
+    const entryBtns = document.querySelectorAll('button[data-quick-entry]');
+    entryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sku = btn.getAttribute('data-quick-entry');
+        openStockEntryModal(onUpdate, sku);
+      });
+    });
+
+    const exitBtns = document.querySelectorAll('button[data-quick-exit]');
+    exitBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const sku = btn.getAttribute('data-quick-exit');
+        openStockExitModal(onUpdate, sku, 'venta_publico', userRole);
+      });
     });
   }
 
@@ -474,35 +564,196 @@ export function attachInventoryListeners(onUpdate) {
       onUpdate();
     });
   }
+}
 
-  // Acciones en fila de tabla
-  const entryBtns = document.querySelectorAll('button[data-quick-entry]');
-  entryBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sku = btn.getAttribute('data-quick-entry');
-      openStockEntryModal(onUpdate, sku);
+/**
+ * Modal accesible de Venta de Producto y Salida de Stock (CU-018)
+ * Cumple con validación de no-stock negativo (RN-10) y los 5 métodos de pago de Colombia.
+ */
+function openStockExitModal(onUpdate, defaultSku = '', defaultReason = 'venta_publico', userRole = 'administrador') {
+  const products = backofficeStore.products.filter(p => (p.stockActual || 0) > 0);
+  const isBarbero = userRole === 'barbero';
+
+  if (products.length === 0) {
+    openDialog({
+      title: 'Inventario sin existencias',
+      description: 'Actualmente no hay productos con existencias disponibles en el inventario para registrar salidas o ventas.',
+      confirmLabel: 'Entendido',
+      isAlertOnly: true
     });
+    return;
+  }
+
+  const selectedInitialSku = defaultSku || products[0]?.sku || '';
+  const initialProduct = products.find(p => p.sku === selectedInitialSku) || products[0];
+
+  openDialog({
+    title: isBarbero ? 'Venta de Producto en Mostrador / Sillón' : 'Registrar Salida de Inventario (CU-018)',
+    contentHtml: `
+      <form id="form-stock-exit" class="flex flex-col gap-4 text-xs">
+        <div class="flex flex-col gap-1.5">
+          <label for="exit-sku" class="font-sans font-semibold text-[#1C1C1C]">Producto</label>
+          <select id="exit-sku" class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] text-xs font-semibold text-[#1C1C1C]">
+            ${products.map(p => `
+              <option value="${p.sku}" ${p.sku === selectedInitialSku ? 'selected' : ''} data-price="${p.precioVenta}" data-stock="${p.stockActual}">
+                ${p.nombre} (Stock: ${p.stockActual} uds · ${formatCOP(p.precioVenta)})
+              </option>
+            `).join('')}
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1.5">
+            <label for="exit-qty" class="font-sans font-semibold text-[#1C1C1C]">Cantidad</label>
+            <input
+              type="number"
+              id="exit-qty"
+              min="1"
+              max="${initialProduct?.stockActual || 1}"
+              value="1"
+              class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] font-mono text-sm text-[#1C1C1C] font-bold"
+              required
+            />
+            <span id="exit-stock-hint" class="text-[10px] text-[#6B645A]">Máximo disponible: ${initialProduct?.stockActual || 0} uds</span>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label for="exit-reason" class="font-sans font-semibold text-[#1C1C1C]">Motivo</label>
+            <select id="exit-reason" class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] text-xs text-[#1C1C1C] font-semibold">
+              <option value="venta_publico" ${defaultReason === 'venta_publico' ? 'selected' : ''}>Venta al Público</option>
+              <option value="consumo_interno" ${defaultReason === 'consumo_interno' ? 'selected' : ''}>Consumo en Sillón / Cabina</option>
+              ${!isBarbero ? `<option value="merma">Avería / Merma (Ajuste)</option>` : ''}
+            </select>
+          </div>
+        </div>
+
+        <!-- SECCIÓN DE MÉTODO DE PAGO (Solo visible si es Venta al Público) -->
+        <div id="section-metodo-pago" class="flex flex-col gap-2 pt-1 border-t border-[#D5CBB8]">
+          <label class="font-sans font-semibold text-[#1C1C1C]">Método de Pago (Colombia)</label>
+          <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-[#D5CBB8] cursor-pointer hover:border-[#1F3A5F]">
+              <input type="radio" name="exit-metodo-pago" value="efectivo" checked class="text-[#1F3A5F] focus:ring-0" />
+              <span class="font-medium text-[11px] text-[#1C1C1C]">Efectivo</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-[#D5CBB8] cursor-pointer hover:border-[#1F3A5F]">
+              <input type="radio" name="exit-metodo-pago" value="nequi" class="text-[#1F3A5F] focus:ring-0" />
+              <span class="font-medium text-[11px] text-[#1C1C1C]">Nequi</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-[#D5CBB8] cursor-pointer hover:border-[#1F3A5F]">
+              <input type="radio" name="exit-metodo-pago" value="daviplata" class="text-[#1F3A5F] focus:ring-0" />
+              <span class="font-medium text-[11px] text-[#1C1C1C]">Daviplata</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-[#D5CBB8] cursor-pointer hover:border-[#1F3A5F]">
+              <input type="radio" name="exit-metodo-pago" value="tarjeta_debito_credito" class="text-[#1F3A5F] focus:ring-0" />
+              <span class="font-medium text-[11px] text-[#1C1C1C]">Datáfono</span>
+            </label>
+            <label class="flex items-center gap-2 p-2 rounded-lg bg-white border border-[#D5CBB8] cursor-pointer hover:border-[#1F3A5F]">
+              <input type="radio" name="exit-metodo-pago" value="transferencia_bancaria" class="text-[#1F3A5F] focus:ring-0" />
+              <span class="font-medium text-[11px] text-[#1C1C1C]">Transferencia</span>
+            </label>
+          </div>
+
+          <!-- Total a cobrar calculado en vivo -->
+          <div class="mt-2 p-3 bg-[#E4ECF5] border border-[#1F3A5F]/20 rounded-lg flex items-center justify-between">
+            <span class="font-sans font-semibold text-xs text-[#1F3A5F]">Total a Cobrar:</span>
+            <span id="exit-total-display" class="font-mono font-bold text-base text-[#1F3A5F]">
+              ${formatCOP(initialProduct?.precioVenta || 0)}
+            </span>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label for="exit-note" class="font-sans font-semibold text-[#1C1C1C]">Nota u Observación (Opcional)</label>
+          <input
+            type="text"
+            id="exit-note"
+            placeholder="Ej: Cliente fidelizado / Venta adicional a corte"
+            class="h-9 px-3 rounded-lg bg-white border border-[#8C8272] text-xs text-[#1C1C1C]"
+          />
+        </div>
+      </form>
+    `,
+    confirmText: 'Confirmar Operación',
+    cancelText: 'Cancelar',
+    confirmVariant: 'primary',
+    onConfirm: async () => {
+      const skuSelect = document.getElementById('exit-sku');
+      const sku = skuSelect?.value;
+      const qtyInput = document.getElementById('exit-qty');
+      const qty = parseInt(qtyInput?.value, 10) || 1;
+      const reason = document.getElementById('exit-reason')?.value || 'venta_publico';
+      const note = document.getElementById('exit-note')?.value?.trim() || '';
+
+      const paymentInput = document.querySelector('input[name="exit-metodo-pago"]:checked');
+      const metodoPago = reason === 'venta_publico' ? (paymentInput?.value || 'efectivo') : null;
+
+      const product = backofficeStore.products.find(p => p.sku === sku);
+      if (!product) return false;
+
+      // Validación estricta de stock no-negativo (RN-10)
+      if (qty > (product.stockActual || 0)) {
+        alert(`No es posible realizar la operación: existencias insuficientes (${product.stockActual} disponibles).`);
+        return false;
+      }
+
+      await backofficeStore.addStockExit(sku, qty, reason, metodoPago, note);
+      await loadInventoryKardexData(userRole);
+      onUpdate();
+      return true;
+    }
   });
 
-  const exitBtns = document.querySelectorAll('button[data-quick-exit]');
-  exitBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sku = btn.getAttribute('data-quick-exit');
-      openStockExitModal(onUpdate, sku);
-    });
-  });
+  // Cálculo en vivo y sincronización de stock máximo en el modal
+  setTimeout(() => {
+    const skuSelect = document.getElementById('exit-sku');
+    const qtyInput = document.getElementById('exit-qty');
+    const reasonSelect = document.getElementById('exit-reason');
+    const paymentSection = document.getElementById('section-metodo-pago');
+    const totalDisplay = document.getElementById('exit-total-display');
+    const stockHint = document.getElementById('exit-stock-hint');
+
+    const updateCalculations = () => {
+      if (!skuSelect || !qtyInput) return;
+      const selectedOption = skuSelect.options[skuSelect.selectedIndex];
+      const price = Number(selectedOption?.getAttribute('data-price') || 0);
+      const stock = Number(selectedOption?.getAttribute('data-stock') || 0);
+      const qty = Math.max(1, parseInt(qtyInput.value, 10) || 1);
+
+      qtyInput.max = stock;
+      if (stockHint) stockHint.textContent = `Máximo disponible: ${stock} uds`;
+
+      if (totalDisplay) {
+        totalDisplay.textContent = formatCOP(price * qty);
+      }
+    };
+
+    const togglePaymentSection = () => {
+      if (!reasonSelect || !paymentSection) return;
+      if (reasonSelect.value === 'venta_publico') {
+        paymentSection.classList.remove('hidden');
+      } else {
+        paymentSection.classList.add('hidden');
+      }
+    };
+
+    skuSelect?.addEventListener('change', updateCalculations);
+    qtyInput?.addEventListener('input', updateCalculations);
+    reasonSelect?.addEventListener('change', togglePaymentSection);
+    togglePaymentSection();
+    updateCalculations();
+  }, 50);
 }
 
 function openStockEntryModal(onUpdate, defaultSku = '') {
   const products = backofficeStore.products;
 
   openDialog({
-    title: '+ Registrar Entrada de Stock (Kardex)',
+    title: '+ Registrar Entrada de Stock (Reposición)',
     contentHtml: `
-      <form id="form-stock-entry" class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Producto / SKU</label>
-          <select id="entry-sku" class="h-10 px-3 rounded-md bg-white border border-[#8C8272] text-xs font-semibold text-[#1C1C1C]">
+      <form id="form-stock-entry" class="flex flex-col gap-4 text-xs">
+        <div class="flex flex-col gap-1.5">
+          <label class="font-sans font-semibold text-[#1C1C1C]">Producto / Referencia</label>
+          <select id="entry-sku" class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] text-xs font-semibold text-[#1C1C1C]">
             ${products.map(p => `
               <option value="${p.sku}" ${p.sku === defaultSku ? 'selected' : ''}>
                 ${p.sku} · ${p.nombre} (Stock actual: ${p.stockActual})
@@ -511,25 +762,25 @@ function openStockEntryModal(onUpdate, defaultSku = '') {
           </select>
         </div>
 
-        <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Cantidad de Unidades a Ingresar</label>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-sans font-semibold text-[#1C1C1C]">Cantidad de Unidades a Ingresar</label>
           <input
             type="number"
             id="entry-qty"
             min="1"
             value="5"
-            class="h-10 px-3 rounded-md bg-white border border-[#8C8272] font-mono text-sm text-[#1C1C1C]"
+            class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] font-mono text-sm text-[#1C1C1C] font-bold"
             required
           />
         </div>
 
-        <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Número de Factura / Remisión (Opcional)</label>
+        <div class="flex flex-col gap-1.5">
+          <label class="font-sans font-semibold text-[#1C1C1C]">Número de Factura o Remisión Proveedor (Opcional)</label>
           <input
             type="text"
             id="entry-note"
             placeholder="Ej: FAC-2026-908"
-            class="h-10 px-3 rounded-md bg-white border border-[#8C8272] text-xs text-[#1C1C1C]"
+            class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] text-xs text-[#1C1C1C]"
           />
         </div>
       </form>
@@ -543,63 +794,7 @@ function openStockEntryModal(onUpdate, defaultSku = '') {
       const note = document.getElementById('entry-note').value;
 
       await backofficeStore.addStockEntry(sku, qty, note);
-      await loadInventoryKardexData();
-      onUpdate();
-      return true;
-    }
-  });
-}
-
-function openStockExitModal(onUpdate, defaultSku = '') {
-  const products = backofficeStore.products;
-
-  openDialog({
-    title: '- Registrar Salida de Stock (Kardex)',
-    contentHtml: `
-      <form id="form-stock-exit" class="flex flex-col gap-4">
-        <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Producto / SKU</label>
-          <select id="exit-sku" class="h-10 px-3 rounded-md bg-white border border-[#8C8272] text-xs font-semibold text-[#1C1C1C]">
-            ${products.map(p => `
-              <option value="${p.sku}" ${p.sku === defaultSku ? 'selected' : ''}>
-                ${p.sku} · ${p.nombre} (Stock actual: ${p.stockActual})
-              </option>
-            `).join('')}
-          </select>
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Cantidad de Unidades a Descontar</label>
-          <input
-            type="number"
-            id="exit-qty"
-            min="1"
-            value="1"
-            class="h-10 px-3 rounded-md bg-white border border-[#8C8272] font-mono text-sm text-[#1C1C1C]"
-            required
-          />
-        </div>
-
-        <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Motivo de Salida</label>
-          <select id="exit-reason" class="h-10 px-3 rounded-md bg-white border border-[#8C8272] text-xs text-[#1C1C1C]">
-            <option value="venta_publico">Venta al Público (Mostrador)</option>
-            <option value="consumo_interno">Consumo Interno en Cabina / Sillón</option>
-            <option value="merma">Avería / Producto Dañado</option>
-          </select>
-        </div>
-      </form>
-    `,
-    confirmText: 'Descontar Unidades',
-    cancelText: 'Cancelar',
-    confirmVariant: 'danger',
-    onConfirm: async () => {
-      const sku = document.getElementById('exit-sku').value;
-      const qty = parseInt(document.getElementById('exit-qty').value, 10) || 1;
-      const reason = document.getElementById('exit-reason').value;
-
-      await backofficeStore.addStockExit(sku, qty, reason);
-      await loadInventoryKardexData();
+      await loadInventoryKardexData('administrador');
       onUpdate();
       return true;
     }
@@ -675,7 +870,7 @@ function openNuevoProductoModal(onUpdate) {
         precioVentaCop: precioVenta,
         costoUnitarioCop: costoUnitario
       }).then(async () => {
-        await loadInventoryKardexData();
+        await loadInventoryKardexData('administrador');
         onUpdate();
       }).catch(err => {
         alert('Error al crear producto: ' + err.message);
@@ -688,7 +883,7 @@ function openNuevoProductoModal(onUpdate) {
 
 function exportarKardexCSV(movements = []) {
   const headers = ['ID_Movimiento', 'Fecha_Hora', 'SKU', 'Producto', 'Tipo', 'Subtipo', 'Cantidad', 'Stock_Previo', 'Stock_Nuevo', 'Referencia', 'Responsable'];
-  
+
   const rows = movements.map(m => [
     `"${m.id}"`,
     `"${m.fechaHora}"`,

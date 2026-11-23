@@ -10,7 +10,7 @@ export const ALL_NAV_ITEMS = [
   { id: 'cortes', label: 'Historial y Caja', icon: 'point_of_sale', path: '#cortes', roles: ['admin', 'administrador', 'barbero'] },
   { id: 'barberos', label: 'Barberos y Horarios', icon: 'badge', path: '#barberos', roles: ['admin', 'administrador'] },
   { id: 'servicios', label: 'Servicios y Tarifas', icon: 'content_cut', path: '#servicios', roles: ['admin', 'administrador'] },
-  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, roles: ['admin', 'administrador'] },
+  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, roles: ['admin', 'administrador', 'barbero'] },
   { id: 'comisiones', label: 'Liquidación Comisiones', icon: 'percent', path: '#comisiones', roles: ['admin', 'administrador', 'barbero'] },
   { id: 'configuracion', label: 'Configuración', icon: 'settings', path: '#configuracion', roles: ['admin', 'administrador'] }
 ];
@@ -18,17 +18,25 @@ export const ALL_NAV_ITEMS = [
 /**
  * Renderiza la barra lateral del panel administrativo.
  * @param {Object} options
- * @param {string} options.activeRoute - Ruta activa (ej: 'agenda', 'cortes')
- * @param {number} options.inventoryAlerts - Conteo de alertas de stock bajo/agotado
- * @param {Object} options.user - Datos de usuario autenticado
+ * @param {string} [options.activeRoute='agenda'] - Ruta activa (ej: 'agenda', 'cortes', 'inventario')
+ * @param {number} [options.inventoryAlerts] - Conteo de alertas de stock bajo/agotado
+ * @param {number} [options.inventoryAlertCount] - Alias retrocompatible de inventoryAlerts
+ * @param {Object} [options.user] - Datos de usuario autenticado
+ * @param {string} [options.userRole] - Alias retrocompatible de user.rawRole
  * @returns {string} HTML string
  */
 export function renderBackofficeSidebar({
   activeRoute = 'agenda',
-  inventoryAlerts = 3,
-  user = { name: 'Carlos Mendoza', role: 'Administrador', rawRole: 'administrador' }
+  inventoryAlerts = null,
+  inventoryAlertCount = null,
+  user = null,
+  userRole = null
 } = {}) {
-  const currentRole = user.rawRole === 'barbero' ? 'barbero' : 'administrador';
+  const alerts = inventoryAlerts ?? inventoryAlertCount ?? 0;
+  const rawRole = user?.rawRole || user?.rol || userRole || 'administrador';
+  const currentRole = rawRole === 'barbero' ? 'barbero' : 'administrador';
+  const userName = user?.nombreCompleto || user?.nombre || user?.name || (currentRole === 'barbero' ? 'Barbero' : 'Carlos Mendoza');
+  const userDisplayRole = user?.role || (currentRole === 'barbero' ? 'Barbero' : 'Administrador');
 
   const visibleItems = ALL_NAV_ITEMS.filter(item => item.roles.includes(currentRole));
 
@@ -42,9 +50,9 @@ export function renderBackofficeSidebar({
 
     const iconColor = isActive ? 'text-[#7BA3D4]' : 'text-[#BDB4A5]';
 
-    const badgeHtml = item.hasBadge && inventoryAlerts > 0
-      ? `<span class="flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#E07A7A] text-[#1C1C1C] font-mono text-[11px] font-bold leading-none shadow-xs" title="${inventoryAlerts} alertas de inventario">
-           ${inventoryAlerts}
+    const badgeHtml = item.hasBadge && alerts > 0 && currentRole === 'administrador'
+      ? `<span class="pointer-events-none flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#E07A7A] text-[#1C1C1C] font-mono text-[11px] font-bold leading-none shadow-xs" title="${alerts} alertas de reposición">
+           ${alerts}
          </span>`
       : '';
 
@@ -106,8 +114,8 @@ export function renderBackofficeSidebar({
               <span class="material-symbols-outlined text-[18px]">person</span>
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="font-sans text-xs text-[#F2EBDD] font-semibold truncate leading-tight">${user.name}</span>
-              <span class="font-sans text-[10px] text-[#BDB4A5] truncate leading-tight">${user.role}</span>
+              <span class="font-sans text-xs text-[#F2EBDD] font-semibold truncate leading-tight">${userName}</span>
+              <span class="font-sans text-[10px] text-[#BDB4A5] truncate leading-tight">${userDisplayRole}</span>
             </div>
           </div>
           <button

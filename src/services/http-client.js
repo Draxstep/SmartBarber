@@ -70,7 +70,7 @@ export async function simulateNetworkDelay(minMs = 150, maxMs = 350) {
 
 class HttpClient {
   constructor() {
-    this.baseURL = import.meta.env.VITE_API_URL || '/api/v1';
+    this.baseURL = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) || '/api/v1';
     this.timeoutMs = 10000;
   }
 

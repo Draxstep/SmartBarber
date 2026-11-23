@@ -1,35 +1,52 @@
 /**
  * SmartBarber - Servicio de Inventario & Kardex (100% Producción Real)
  * Control de stock físico, alertas de reposición y movimientos inmutables (CU-016 a CU-019).
+ * Soporte Offline-First con IndexedDB ('smartbarber-db' -> store 'inventario').
  */
 
 import { httpClient, ValidationError } from './http-client.js';
 import { sedesService } from './sedes.service.js';
 import { encolarCambio } from '../pwa/sync.js';
+import { guardarLote, guardarRegistro, listarRegistros } from '../pwa/db.js';
 
 function normalizeProducto(p) {
   if (!p) return null;
-  const id = p.productoId || p.id;
-  const stockActual = Number(p.stockActual ?? 0);
-  const stockMinimo = Number(p.stockMinimo ?? 0);
+  const id = p.productoId || p.id || p.producto_id || '';
+  const stockActual = Number(p.stockActual ?? p.stock_actual ?? 0);
+  const stockMinimo = Number(p.stockMinimo ?? p.stock_minimo ?? 0);
 
   return {
     id,
     productoId: id,
-    sedeId: p.sedeId,
-    sku: p.sku || `PRD-${id.slice(-6).toUpperCase()}`,
-    nombre: p.nombre,
+    sedeId: p.sedeId || p.sede_id,
+    sku: p.sku || (id ? `PRD-${String(id).slice(-6).toUpperCase()}` : 'PRD-GRAL'),
+    nombre: p.nombre || 'Producto',
     categoria: p.categoria || 'General',
     stockActual,
     stockMinimo,
-    precioVenta: Number(p.precioVentaCop ?? p.precioVenta ?? 0),
-    precioVentaCop: Number(p.precioVentaCop ?? p.precioVenta ?? 0),
-    costoUnitario: Number(p.costoUnitarioCop ?? p.costoUnitario ?? 0),
-    costoUnitarioCop: Number(p.costoUnitarioCop ?? p.costoUnitario ?? 0),
+    precioVenta: Number(p.precioVentaCop ?? p.precio_venta_cop ?? p.precioVenta ?? 0),
+    precioVentaCop: Number(p.precioVentaCop ?? p.precio_venta_cop ?? p.precioVenta ?? 0),
+    costoUnitario: Number(p.costoUnitarioCop ?? p.costo_unitario_cop ?? p.costoUnitario ?? 0),
+    costoUnitarioCop: Number(p.costoUnitarioCop ?? p.costo_unitario_cop ?? p.costoUnitario ?? 0),
     unidad: p.unidad || 'Unidades',
     estado: p.estado || 'activo',
     isAgotado: stockActual === 0,
     isBajoStock: stockActual > 0 && stockActual <= stockMinimo
+  };
+}
+
+function toIDBProducto(p) {
+  return {
+    producto_id: p.productoId || p.id,
+    sku: p.sku,
+    nombre: p.nombre,
+    categoria: p.categoria,
+    stock_actual: p.stockActual,
+    stock_minimo: p.stockMinimo,
+    precio_venta_cop: p.precioVentaCop || p.precioVenta,
+    costo_unitario_cop: p.costoUnitarioCop || p.costoUnitario,
+    estado: p.estado || 'activo',
+    sede_id: p.sedeId
   };
 }
 
@@ -49,13 +66,16 @@ function normalizeMovimiento(m) {
     ajuste_negativo: 'Ajuste negativo / merma'
   };
 
+  const id = m.movimientoId || m.id || '';
+  const prodId = m.productoId || m.producto_id || '';
+
   return {
-    id: m.movimientoId || m.id,
-    movimientoId: m.movimientoId || m.id,
+    id,
+    movimientoId: id,
     fechaHora: m.creadoEn || new Date().toISOString(),
     fechaFormato,
-    sku: m.sku || (m.productoId ? `PRD-${m.productoId.slice(-4)}` : 'SKU'),
-    productoId: m.productoId,
+    sku: m.sku || (prodId ? `PRD-${String(prodId).slice(-4)}` : 'SKU'),
+    productoId: prodId,
     productoNombre: m.productoNombre || m.nombreProducto || 'Producto',
     tipo: m.tipo,
     subtipo: m.subtipo,
@@ -63,7 +83,7 @@ function normalizeMovimiento(m) {
     cantidad: Number(m.cantidad || 0),
     stockPrevio: Number(m.stockAnterior ?? m.stockPrevio ?? 0),
     stockNuevo: Number(m.stockResultante ?? m.stockNuevo ?? 0),
-    referencia: m.observacion || (m.registroCorteId ? `Corte #${m.registroCorteId.slice(-4)}` : 'Movimiento almacén'),
+    referencia: m.observacion || (m.registroCorteId ? `Corte #${String(m.registroCorteId).slice(-4)}` : 'Movimiento almacén'),
     responsable: m.usuarioNombre || 'Administrador'
   };
 }
@@ -71,6 +91,7 @@ function normalizeMovimiento(m) {
 export const inventarioService = {
   /**
    * Obtiene la lista de productos con filtros de búsqueda y estado de stock (CU-016).
+   * Con persistencia y fallback automático a IndexedDB en modo Offline.
    */
   async getProductos(filtros = {}) {
     const query = new URLSearchParams();
@@ -86,22 +107,83 @@ export const inventarioService = {
     }
 
     const q = query.toString() ? `?${query.toString()}` : '';
-    const response = await httpClient.get(`/inventario${q}`);
 
-    if (response?.data && Array.isArray(response.data)) {
-      const list = response.data.map(normalizeProducto);
-      return { ok: true, success: true, data: list };
+    try {
+      const response = await httpClient.get(`/inventario${q}`);
+
+      if (response?.data && Array.isArray(response.data)) {
+        const list = response.data.map(normalizeProducto).filter(Boolean);
+        // Persistir en IndexedDB para disponibilidad offline
+        guardarLote('inventario', list.map(toIDBProducto)).catch(() => {});
+        return { ok: true, success: true, data: list };
+      }
+      if (Array.isArray(response)) {
+        const list = response.map(normalizeProducto).filter(Boolean);
+        guardarLote('inventario', list.map(toIDBProducto)).catch(() => {});
+        return { ok: true, success: true, data: list };
+      }
+    } catch (networkErr) {
+      console.warn('⚠️ Red no disponible en inventarioService.getProductos. Consultando IndexedDB local...', networkErr.message);
     }
 
-    return response;
+    // Fallback Offline a IndexedDB
+    try {
+      const offlineItems = await listarRegistros('inventario');
+      if (Array.isArray(offlineItems) && offlineItems.length > 0) {
+        let list = offlineItems.map(p => normalizeProducto({
+          id: p.producto_id,
+          productoId: p.producto_id,
+          sku: p.sku,
+          nombre: p.nombre,
+          categoria: p.categoria,
+          stockActual: p.stock_actual,
+          stockMinimo: p.stock_minimo,
+          precioVentaCop: p.precio_venta_cop,
+          costoUnitarioCop: p.costo_unitario_cop,
+          estado: p.estado,
+          sedeId: p.sede_id
+        })).filter(Boolean);
+
+        if (filtros.search) {
+          const s = filtros.search.toLowerCase();
+          list = list.filter(p => p.nombre.toLowerCase().includes(s) || p.sku.toLowerCase().includes(s) || p.categoria.toLowerCase().includes(s));
+        }
+        if (filtros.categoria && filtros.categoria !== 'all') {
+          list = list.filter(p => p.categoria === filtros.categoria);
+        }
+        if (filtros.estado === 'disponible') {
+          list = list.filter(p => p.stockActual > p.stockMinimo);
+        } else if (filtros.estado === 'stock_bajo') {
+          list = list.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
+        } else if (filtros.estado === 'agotado') {
+          list = list.filter(p => p.stockActual === 0);
+        }
+
+        return { ok: true, success: true, offline: true, data: list };
+      }
+    } catch (idbErr) {
+      console.warn('⚠️ No se pudieron recuperar productos de IndexedDB:', idbErr.message);
+    }
+
+    return { ok: true, success: true, offline: true, data: [] };
   },
 
   async getProductoPorId(id) {
-    const response = await httpClient.get(`/inventario/${id}`);
-    if (response?.data) {
-      return { ok: true, success: true, data: normalizeProducto(response.data) };
+    try {
+      const response = await httpClient.get(`/inventario/${id}`);
+      if (response?.data) {
+        return { ok: true, success: true, data: normalizeProducto(response.data) };
+      }
+      return response;
+    } catch (err) {
+      // Fallback a IndexedDB
+      const items = await listarRegistros('inventario').catch(() => []);
+      const found = items.find(p => p.producto_id === id || p.sku === id);
+      if (found) {
+        return { ok: true, success: true, offline: true, data: normalizeProducto(found) };
+      }
+      throw err;
     }
-    return response;
   },
 
   async crearProducto(datos) {
@@ -125,7 +207,11 @@ export const inventarioService = {
 
     const response = await httpClient.post('/inventario', payload);
     if (response?.data) {
-      return { ok: true, success: true, data: normalizeProducto(response.data) };
+      const normalized = normalizeProducto(response.data);
+      if (normalized) {
+        guardarRegistro('inventario', toIDBProducto(normalized)).catch(() => {});
+      }
+      return { ok: true, success: true, data: normalized };
     }
     return response;
   },
@@ -161,7 +247,7 @@ export const inventarioService = {
     return response;
   },
 
-  async registrarSalida(productoIdOrSku, cantidad, motivo = 'venta_publico') {
+  async registrarSalida(productoIdOrSku, cantidad, motivo = 'venta_publico', metodoPago = 'efectivo', observacion = '') {
     const qty = Math.max(1, parseInt(cantidad, 10) || 1);
 
     let productoId = productoIdOrSku;
@@ -175,8 +261,8 @@ export const inventarioService = {
     const payload = {
       cantidad: qty,
       tipo: subtipo,
-      metodoPago: subtipo === 'venta_publico' ? 'efectivo' : null,
-      observacion: subtipo === 'consumo_interno' ? 'Consumo interno en cabina/sillón' : 'Venta de producto en caja'
+      metodoPago: subtipo === 'venta_publico' ? (metodoPago || 'efectivo') : null,
+      observacion: observacion || (subtipo === 'consumo_interno' ? 'Consumo interno en cabina/sillón' : 'Venta de producto en caja')
     };
 
     if (!navigator.onLine) {
@@ -185,29 +271,107 @@ export const inventarioService = {
         tipo: 'salida',
         ...payload
       });
-      return { ok: true, success: true, offline: true, message: 'Salida encolada en modo sin conexión.' };
-    }
 
-    const response = await httpClient.post(`/inventario/${productoId}/salidas`, payload);
-    return response;
-  },
+      // Actualizar optimísticamente en IndexedDB local
+      try {
+        const dbItems = await listarRegistros('inventario');
+        const item = dbItems?.find(p => p.producto_id === productoId || p.sku === productoIdOrSku);
+        if (item) {
+          item.stock_actual = Math.max(0, (item.stock_actual || 0) - qty);
+          await guardarRegistro('inventario', item);
+        }
+      } catch (_) {}
 
-  async getAlertas() {
-    const response = await httpClient.get('/inventario/alertas');
-    if (response?.data) {
-      const bajoStock = (response.data.bajoStock || []).map(normalizeProducto);
-      const agotados = (response.data.agotados || []).map(normalizeProducto);
       return {
         ok: true,
         success: true,
+        offline: true,
+        message: 'Salida encolada en modo sin conexión.',
         data: {
-          totalAlertas: bajoStock.length + agotados.length,
-          bajoStock,
-          agotados
+          producto: { productoId, stockActual: 0 }
         }
       };
     }
-    return response;
+
+    try {
+      const response = await httpClient.post(`/inventario/${productoId}/salidas`, payload);
+      return response;
+    } catch (err) {
+      if (err.name === 'NetworkError') {
+        await encolarCambio('MOVIMIENTO_INVENTARIO', {
+          productoId,
+          tipo: 'salida',
+          ...payload
+        });
+        return { ok: true, success: true, offline: true, message: 'Salida encolada en modo sin conexión.' };
+      }
+      throw err;
+    }
+  },
+
+  async getAlertas() {
+    try {
+      const response = await httpClient.get('/inventario/alertas');
+      if (response?.data) {
+        if (Array.isArray(response.data)) {
+          const prods = response.data.map(normalizeProducto).filter(Boolean);
+          const bajoStock = prods.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
+          const agotados = prods.filter(p => p.stockActual === 0);
+          return {
+            ok: true,
+            success: true,
+            data: {
+              totalAlertas: prods.length,
+              bajoStock,
+              agotados
+            }
+          };
+        } else {
+          const bajoStock = (response.data.bajoStock || []).map(normalizeProducto).filter(Boolean);
+          const agotados = (response.data.agotados || []).map(normalizeProducto).filter(Boolean);
+          return {
+            ok: true,
+            success: true,
+            data: {
+              totalAlertas: bajoStock.length + agotados.length,
+              bajoStock,
+              agotados
+            }
+          };
+        }
+      }
+      return response;
+    } catch (_) {
+      // Fallback a IndexedDB
+      try {
+        const offlineItems = await listarRegistros('inventario');
+        if (Array.isArray(offlineItems)) {
+          const prods = offlineItems.map(p => normalizeProducto({
+            id: p.producto_id,
+            productoId: p.producto_id,
+            sku: p.sku,
+            nombre: p.nombre,
+            categoria: p.categoria,
+            stockActual: p.stock_actual,
+            stockMinimo: p.stock_minimo
+          })).filter(Boolean);
+
+          const bajoStock = prods.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
+          const agotados = prods.filter(p => p.stockActual === 0);
+          return {
+            ok: true,
+            success: true,
+            offline: true,
+            data: {
+              totalAlertas: bajoStock.length + agotados.length,
+              bajoStock,
+              agotados
+            }
+          };
+        }
+      } catch (_) {}
+      return { ok: true, success: true, data: { totalAlertas: 0, bajoStock: [], agotados: [] } };
+    }
   },
 
   async getMovimientosKardex(filtros = {}) {
@@ -216,16 +380,20 @@ export const inventarioService = {
     if (filtros.tipo && filtros.tipo !== 'all') query.append('tipo', filtros.tipo);
 
     const q = query.toString() ? `?${query.toString()}` : '';
-    const response = await httpClient.get(`/inventario/movimientos${q}`);
+    try {
+      const response = await httpClient.get(`/inventario/movimientos${q}`);
 
-    if (response?.data && Array.isArray(response.data)) {
-      let list = response.data.map(normalizeMovimiento);
-      if (filtros.sku && filtros.sku !== 'all') {
-        list = list.filter(m => m.sku === filtros.sku || m.productoId === filtros.sku);
+      if (response?.data && Array.isArray(response.data)) {
+        let list = response.data.map(normalizeMovimiento).filter(Boolean);
+        if (filtros.sku && filtros.sku !== 'all') {
+          list = list.filter(m => m.sku === filtros.sku || m.productoId === filtros.sku);
+        }
+        return { ok: true, success: true, data: list };
       }
-      return { ok: true, success: true, data: list };
-    }
 
-    return response;
+      return response;
+    } catch (_) {
+      return { ok: true, success: true, offline: true, data: [] };
+    }
   }
 };

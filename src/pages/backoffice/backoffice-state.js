@@ -205,17 +205,27 @@ class BackofficeStateStore {
   async addStockEntry(sku, quantity, note = '') {
     const res = await inventarioService.registrarEntrada(sku, quantity, note);
     const p = this.products.find(item => item.sku === sku);
-    if (p && res.data) {
-      p.stockActual = res.data.stockActual;
+    if (p) {
+      const newStock = res?.data?.producto?.stockActual ?? res?.data?.stockActual;
+      if (newStock !== undefined) {
+        p.stockActual = newStock;
+      } else {
+        p.stockActual = (p.stockActual || 0) + quantity;
+      }
     }
     return p;
   }
 
-  async addStockExit(sku, quantity, reason = 'venta_publico') {
-    const res = await inventarioService.registrarSalida(sku, quantity, reason);
+  async addStockExit(sku, quantity, reason = 'venta_publico', metodoPago = 'efectivo', observacion = '') {
+    const res = await inventarioService.registrarSalida(sku, quantity, reason, metodoPago, observacion);
     const p = this.products.find(item => item.sku === sku);
-    if (p && res.data) {
-      p.stockActual = res.data.stockActual;
+    if (p) {
+      const newStock = res?.data?.producto?.stockActual ?? res?.data?.stockActual;
+      if (newStock !== undefined) {
+        p.stockActual = newStock;
+      } else {
+        p.stockActual = Math.max(0, (p.stockActual || 0) - quantity);
+      }
     }
     return p;
   }

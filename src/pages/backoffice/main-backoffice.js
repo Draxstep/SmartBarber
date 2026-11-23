@@ -1,8 +1,8 @@
 /**
  * @file main-backoffice.js
  * @description Orquestador VanillaJS para el Backoffice con soporte PWA Offline-First (RF-PWA-07, RF-PWA-08).
- * Administra Route Guards (RBAC), ciclo de vida del Service Worker, indicador de conectividad,
- * sincronización de Outbox, Push Notifications VAPID y resolución de conflictos.
+ * Administra Route Guards (RBAC), registro declarativo de vistas (SOLID / OCP), ciclo de vida del Service Worker,
+ * indicador de conectividad, sincronización de Outbox, Push Notifications VAPID y resolución de conflictos.
  */
 
 import { renderBackofficeSidebar } from '../../components/backoffice-sidebar.js';
@@ -28,8 +28,70 @@ import { abrirBaseDeDatos, limpiarDatosLocales } from '../../pwa/db.js';
 
 const appRoot = document.getElementById('app');
 
-const VALID_ROUTES = ['agenda', 'cortes', 'barberos', 'servicios', 'inventario', 'comisiones', 'configuracion'];
-const ADMIN_ONLY_ROUTES = ['inventario', 'barberos', 'servicios', 'configuracion'];
+/**
+ * Registro Declarativo de Vistas del Backoffice (Open-Closed Principle / SOLID)
+ * Cada módulo define de forma cohesiva sus permisos RBAC, precarga de datos, renderizado y eventos.
+ */
+export const BACKOFFICE_ROUTES = {
+  agenda: {
+    id: 'agenda',
+    title: 'Agenda y Turnos',
+    roles: ['administrador', 'barbero'],
+    loader: async () => {},
+    render: () => renderAgendaPage(),
+    attachListeners: (refresh) => attachAgendaListeners(refresh)
+  },
+  cortes: {
+    id: 'cortes',
+    title: 'Historial y Caja',
+    roles: ['administrador', 'barbero'],
+    loader: async () => await loadCortesData(),
+    render: () => renderCortesPage(),
+    attachListeners: (refresh) => attachCortesListeners(refresh)
+  },
+  barberos: {
+    id: 'barberos',
+    title: 'Barberos y Horarios',
+    roles: ['administrador'],
+    loader: async () => await loadBarberosData(),
+    render: () => renderBarberosPage(),
+    attachListeners: (refresh) => attachBarberosListeners(refresh)
+  },
+  servicios: {
+    id: 'servicios',
+    title: 'Servicios y Tarifas',
+    roles: ['administrador'],
+    loader: async () => await loadServiciosData(),
+    render: () => renderServiciosPage(),
+    attachListeners: (refresh) => attachServiciosListeners(refresh)
+  },
+  inventario: {
+    id: 'inventario',
+    title: 'Inventario & Ventas',
+    roles: ['administrador', 'barbero'],
+    loader: async (user) => await loadInventoryKardexData(user.rol),
+    render: (user) => renderInventoryPage({ userRole: user.rol }),
+    attachListeners: (refresh, user) => attachInventoryListeners(refresh, user.rol)
+  },
+  comisiones: {
+    id: 'comisiones',
+    title: 'Liquidación Comisiones',
+    roles: ['administrador', 'barbero'],
+    loader: async () => await loadComisionesData(),
+    render: () => renderComisionesPage(),
+    attachListeners: (refresh, user) => attachComisionesListeners(refresh)
+  },
+  configuracion: {
+    id: 'configuracion',
+    title: 'Configuración',
+    roles: ['administrador'],
+    loader: async () => {},
+    render: () => renderConfiguracionPage(),
+    attachListeners: () => attachConfiguracionListeners()
+  }
+};
+
+const VALID_ROUTES = Object.keys(BACKOFFICE_ROUTES);
 
 let sedeActivaNombre = 'SmartBarber Studio · Bogotá';
 let totalAlertasInventario = 0;
@@ -58,22 +120,23 @@ export async function renderBackoffice() {
 
   const currentRoute = getActiveRoute();
   const currentRole = currentUser.rol || 'barbero';
+  const routeConfig = BACKOFFICE_ROUTES[currentRoute];
 
   // 2. Guard de Ruta Desconocida (404)
-  if (!VALID_ROUTES.includes(currentRoute)) {
+  if (!routeConfig) {
     renderWithLayout(currentRoute, currentUser, renderNotFoundPage({ route: currentRoute }));
     attachBackofficeCommonListeners();
     return;
   }
 
-  // 3. Guard de Permisos RBAC (403)
-  if (currentRole === 'barbero' && ADMIN_ONLY_ROUTES.includes(currentRoute)) {
+  // 3. Guard de Permisos RBAC Declarativo (403)
+  if (!routeConfig.roles.includes(currentRole)) {
     renderWithLayout(currentRoute, currentUser, renderForbiddenPage({ role: currentRole, requestedRoute: currentRoute }));
     attachBackofficeCommonListeners();
     return;
   }
 
-  // 4. Cargar alertas y sede si aún no están en memoria
+  // 4. Cargar alertas de reposición si es Administrador
   try {
     if (totalAlertasInventario === 0 && currentRole === 'administrador' && navigator.onLine) {
       const alertasRes = await inventarioService.getAlertas();
@@ -83,39 +146,34 @@ export async function renderBackoffice() {
     }
   } catch (_) {}
 
-  // 5. Pre-carga de datos según la ruta activa
+  // 5. Pre-carga de datos desacoplada según el descriptor de ruta
   try {
-    if (currentRoute === 'cortes') {
-      await loadCortesData();
-    } else if (currentRoute === 'barberos') {
-      await loadBarberosData();
-    } else if (currentRoute === 'servicios') {
-      await loadServiciosData();
-    } else if (currentRoute === 'comisiones') {
-      await loadComisionesData();
-    } else if (currentRoute === 'inventario') {
-      await loadInventoryKardexData();
+    if (routeConfig.loader) {
+      await routeConfig.loader(currentUser);
     }
   } catch (err) {
-    console.warn('⚠️ Carga de datos inicial delegada a caché o modo offline:', err.message);
+    console.warn(`⚠️ Precarga de datos para '${currentRoute}' delegada a caché/offline:`, err.message);
   }
 
-  // 6. Renderizar Layout con la vista activa
-  const viewHtml = getViewHtml(currentRoute);
+  // 6. Renderizar Layout con la vista activa y listeners
+  const viewHtml = routeConfig.render(currentUser);
   renderWithLayout(currentRoute, currentUser, viewHtml);
-  attachBackofficeListeners(currentRoute);
+  attachBackofficeCommonListeners();
+  if (routeConfig.attachListeners) {
+    routeConfig.attachListeners(() => renderBackoffice(), currentUser);
+  }
   actualizarPillConectividad();
 }
 
 function renderWithLayout(activeRoute, user, contentHtml) {
-  const userInitials = (user.nombre || user.correo || 'AD')
+  const userInitials = (user.nombreCompleto || user.nombre || user.correo || 'AD')
     .split(' ')
     .map((w) => w[0])
     .join('')
     .substring(0, 2)
     .toUpperCase();
 
-  const userDisplayName = user.nombre || user.correo?.split('@')[0] || 'Usuario';
+  const userDisplayName = user.nombreCompleto || user.nombre || user.correo?.split('@')[0] || 'Usuario';
   const roleDisplay = user.rol === 'administrador' ? 'Administrador' : 'Barbero';
 
   appRoot.innerHTML = `
@@ -126,7 +184,9 @@ function renderWithLayout(activeRoute, user, contentHtml) {
       <!-- Sidebar -->
       ${renderBackofficeSidebar({
         activeRoute,
+        user: { ...user, rawRole: user.rol, role: roleDisplay, name: userDisplayName },
         userRole: user.rol,
+        inventoryAlerts: totalAlertasInventario,
         inventoryAlertCount: totalAlertasInventario
       })}
 
@@ -173,26 +233,6 @@ function renderWithLayout(activeRoute, user, contentHtml) {
       </dialog>
     </div>
   `;
-}
-
-function getViewHtml(currentRoute) {
-  switch (currentRoute) {
-    case 'inventario':
-      return renderInventoryPage();
-    case 'cortes':
-      return renderCortesPage();
-    case 'barberos':
-      return renderBarberosPage();
-    case 'servicios':
-      return renderServiciosPage();
-    case 'comisiones':
-      return renderComisionesPage();
-    case 'configuracion':
-      return renderConfiguracionPage();
-    case 'agenda':
-    default:
-      return renderAgendaPage();
-  }
 }
 
 /**
@@ -311,12 +351,18 @@ function attachBackofficeCommonListeners() {
   if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
   if (backdrop) backdrop.addEventListener('click', closeSidebar);
 
-  // Cerrar sidebar al hacer clic en un enlace de navegación en móvil
+  // Manejo de navegación en enlaces del sidebar
   if (sidebar) {
     sidebar.querySelectorAll('a[data-route]').forEach((link) => {
-      link.addEventListener('click', () => {
+      link.addEventListener('click', (e) => {
+        const targetRoute = link.getAttribute('data-route');
         if (window.innerWidth < 1024) {
           closeSidebar();
+        }
+        // Si el hash ya coincide, forzar renderizado para retroalimentación instantánea
+        if (targetRoute && getActiveRoute() === targetRoute) {
+          e.preventDefault();
+          renderBackoffice();
         }
       });
     });
@@ -374,36 +420,6 @@ function attachBackofficeCommonListeners() {
   }
 }
 
-function attachBackofficeListeners(currentRoute) {
-  attachBackofficeCommonListeners();
-
-  const refreshCallback = () => renderBackoffice();
-
-  switch (currentRoute) {
-    case 'agenda':
-      attachAgendaListeners(refreshCallback);
-      break;
-    case 'inventario':
-      attachInventoryListeners(refreshCallback);
-      break;
-    case 'cortes':
-      attachCortesListeners(refreshCallback);
-      break;
-    case 'barberos':
-      attachBarberosListeners(refreshCallback);
-      break;
-    case 'servicios':
-      attachServiciosListeners(refreshCallback);
-      break;
-    case 'comisiones':
-      attachComisionesListeners(refreshCallback);
-      break;
-    case 'configuracion':
-      attachConfiguracionListeners();
-      break;
-  }
-}
-
 // Escuchadores globales de eventos PWA
 window.addEventListener('smartbarber:outbox-updated', actualizarPillConectividad);
 window.addEventListener('smartbarber:connectivity-changed', actualizarPillConectividad);
@@ -414,5 +430,5 @@ registrarServiceWorker();
 inicializarEventosConectividad();
 inicializarInstaladorPWA();
 
-// Arranque
+// Arranque inicial
 renderBackoffice();
