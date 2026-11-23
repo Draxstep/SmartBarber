@@ -77,7 +77,7 @@ export class PublicAgendamientoController {
         throw new NotFoundError('Reserva con código', codigo);
       }
 
-      // No exponer IDs internos ni datos privados
+      // Retornar detalle público de la reserva (CU-021, RF-AGE-06)
       return sendSuccess(
         res,
         {
@@ -87,7 +87,10 @@ export class PublicAgendamientoController {
           horaFin: cita.horaFin?.slice(0, 5),
           estado: cita.estado,
           precioEstimadoCop: cita.precioEstimadoCop,
-          servicios: cita.servicios
+          servicios: cita.servicios,
+          clienteNombre: cita.clienteNombre || null,
+          clienteTelefono: cita.clienteTelefono || null,
+          barberoNombre: cita.barberoNombre || null
         },
         200
       );

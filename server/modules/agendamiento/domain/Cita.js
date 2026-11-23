@@ -50,7 +50,11 @@ export class Cita {
     creadoPorUsuarioId = null,
     creadoEn = new Date(),
     actualizadoEn = new Date(),
-    servicios = []
+    servicios = [],
+    clienteNombre = null,
+    clienteTelefono = null,
+    clienteCorreo = null,
+    barberoNombre = null
   }) {
     this.citaId = citaId;
     this.sedeId = sedeId;
@@ -73,6 +77,10 @@ export class Cita {
     this.creadoEn = creadoEn instanceof Date ? creadoEn : new Date(creadoEn);
     this.actualizadoEn = actualizadoEn instanceof Date ? actualizadoEn : new Date(actualizadoEn);
     this.servicios = servicios;
+    this.clienteNombre = clienteNombre;
+    this.clienteTelefono = clienteTelefono;
+    this.clienteCorreo = clienteCorreo;
+    this.barberoNombre = barberoNombre;
   }
 
   isActiva() {

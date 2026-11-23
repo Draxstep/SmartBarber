@@ -31,7 +31,9 @@ export class CorteMapper {
       registradoPorUsuarioId: row.registrado_por_usuario_id,
       creadoEn: row.creado_en,
       actualizadoEn: row.actualizado_en,
-      servicios
+      servicios,
+      clienteNombre: row.cliente_nombre || row.nombre_cliente_referencial || null,
+      barberoNombre: row.barbero_nombre || null
     });
   }
 
@@ -56,6 +58,8 @@ export class CorteMapper {
       barberoId: entity.barberoId,
       clienteId: entity.clienteId,
       nombreClienteReferencial: entity.nombreClienteReferencial,
+      clienteNombre: entity.clienteNombre || entity.nombreClienteReferencial || null,
+      barberoNombre: entity.barberoNombre || null,
       origen: entity.origen,
       fechaHoraAtencion: entity.fechaHoraAtencion.toISOString(),
       precioCalculadoCop: entity.precioCalculadoCop,

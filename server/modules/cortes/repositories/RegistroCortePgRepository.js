@@ -18,7 +18,15 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
     const executor = client || this.pool;
     try {
       const corteRes = await executor.query(
-        'SELECT * FROM registros_cortes WHERE registro_corte_id = $1 LIMIT 1',
+        `SELECT rc.*,
+           COALESCE(rc.nombre_cliente_referencial, cl.nombre_completo, 'Cliente Mostrador') as nombre_cliente_referencial,
+           cl.nombre_completo as cliente_nombre,
+           cl.telefono_whatsapp as cliente_telefono,
+           b.nombre_completo as barbero_nombre
+         FROM registros_cortes rc
+         LEFT JOIN clientes cl ON rc.cliente_id = cl.cliente_id
+         LEFT JOIN barberos b ON rc.barbero_id = b.barbero_id
+         WHERE rc.registro_corte_id = $1 LIMIT 1`,
         [id]
       );
       if (corteRes.rows.length === 0) return null;
@@ -38,7 +46,15 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
     const executor = client || this.pool;
     try {
       const corteRes = await executor.query(
-        "SELECT * FROM registros_cortes WHERE cita_id = $1 AND estado = 'activo' LIMIT 1",
+        `SELECT rc.*,
+           COALESCE(rc.nombre_cliente_referencial, cl.nombre_completo, 'Cliente Mostrador') as nombre_cliente_referencial,
+           cl.nombre_completo as cliente_nombre,
+           cl.telefono_whatsapp as cliente_telefono,
+           b.nombre_completo as barbero_nombre
+         FROM registros_cortes rc
+         LEFT JOIN clientes cl ON rc.cliente_id = cl.cliente_id
+         LEFT JOIN barberos b ON rc.barbero_id = b.barbero_id
+         WHERE rc.cita_id = $1 AND rc.estado = 'activo' LIMIT 1`,
         [citaId]
       );
       if (corteRes.rows.length === 0) return null;
@@ -59,6 +75,10 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
     try {
       let query = `
         SELECT rc.*,
+          COALESCE(rc.nombre_cliente_referencial, cl.nombre_completo, 'Cliente Mostrador') as nombre_cliente_referencial,
+          cl.nombre_completo as cliente_nombre,
+          cl.telefono_whatsapp as cliente_telefono,
+          b.nombre_completo as barbero_nombre,
           COALESCE(
             json_agg(
               json_build_object(
@@ -70,6 +90,8 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
             ) FILTER (WHERE rcs.registro_corte_servicio_id IS NOT NULL), '[]'
           ) as servicios_json
         FROM registros_cortes rc
+        LEFT JOIN clientes cl ON rc.cliente_id = cl.cliente_id
+        LEFT JOIN barberos b ON rc.barbero_id = b.barbero_id
         LEFT JOIN registros_cortes_servicios rcs ON rc.registro_corte_id = rcs.registro_corte_id
         WHERE rc.sede_id = $1 
           AND rc.fecha_hora_atencion >= $2::timestamptz 
@@ -87,7 +109,7 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
         params.push(estado);
       }
 
-      query += ' GROUP BY rc.registro_corte_id ORDER BY rc.fecha_hora_atencion DESC';
+      query += ' GROUP BY rc.registro_corte_id, cl.nombre_completo, cl.telefono_whatsapp, b.nombre_completo ORDER BY rc.fecha_hora_atencion DESC';
 
       const result = await executor.query(query, params);
       return result.rows.map((row) =>

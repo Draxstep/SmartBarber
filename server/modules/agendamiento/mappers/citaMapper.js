@@ -32,7 +32,11 @@ export class CitaMapper {
       creadoPorUsuarioId: row.creado_por_usuario_id,
       creadoEn: row.creado_en,
       actualizadoEn: row.actualizado_en,
-      servicios
+      servicios,
+      clienteNombre: row.cliente_nombre || row.nombre_completo || null,
+      clienteTelefono: row.cliente_telefono || row.telefono_whatsapp || null,
+      clienteCorreo: row.cliente_correo || row.correo || null,
+      barberoNombre: row.barbero_nombre || null
     });
   }
 
@@ -72,6 +76,10 @@ export class CitaMapper {
       creadoPorUsuarioId: entity.creadoPorUsuarioId,
       creadoEn: entity.creadoEn.toISOString(),
       actualizadoEn: entity.actualizadoEn.toISOString(),
+      clienteNombre: entity.clienteNombre || null,
+      clienteTelefono: entity.clienteTelefono || null,
+      clienteCorreo: entity.clienteCorreo || null,
+      barberoNombre: entity.barberoNombre || null,
       servicios: entity.servicios.map((s) => ({
         citaServicioId: s.citaServicioId,
         servicioId: s.servicioId,

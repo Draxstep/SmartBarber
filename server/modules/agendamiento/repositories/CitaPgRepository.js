@@ -18,7 +18,15 @@ export class CitaPgRepository extends ICitaRepository {
     const executor = client || this.pool;
     try {
       const citaRes = await executor.query(
-        'SELECT * FROM citas WHERE cita_id = $1 LIMIT 1',
+        `SELECT c.*,
+           cl.nombre_completo as cliente_nombre,
+           cl.telefono_whatsapp as cliente_telefono,
+           cl.correo as cliente_correo,
+           b.nombre_completo as barbero_nombre
+         FROM citas c
+         LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id
+         LEFT JOIN barberos b ON c.barbero_id = b.barbero_id
+         WHERE c.cita_id = $1 LIMIT 1`,
         [id]
       );
       if (citaRes.rows.length === 0) return null;
@@ -38,7 +46,15 @@ export class CitaPgRepository extends ICitaRepository {
     const executor = client || this.pool;
     try {
       const citaRes = await executor.query(
-        'SELECT * FROM citas WHERE codigo_reserva = $1 LIMIT 1',
+        `SELECT c.*,
+           cl.nombre_completo as cliente_nombre,
+           cl.telefono_whatsapp as cliente_telefono,
+           cl.correo as cliente_correo,
+           b.nombre_completo as barbero_nombre
+         FROM citas c
+         LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id
+         LEFT JOIN barberos b ON c.barbero_id = b.barbero_id
+         WHERE c.codigo_reserva = $1 LIMIT 1`,
         [codigo]
       );
       if (citaRes.rows.length === 0) return null;
@@ -59,6 +75,10 @@ export class CitaPgRepository extends ICitaRepository {
     try {
       let query = `
         SELECT c.*, 
+          cl.nombre_completo as cliente_nombre,
+          cl.telefono_whatsapp as cliente_telefono,
+          cl.correo as cliente_correo,
+          b.nombre_completo as barbero_nombre,
           COALESCE(
             json_agg(
               json_build_object(
@@ -71,6 +91,8 @@ export class CitaPgRepository extends ICitaRepository {
             ) FILTER (WHERE cs.cita_servicio_id IS NOT NULL), '[]'
           ) as servicios_json
         FROM citas c
+        LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id
+        LEFT JOIN barberos b ON c.barbero_id = b.barbero_id
         LEFT JOIN citas_servicios cs ON c.cita_id = cs.cita_id
         WHERE c.sede_id = $1 AND c.fecha = $2
       `;
@@ -81,7 +103,7 @@ export class CitaPgRepository extends ICitaRepository {
         params.push(barberoId);
       }
 
-      query += ' GROUP BY c.cita_id ORDER BY c.hora_inicio ASC';
+      query += ' GROUP BY c.cita_id, cl.nombre_completo, cl.telefono_whatsapp, cl.correo, b.nombre_completo ORDER BY c.hora_inicio ASC';
 
       const result = await executor.query(query, params);
       return result.rows.map((row) =>

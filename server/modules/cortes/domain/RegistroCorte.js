@@ -52,7 +52,9 @@ export class RegistroCorte {
     registradoPorUsuarioId,
     creadoEn = new Date(),
     actualizadoEn = new Date(),
-    servicios = []
+    servicios = [],
+    clienteNombre = null,
+    barberoNombre = null
   }) {
     this.registroCorteId = registroCorteId;
     this.sedeId = sedeId;
@@ -60,6 +62,8 @@ export class RegistroCorte {
     this.barberoId = barberoId;
     this.clienteId = clienteId;
     this.nombreClienteReferencial = nombreClienteReferencial;
+    this.clienteNombre = clienteNombre || nombreClienteReferencial;
+    this.barberoNombre = barberoNombre;
     this.origen = origen;
     this.fechaHoraAtencion = fechaHoraAtencion instanceof Date ? fechaHoraAtencion : new Date(fechaHoraAtencion);
     this.precioCalculadoCop = Math.round(Number(precioCalculadoCop));

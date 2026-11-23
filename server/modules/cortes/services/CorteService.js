@@ -7,6 +7,7 @@ import { RegistroCortePgRepository } from '../repositories/RegistroCortePgReposi
 import { CitaPgRepository } from '../../agendamiento/repositories/CitaPgRepository.js';
 import { BarberoPgRepository } from '../../barberos/repositories/BarberoPgRepository.js';
 import { ServicioPgRepository } from '../../servicios/repositories/ServicioPgRepository.js';
+import { ClientePgRepository } from '../../clientes/repositories/ClientePgRepository.js';
 import { runTransaction } from '../../../shared/database/transaction.js';
 import {
   NotFoundError,
@@ -20,12 +21,14 @@ export class CorteService {
     corteRepo = null,
     citaRepo = null,
     barberoRepo = null,
-    servicioRepo = null
+    servicioRepo = null,
+    clienteRepo = null
   ) {
     this.corteRepo = corteRepo || new RegistroCortePgRepository();
     this.citaRepo = citaRepo || new CitaPgRepository();
     this.barberoRepo = barberoRepo || new BarberoPgRepository();
     this.servicioRepo = servicioRepo || new ServicioPgRepository();
+    this.clienteRepo = clienteRepo || new ClientePgRepository();
   }
 
   /**
@@ -168,17 +171,25 @@ export class CorteService {
         precioCobradoCop = dto.precioCobradoCop;
       }
 
-      // 4. Calcular comisión del barbero
+      // 4. Calcular comisión del barbero y recuperar datos del cliente
       const barbero = await this.barberoRepo.findById(cita.barberoId, { client });
       const porcentajeComisionSnapshot = Number(barbero?.porcentajeComision) || 0;
       const comisionCalculadaCop = Math.round((precioCobradoCop * porcentajeComisionSnapshot) / 100);
+
+      let nombreClienteReferencial = dto.nombreCliente || null;
+      if (!nombreClienteReferencial && cita.clienteId) {
+        const cliente = await this.clienteRepo.findById(cita.clienteId, { client });
+        nombreClienteReferencial = cliente?.nombreCompleto || cita.clienteNombre || null;
+      }
 
       const nuevoCorte = new RegistroCorte({
         sedeId: cita.sedeId,
         citaId,
         barberoId: cita.barberoId,
         clienteId: cita.clienteId,
-        nombreClienteReferencial: null,
+        nombreClienteReferencial,
+        clienteNombre: nombreClienteReferencial,
+        barberoNombre: barbero?.nombreCompleto || null,
         origen: 'cita',
         fechaHoraAtencion: new Date(),
         precioCalculadoCop,
