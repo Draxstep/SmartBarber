@@ -23,13 +23,21 @@ let lastFocusedElement = null;
 export function openDialog({
   title = 'Confirmación',
   subtitle = '',
+  description = '',
   contentHtml = '',
   confirmText = 'Aceptar',
+  confirmLabel = '',
   cancelText = 'Cancelar',
   confirmVariant = 'primary',
+  isAlertOnly = false,
   onConfirm = null,
   onClose = null
 } = {}) {
+  // Normalizar parámetros de entrada (soporte para contentHtml o description / confirmText o confirmLabel)
+  const bodyHtml = contentHtml || (description ? `<p class="leading-relaxed text-xs sm:text-sm text-[#4F4A42]">${description}</p>` : '');
+  const finalConfirmText = confirmLabel || confirmText;
+  const finalCancelText = isAlertOnly ? '' : cancelText;
+
   // Guardar elemento con foco actual para restaurarlo al cerrar
   lastFocusedElement = document.activeElement;
 
@@ -80,27 +88,27 @@ export function openDialog({
 
       <!-- BODY -->
       <div id="dialog-content" class="p-4 sm:p-6 overflow-y-auto font-sans text-sm text-[#1C1C1C] bg-[#FAF7F2]">
-        ${contentHtml}
+        ${bodyHtml}
       </div>
 
       <!-- FOOTER ACTIONS -->
       <footer class="p-4 border-t border-[#D5CBB8] bg-[#FAF7F2] rounded-b-xl flex items-center justify-end gap-2.5">
-        ${cancelText ? `
+        ${finalCancelText ? `
           <button
             type="button"
             id="dialog-btn-cancel"
             class="min-h-[44px] px-4 py-2 rounded-md border border-[#8C8272] text-[#1C1C1C] hover:bg-[#E8DFCE] font-sans font-semibold text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1F3A5F]"
           >
-            ${cancelText}
+            ${finalCancelText}
           </button>
         ` : ''}
-        ${confirmText ? `
+        ${finalConfirmText ? `
           <button
             type="button"
             id="dialog-btn-confirm"
             class="min-h-[44px] px-5 py-2 rounded-md font-sans font-semibold text-xs transition-all shadow-sm active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1F3A5F] ${confirmBtnClasses}"
           >
-            ${confirmText}
+            ${finalConfirmText}
           </button>
         ` : ''}
       </footer>

@@ -23,8 +23,9 @@ export class PushService {
    * Guarda o actualiza una suscripción Push vinculada a un usuario.
    * @param {string} usuarioId
    * @param {object} subscription - { endpoint, keys: { p256dh, auth } }
+   * @param {object} [metadata] - { rol, sedeId }
    */
-  async registrarSuscripcion(usuarioId, subscription) {
+  async registrarSuscripcion(usuarioId, subscription, { rol = null, sedeId = null } = {}) {
     if (!subscription || !subscription.endpoint || !subscription.keys?.p256dh || !subscription.keys?.auth) {
       throw new Error('Formato de suscripción Push inválido.');
     }
@@ -33,17 +34,19 @@ export class PushService {
     const client = await this.pool.connect();
     try {
       const query = `
-        INSERT INTO push_suscripciones (usuario_id, endpoint, p256dh, auth, actualizado_en)
-        VALUES ($1, $2, $3, $4, NOW())
+        INSERT INTO push_suscripciones (usuario_id, endpoint, p256dh, auth, rol, sede_id, actualizado_en)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW())
         ON CONFLICT (endpoint) 
         DO UPDATE SET 
           usuario_id = EXCLUDED.usuario_id,
           p256dh = EXCLUDED.p256dh,
           auth = EXCLUDED.auth,
+          rol = COALESCE(EXCLUDED.rol, push_suscripciones.rol),
+          sede_id = COALESCE(EXCLUDED.sede_id, push_suscripciones.sede_id),
           actualizado_en = NOW()
-        RETURNING suscripcion_id, endpoint;
+        RETURNING suscripcion_id, endpoint, rol, sede_id;
       `;
-      const result = await client.query(query, [usuarioId, endpoint, keys.p256dh, keys.auth]);
+      const result = await client.query(query, [usuarioId, endpoint, keys.p256dh, keys.auth, rol, sedeId]);
       return result.rows[0];
     } finally {
       client.release();
@@ -61,6 +64,19 @@ export class PushService {
     } finally {
       client.release();
     }
+  }
+
+  /**
+   * Envía una notificación Push de prueba al usuario especificado.
+   * @param {string} usuarioId
+   */
+  async enviarPushDePrueba(usuarioId) {
+    return await this.enviarPushAUsuarios([usuarioId], {
+      titulo: 'SmartBarber · Notificación de Prueba',
+      cuerpo: '¡El canal Web Push VAPID está activo y funcionando en tiempo real!',
+      tag: `test-push-${Date.now()}`,
+      url: '/backoffice.html#agenda'
+    });
   }
 
   /**

@@ -35,7 +35,7 @@ function normalizeCorte(c) {
     sillon: c.sillon || 'Sillón 01',
     clienteNombre: c.nombreClienteReferencial || c.clienteNombre || 'Cliente Mostrador',
     servicioNombre,
-    origen: c.origen || 'walk_in',
+    origen: (c.origen === 'cita') ? 'cita' : 'walk_in',
     precio: Number(c.precioCobradoCop ?? c.precio ?? 0),
     precioCalculadoCop: Number(c.precioCalculadoCop ?? c.precioCobradoCop ?? 0),
     precioCobradoCop: Number(c.precioCobradoCop ?? c.precio ?? 0),
@@ -167,11 +167,14 @@ export const cortesService = {
    * Consulta el historial diario de cortes y arqueo de caja (CU-006, CU-007).
    */
   async getHistorialCortes(filtros = {}) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
     const query = new URLSearchParams();
 
-    query.append('fechaInicio', filtros.fechaInicio || filtros.fecha || today);
-    query.append('fechaFin', filtros.fechaFin || filtros.fecha || today);
+    const fInicio = filtros.fechaInicio || filtros.fecha || today;
+    const fFin = filtros.fechaFin || filtros.fecha || today;
+
+    query.append('fechaInicio', fInicio.includes('T') ? fInicio : `${fInicio}T00:00:00-05:00`);
+    query.append('fechaFin', fFin.includes('T') ? fFin : `${fFin}T23:59:59-05:00`);
 
     if (filtros.barberoId && filtros.barberoId !== 'all') {
       query.append('barberoId', filtros.barberoId);
@@ -189,7 +192,8 @@ export const cortesService = {
         list = list.filter(c => c.metodoPago === filtros.metodoPago);
       }
       if (filtros.origen && filtros.origen !== 'all') {
-        list = list.filter(c => c.origen === filtros.origen);
+        const targetOrigen = (filtros.origen === 'walk-in' || filtros.origen === 'walk_in') ? 'walk_in' : filtros.origen;
+        list = list.filter(c => c.origen === targetOrigen);
       }
       if (filtros.search) {
         const q = filtros.search.toLowerCase().trim();
@@ -211,10 +215,12 @@ export const cortesService = {
    * Resumen de ingresos y desglose por los 5 métodos de pago (CU-007).
    */
   async getResumenIngresos({ fechaInicio, fechaFin, barberoId } = {}) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+    const fInicio = fechaInicio || today;
+    const fFin = fechaFin || today;
     const query = new URLSearchParams({
-      fechaInicio: fechaInicio || today,
-      fechaFin: fechaFin || today
+      fechaInicio: fInicio.includes('T') ? fInicio : `${fInicio}T00:00:00-05:00`,
+      fechaFin: fFin.includes('T') ? fFin : `${fFin}T23:59:59-05:00`
     });
 
     if (barberoId && barberoId !== 'all') {

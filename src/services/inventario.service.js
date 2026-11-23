@@ -85,6 +85,9 @@ function normalizeMovimiento(m) {
     subtipo: m.subtipo,
     subtipoLabel: subtipoLabels[m.subtipo] || m.subtipo,
     cantidad: Number(m.cantidad || 0),
+    valorTotalCop: Number(m.valorTotalCop ?? m.valor_total_cop ?? 0),
+    precioUnitarioCop: Number(m.precioUnitarioCop ?? m.precio_unitario_cop ?? 0),
+    metodoPago: m.metodoPago || m.metodo_pago || 'efectivo',
     stockPrevio: Number(m.stockAnterior ?? m.stockPrevio ?? 0),
     stockNuevo: Number(m.stockResultante ?? m.stockNuevo ?? 0),
     referencia: m.observacion || (m.registroCorteId ? `Corte #${String(m.registroCorteId).slice(-4)}` : 'Movimiento almacén'),
@@ -448,6 +451,8 @@ export const inventarioService = {
     const query = new URLSearchParams();
     if (filtros.productoId) query.append('productoId', filtros.productoId);
     if (filtros.tipo && filtros.tipo !== 'all') query.append('tipo', filtros.tipo);
+    if (filtros.fechaInicio) query.append('fechaInicio', filtros.fechaInicio);
+    if (filtros.fechaFin) query.append('fechaFin', filtros.fechaFin);
 
     const q = query.toString() ? `?${query.toString()}` : '';
     try {

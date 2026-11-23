@@ -19,11 +19,37 @@ export function urlBase64ABytes(base64String) {
  * Comprueba si el navegador soporta Notificaciones y Push API
  */
 export function soportaNotificacionesPush() {
-  return (
+  return Boolean(
+    typeof window !== "undefined" &&
     "serviceWorker" in navigator &&
     "PushManager" in window &&
     "Notification" in window
   );
+}
+
+/**
+ * Consulta el estado detallado de compatibilidad y permisos de Notificaciones Push
+ * @returns {Promise<{ soportado: boolean, permiso: string, activa: boolean }>}
+ */
+export async function obtenerEstadoNotificaciones() {
+  if (!soportaNotificacionesPush()) {
+    return { soportado: false, permiso: "unsupported", activa: false };
+  }
+
+  const permiso = Notification.permission; // 'default' | 'granted' | 'denied'
+  let activa = false;
+
+  if (permiso === "granted") {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription();
+      activa = Boolean(sub);
+    } catch {
+      activa = false;
+    }
+  }
+
+  return { soportado: true, permiso, activa };
 }
 
 /**
@@ -41,7 +67,10 @@ export async function suscribirAPush() {
   }
 
   // 2. Obtener clave pública VAPID desde el servidor
-  const respKey = await fetch("/api/v1/push/clave-publica");
+  let respKey = await fetch("/api/v1/push/vapid-public-key").catch(() => null);
+  if (!respKey || !respKey.ok) {
+    respKey = await fetch("/api/v1/push/clave-publica");
+  }
   if (!respKey.ok) {
     throw new Error("No se pudo obtener la clave pública VAPID del servidor.");
   }
@@ -61,7 +90,7 @@ export async function suscribirAPush() {
 
   // 4. Enviar la suscripción al backend vinculada a la sesión activa
   const token = localStorage.getItem("smartbarber_token");
-  const respSub = await fetch("/api/v1/push/suscribir", {
+  let respSub = await fetch("/api/v1/push/subscribe", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -69,13 +98,99 @@ export async function suscribirAPush() {
     },
     credentials: "include",
     body: JSON.stringify({ subscription: suscripcion }),
-  });
+  }).catch(() => null);
+
+  if (!respSub || !respSub.ok) {
+    respSub = await fetch("/api/v1/push/suscribir", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      credentials: "include",
+      body: JSON.stringify({ subscription: suscripcion }),
+    });
+  }
 
   if (!respSub.ok) {
     throw new Error("Fallo al registrar suscripción en el servidor.");
   }
 
   return { ok: true, estado: "granted", mensaje: "Notificaciones activadas exitosamente." };
+}
+
+/**
+ * Desuscribe el dispositivo de las alertas Push en el PushManager y en la base de datos
+ */
+export async function desuscribirDePush() {
+  if (!soportaNotificacionesPush()) return { ok: true };
+
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sub = await reg.pushManager.getSubscription();
+    if (sub) {
+      const endpoint = sub.endpoint;
+      await sub.unsubscribe().catch(() => {});
+
+      const token = localStorage.getItem("smartbarber_token");
+      await fetch("/api/v1/push/unsubscribe", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {})
+        },
+        credentials: "include",
+        body: JSON.stringify({ endpoint }),
+      }).catch(() => {
+        return fetch("/api/v1/push/desuscribir", {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {})
+          },
+          credentials: "include",
+          body: JSON.stringify({ endpoint }),
+        }).catch(() => {});
+      });
+    }
+    return { ok: true, mensaje: "Notificaciones desactivadas correctamente." };
+  } catch (err) {
+    throw new Error("Error al desactivar notificaciones: " + err.message);
+  }
+}
+
+/**
+ * Envía una notificación Push de prueba al usuario en sesión
+ */
+export async function enviarNotificacionPrueba() {
+  const token = localStorage.getItem("smartbarber_token");
+  let resp = await fetch("/api/v1/push/test", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    },
+    credentials: "include"
+  }).catch(() => null);
+
+  if (!resp || !resp.ok) {
+    resp = await fetch("/api/v1/push/probar", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {})
+      },
+      credentials: "include"
+    });
+  }
+
+  if (!resp.ok) {
+    const errData = await resp.json().catch(() => ({}));
+    throw new Error(errData?.error?.message || errData?.message || "Error al enviar notificación de prueba.");
+  }
+
+  const json = await resp.json();
+  return json;
 }
 
 /**

@@ -9,7 +9,7 @@ const { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } = workbox.
 const { ExpirationPlugin } = workbox.expiration;
 
 cleanupOutdatedCaches();
-precacheAndRoute([{"revision":"f704be86589d53bacbe74509428fe2d1","url":"index.html"},{"revision":"9536280f67ddd555b0f6c38a064a9c80","url":"backoffice.html"},{"revision":"6e43bfbd39f9750ae399a584ed64f031","url":"offline.html"},{"revision":"5880847d681ba99847bf6b2614e99aca","url":"styleguide.html"},{"revision":"e0dac51d12ae063d226253bc7f89b789","url":"manifest.json"},{"revision":"244afd38e3ae861e4d058523730c2c88","url":"assets/ui-dialog-DOTbmRFY.css"},{"revision":"388e370f76f9687174442189f9066ed1","url":"assets/ui-dialog-BcTYR2K7.js"},{"revision":"027ebd3c815b15e50a3cc4d9f1c74437","url":"assets/styleguide-BBHvgIRI.js"},{"revision":"e9dabe013743d4304e7da1cd450f7137","url":"assets/status-badge-CKGoXOPm.js"},{"revision":"198e632e933de0ff0e43c4d1b2629528","url":"assets/install-prompt-DmJxeAH8.js"},{"revision":"b8d7498f0e455db6cb484abd7eab0923","url":"assets/index-CXcy9xPJ.js"},{"revision":"5e91ff705453830ffe907bd1a9a973e0","url":"assets/booking-stepper-B5seEWXC.js"},{"revision":"9dd17851e00f28e2b95813dc07c9e3f7","url":"assets/backoffice-D1zMVQmx.js"},{"revision":"4836ea148892c29f1730baa234c62fa9","url":"icons/launchericon-96x96.png"},{"revision":"e0e18106be09696cfc5480335f7de5a4","url":"icons/launchericon-72x72.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/launchericon-512x512.png"},{"revision":"63c48d1c5d163f4011b8b19f12589241","url":"icons/launchericon-48x48.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/launchericon-192x192.png"},{"revision":"50d689b81a1a1a22442665adda270877","url":"icons/launchericon-144x144.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/icon-512-maskable.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/icon-192.png"}]);
+precacheAndRoute([{"revision":"cecfe2ad0ad837091f8386b192336aa5","url":"index.html"},{"revision":"e75ccce6a3398198e6e3dd866c9cc4c1","url":"backoffice.html"},{"revision":"6e43bfbd39f9750ae399a584ed64f031","url":"offline.html"},{"revision":"2c85ad1fe2a2a9810be73d8d381cc031","url":"styleguide.html"},{"revision":"e0dac51d12ae063d226253bc7f89b789","url":"manifest.json"},{"revision":"6b20840d89c2f64f4741486ef6e248f8","url":"assets/ui-dialog-Dju8F_L8.css"},{"revision":"0b16500c91130db6faec6188d89dd7a7","url":"assets/ui-dialog-BoA2dAI7.js"},{"revision":"8020d6b37e13f623f485fd41756b7eb7","url":"assets/styleguide-qN1p-43G.js"},{"revision":"e9dabe013743d4304e7da1cd450f7137","url":"assets/status-badge-CKGoXOPm.js"},{"revision":"b29d6f80c8042bc7ac634f0b3d1afc52","url":"assets/install-prompt-CbsfP3eg.js"},{"revision":"873812a3e36d96a95f08073bfe233c07","url":"assets/index-Cqq9TuDS.js"},{"revision":"3e70cb3f7a87703cbd6892e1c150a850","url":"assets/booking-stepper-ByqZlII2.js"},{"revision":"123b5d15ec0719c4cef9c244d3e1e45c","url":"assets/backoffice-Cmo-hpy0.js"},{"revision":"4836ea148892c29f1730baa234c62fa9","url":"icons/launchericon-96x96.png"},{"revision":"e0e18106be09696cfc5480335f7de5a4","url":"icons/launchericon-72x72.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/launchericon-512x512.png"},{"revision":"63c48d1c5d163f4011b8b19f12589241","url":"icons/launchericon-48x48.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/launchericon-192x192.png"},{"revision":"50d689b81a1a1a22442665adda270877","url":"icons/launchericon-144x144.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/icon-512-maskable.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/icon-192.png"}]);
 
 // 1. Imágenes e íconos estáticos -> CacheFirst (LCP < 2.5s en 4G, RNF-01)
 registerRoute(
@@ -206,35 +206,47 @@ self.addEventListener("push", (event) => {
   };
 
   try {
-    if (event.data) datos = { ...datos, ...event.data.json() };
+    if (event.data) {
+      const parsed = event.data.json();
+      datos = { ...datos, ...parsed };
+    }
   } catch {
-    if (event.data) datos.cuerpo = event.data.text();
+    if (event.data) {
+      datos.cuerpo = event.data.text();
+    }
   }
 
-  event.waitUntil(
-    self.registration.showNotification(datos.titulo, {
-      body: datos.cuerpo,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      tag: datos.tag,
-      data: { url: datos.url },
-    })
-  );
+  const opciones = {
+    body: datos.cuerpo,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: datos.tag,
+    renotify: true,
+    vibrate: [100, 50, 100],
+    data: {
+      url: datos.url || "/backoffice.html#agenda",
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(datos.titulo, opciones));
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const destino = new URL(event.notification.data?.url ?? "/backoffice.html", self.location.origin).href;
+  const destinoUrl = event.notification.data?.url || "/backoffice.html#agenda";
+  const destino = new URL(destinoUrl, self.location.origin).href;
 
   event.waitUntil(
     (async () => {
-      const ventanas = await clients.matchAll({ type: "window", includeUncontrolled: true });
+      const ventanas = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       const abierta = ventanas.find((v) => new URL(v.url).origin === self.location.origin);
       if (abierta) {
-        if ("navigate" in abierta) await abierta.navigate(destino);
+        if ("navigate" in abierta) {
+          await abierta.navigate(destino);
+        }
         return abierta.focus();
       }
-      return clients.openWindow(destino);
+      return self.clients.openWindow(destino);
     })()
   );
 });

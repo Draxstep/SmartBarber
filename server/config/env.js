@@ -40,7 +40,12 @@ const envSchema = z.object({
   // Configuración de Seguridad y JWT (RNF-09, RNF-10)
   JWT_SECRET: z.string().min(16).default('smartbarber_jwt_secret_super_secure_key_2026_dev_mvp_key!#$'),
   JWT_EXPIRES_IN: z.string().default('8h'),
-  CORS_ORIGIN: z.string().default('*')
+  CORS_ORIGIN: z.string().default('*'),
+
+  // Configuración opcional Web Push VAPID (RFC 8292)
+  VAPID_PUBLIC_KEY: z.string().optional(),
+  VAPID_PRIVATE_KEY: z.string().optional(),
+  VAPID_SUBJECT: z.string().default('mailto:soporte@smartbarber.co')
 });
 
 let parsedEnv;

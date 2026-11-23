@@ -5,6 +5,7 @@
  */
 
 import { barberosService, authService, cameraService } from '../../services/index.js';
+import { suscribirAPush, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones, soportaNotificacionesPush } from '../../pwa/notificaciones.js';
 
 let cachedProfile = null;
 let profileSuccessMsg = '';
@@ -336,6 +337,43 @@ export function renderPerfilPage() {
         </section>
       </div>
 
+      <!-- SECCIÓN: ALERTAS Y NOTIFICACIONES PUSH (WEB PUSH API VAPID) -->
+      <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#D5CBB8]">
+          <div class="flex items-center gap-2">
+            <span class="material-symbols-outlined text-[20px] text-[#1F3A5F]">notifications_active</span>
+            <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Notificaciones Web Push (VAPID RFC 8292)</h3>
+          </div>
+          <span id="perfil-push-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E8DFCE] text-[#4F4A42]">
+            Consultando estado...
+          </span>
+        </div>
+
+        <p class="text-xs text-[#4F4A42] leading-relaxed">
+          Recibe avisos inmediatos en este equipo ante nuevas citas reservadas por clientes y alertas críticas de inventario. La suscripción se realiza de forma segura mediante claves criptográficas VAPID sin intermediarios externos.
+        </p>
+
+        <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-[#D5CBB8]">
+          <button
+            type="button"
+            id="btn-perfil-toggle-push"
+            class="min-h-[40px] px-4 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs flex items-center gap-2 shadow-xs transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px]">notifications</span>
+            <span>Activar Notificaciones en este equipo</span>
+          </button>
+          <button
+            type="button"
+            id="btn-perfil-probar-push"
+            class="hidden min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#1C1C1C] font-semibold text-xs flex items-center gap-2 shadow-xs transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px]">send</span>
+            <span>Enviar Notificación de Prueba</span>
+          </button>
+          <span id="perfil-push-feedback" class="text-xs font-semibold"></span>
+        </div>
+      </section>
+
       ${isBarbero ? `
         <!-- SECCIÓN 3: HORARIOS SEMANALES ASIGNADOS (SOLO LECTURA PARA BARBERO) -->
         <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-4">
@@ -538,6 +576,100 @@ export function attachPerfilListeners(refresh) {
       } finally {
         if (btn) btn.disabled = false;
         if (typeof refresh === 'function') refresh();
+      }
+    });
+  }
+
+  // 3. Control de Notificaciones Push Web VAPID
+  const badgePush = document.getElementById('perfil-push-badge');
+  const btnTogglePush = document.getElementById('btn-perfil-toggle-push');
+  const btnProbarPush = document.getElementById('btn-perfil-probar-push');
+  const feedbackPush = document.getElementById('perfil-push-feedback');
+
+  const refrescarEstadoPerfilPush = async () => {
+    const estado = await obtenerEstadoNotificaciones();
+    if (!badgePush || !btnTogglePush) return;
+
+    if (!estado.soportado) {
+      badgePush.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E8DFCE] text-[#4F4A42]';
+      badgePush.textContent = 'No soportado en este navegador';
+      btnTogglePush.disabled = true;
+      btnTogglePush.className = 'min-h-[40px] px-4 py-2 rounded-lg bg-[#8C8272] text-white opacity-60 cursor-not-allowed font-semibold text-xs flex items-center gap-2';
+      btnTogglePush.innerHTML = '<span class="material-symbols-outlined text-[18px]">notifications_off</span><span>No soportado</span>';
+      if (btnProbarPush) btnProbarPush.classList.add('hidden');
+    } else if (estado.permiso === 'denied') {
+      badgePush.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#FCE8E6] text-[#8B1E1E]';
+      badgePush.textContent = 'Bloqueadas por permisos del navegador';
+      btnTogglePush.disabled = true;
+      btnTogglePush.innerHTML = '<span class="material-symbols-outlined text-[18px]">notifications_off</span><span>Permiso Denegado</span>';
+      if (btnProbarPush) btnProbarPush.classList.add('hidden');
+    } else if (estado.activa) {
+      badgePush.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E3EFE7] text-[#235D3A]';
+      badgePush.textContent = '● Activas y Sincronizadas';
+      btnTogglePush.disabled = false;
+      btnTogglePush.className = 'min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#8B1E1E] font-semibold text-xs flex items-center gap-2 shadow-xs transition-colors';
+      btnTogglePush.innerHTML = '<span class="material-symbols-outlined text-[18px]">notifications_off</span><span>Desactivar en este equipo</span>';
+      if (btnProbarPush) btnProbarPush.classList.remove('hidden');
+    } else {
+      badgePush.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#F2EBDD] text-[#4F4A42]';
+      badgePush.textContent = 'Inactivas en este equipo';
+      btnTogglePush.disabled = false;
+      btnTogglePush.className = 'min-h-[40px] px-4 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs flex items-center gap-2 shadow-xs transition-colors';
+      btnTogglePush.innerHTML = '<span class="material-symbols-outlined text-[18px]">notifications</span><span>Activar Notificaciones en este equipo</span>';
+      if (btnProbarPush) btnProbarPush.classList.add('hidden');
+    }
+  };
+
+  refrescarEstadoPerfilPush();
+
+  if (btnTogglePush) {
+    btnTogglePush.addEventListener('click', async () => {
+      const estado = await obtenerEstadoNotificaciones();
+      btnTogglePush.disabled = true;
+
+      try {
+        if (estado.activa) {
+          await desuscribirDePush();
+          if (feedbackPush) {
+            feedbackPush.className = 'text-xs font-semibold text-[#4F4A42]';
+            feedbackPush.textContent = 'Notificaciones desactivadas para este equipo.';
+          }
+        } else {
+          const res = await suscribirAPush();
+          if (res.ok && feedbackPush) {
+            feedbackPush.className = 'text-xs font-semibold text-[#235D3A]';
+            feedbackPush.textContent = '¡Notificaciones activadas! Ahora puedes enviar una prueba.';
+          }
+        }
+      } catch (err) {
+        if (feedbackPush) {
+          feedbackPush.className = 'text-xs font-semibold text-[#8B1E1E]';
+          feedbackPush.textContent = err.message;
+        }
+      } finally {
+        await refrescarEstadoPerfilPush();
+      }
+    });
+  }
+
+  if (btnProbarPush) {
+    btnProbarPush.addEventListener('click', async () => {
+      btnProbarPush.disabled = true;
+      btnProbarPush.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span><span>Enviando...</span>';
+      try {
+        const res = await enviarNotificacionPrueba();
+        if (feedbackPush) {
+          feedbackPush.className = 'text-xs font-semibold text-[#235D3A]';
+          feedbackPush.textContent = res.message || 'Notificación de prueba enviada con éxito.';
+        }
+      } catch (err) {
+        if (feedbackPush) {
+          feedbackPush.className = 'text-xs font-semibold text-[#8B1E1E]';
+          feedbackPush.textContent = err.message;
+        }
+      } finally {
+        btnProbarPush.disabled = false;
+        btnProbarPush.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span><span>Enviar Notificación de Prueba</span>';
       }
     });
   }

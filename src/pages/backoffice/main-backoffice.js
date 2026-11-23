@@ -26,7 +26,7 @@ import { onDataMutation, AppEvent } from '../../utils/event-bus.js';
 // Módulos PWA Offline-First
 import { registrarServiceWorker, inicializarEventosConectividad } from '../../pwa/sw-register.js';
 import { inicializarInstaladorPWA } from '../../pwa/install-prompt.js';
-import { suscribirAPush, tieneSuscripcionActiva } from '../../pwa/notificaciones.js';
+import { suscribirAPush, tieneSuscripcionActiva, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones, soportaNotificacionesPush } from '../../pwa/notificaciones.js';
 import { obtenerEstadoOutbox, descartarCambio, pedirSincronizacion } from '../../pwa/sync.js';
 import { abrirBaseDeDatos, limpiarDatosLocales } from '../../pwa/db.js';
 
@@ -406,31 +406,185 @@ function attachBackofficeCommonListeners() {
     });
   }
 
-  // Botón Activar Notificaciones Push VAPID
+  // Botón y Control Integral de Notificaciones Push VAPID
   const btnPush = document.getElementById('btn-activate-push');
   if (btnPush) {
-    tieneSuscripcionActiva().then((activa) => {
-      if (activa) {
-        btnPush.title = 'Alertas Push activadas';
-        btnPush.innerHTML = '<span class="material-symbols-outlined text-[20px] text-[#235D3A]">notifications_active</span>';
+    const actualizarIconoCampana = async () => {
+      const iconEl = document.getElementById('btn-push-icon') || btnPush.querySelector('span');
+      const dotEl = document.getElementById('push-status-dot');
+      const estado = await obtenerEstadoNotificaciones();
+
+      if (!estado.soportado) {
+        if (iconEl) {
+          iconEl.textContent = 'notifications_off';
+          iconEl.className = 'material-symbols-outlined text-[20px] text-[#8C8272] opacity-60';
+        }
+        btnPush.title = 'Este navegador no soporta Notificaciones Push.';
+        if (dotEl) dotEl.classList.add('hidden');
+      } else if (estado.permiso === 'denied') {
+        if (iconEl) {
+          iconEl.textContent = 'notifications_off';
+          iconEl.className = 'material-symbols-outlined text-[20px] text-[#8B1E1E]';
+        }
+        btnPush.title = 'Notificaciones bloqueadas por permisos del navegador.';
+        if (dotEl) {
+          dotEl.className = 'absolute top-2 right-2 w-2 h-2 rounded-full bg-[#8B1E1E]';
+          dotEl.classList.remove('hidden');
+        }
+      } else if (estado.activa) {
+        if (iconEl) {
+          iconEl.textContent = 'notifications_active';
+          iconEl.className = 'material-symbols-outlined text-[20px] text-[#235D3A]';
+        }
+        btnPush.title = 'Notificaciones Push activadas y sincronizadas.';
+        if (dotEl) {
+          dotEl.className = 'absolute top-2 right-2 w-2 h-2 rounded-full bg-[#235D3A] animate-pulse';
+          dotEl.classList.remove('hidden');
+        }
+      } else {
+        if (iconEl) {
+          iconEl.textContent = 'notifications';
+          iconEl.className = 'material-symbols-outlined text-[20px] text-[#4F4A42]';
+        }
+        btnPush.title = 'Activar notificaciones Push';
+        if (dotEl) dotEl.classList.add('hidden');
       }
-    });
+      return estado;
+    };
+
+    actualizarIconoCampana();
 
     btnPush.addEventListener('click', async () => {
+      const estado = await obtenerEstadoNotificaciones();
+
+      if (!estado.soportado) {
+        openDialog({
+          title: 'Notificaciones No Soportadas',
+          description: 'Tu navegador actual no cuenta con soporte para Web Push API o Service Workers.',
+          confirmLabel: 'Entendido',
+          isAlertOnly: true
+        });
+        return;
+      }
+
+      if (estado.permiso === 'denied') {
+        openDialog({
+          title: 'Notificaciones Bloqueadas',
+          description: 'Las notificaciones están bloqueadas en tu navegador para este sitio. Para habilitarlas, haz clic en el icono del candado en la barra de direcciones de tu navegador y cambia Notificaciones a "Permitir".',
+          confirmLabel: 'Entendido',
+          isAlertOnly: true
+        });
+        return;
+      }
+
+      if (estado.activa) {
+        // Modal de gestión interactiva cuando ya están activas
+        openDialog({
+          title: 'Gestión de Notificaciones Push',
+          subtitle: 'Web Push API + VAPID (RFC 8292) en tiempo real',
+          contentHtml: `
+            <div class="flex flex-col gap-4 text-xs">
+              <div class="flex items-center gap-2 p-3 rounded-lg bg-[#E3EFE7] text-[#235D3A] border border-[#235D3A]/20">
+                <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                <span class="font-semibold">Notificaciones activas y sincronizadas en este dispositivo</span>
+              </div>
+              <p class="text-[#4F4A42] leading-relaxed">
+                Este navegador está registrado con clave criptográfica VAPID para recibir alertas de <strong>nuevas reservas online</strong> y <strong>quiebres de stock en inventario</strong>.
+              </p>
+              <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#D5CBB8]">
+                <button
+                  type="button"
+                  id="btn-modal-test-push"
+                  class="min-h-[40px] px-4 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs"
+                >
+                  <span class="material-symbols-outlined text-[18px]">send</span>
+                  <span>Enviar Notificación de Prueba</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-modal-desuscribir-push"
+                  class="min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#8B1E1E] font-semibold flex items-center justify-center gap-2 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[18px]">notifications_off</span>
+                  <span>Desactivar en este equipo</span>
+                </button>
+              </div>
+              <div id="modal-push-feedback" class="hidden p-2.5 rounded-lg text-xs font-semibold"></div>
+            </div>
+          `,
+          cancelText: 'Cerrar',
+          confirmText: ''
+        });
+
+        setTimeout(() => {
+          const btnTest = document.getElementById('btn-modal-test-push');
+          const btnDesub = document.getElementById('btn-modal-desuscribir-push');
+          const feedback = document.getElementById('modal-push-feedback');
+
+          if (btnTest) {
+            btnTest.addEventListener('click', async () => {
+              btnTest.disabled = true;
+              btnTest.innerHTML = '<span class="material-symbols-outlined text-[18px] animate-spin">refresh</span><span>Enviando prueba...</span>';
+              try {
+                const res = await enviarNotificacionPrueba();
+                if (feedback) {
+                  feedback.className = 'p-2.5 rounded-lg text-xs font-semibold bg-[#E3EFE7] text-[#235D3A] border border-[#235D3A]/20';
+                  feedback.textContent = res.message || 'Notificación de prueba enviada con éxito.';
+                  feedback.classList.remove('hidden');
+                }
+              } catch (err) {
+                if (feedback) {
+                  feedback.className = 'p-2.5 rounded-lg text-xs font-semibold bg-[#FCE8E6] text-[#8B1E1E] border border-[#8B1E1E]/20';
+                  feedback.textContent = err.message;
+                  feedback.classList.remove('hidden');
+                }
+              } finally {
+                btnTest.disabled = false;
+                btnTest.innerHTML = '<span class="material-symbols-outlined text-[18px]">send</span><span>Enviar Notificación de Prueba</span>';
+              }
+            });
+          }
+
+          if (btnDesub) {
+            btnDesub.addEventListener('click', async () => {
+              btnDesub.disabled = true;
+              try {
+                await desuscribirDePush();
+                await actualizarIconoCampana();
+                if (feedback) {
+                  feedback.className = 'p-2.5 rounded-lg text-xs font-semibold bg-[#F2EBDD] text-[#4F4A42] border border-[#D5CBB8]';
+                  feedback.textContent = 'Notificaciones desactivadas para este navegador.';
+                  feedback.classList.remove('hidden');
+                }
+                setTimeout(() => {
+                  const dialogEl = document.querySelector('dialog.ui-modal');
+                  if (dialogEl) dialogEl.close();
+                }, 1000);
+              } catch (err) {
+                alert(err.message);
+                btnDesub.disabled = false;
+              }
+            });
+          }
+        }, 50);
+        return;
+      }
+
+      // Si está en estado 'default' o sin suscripción activa: solicitar en contexto de clic
       try {
         const res = await suscribirAPush();
         if (res.ok) {
-          btnPush.innerHTML = '<span class="material-symbols-outlined text-[20px] text-[#235D3A]">notifications_active</span>';
+          await actualizarIconoCampana();
           openDialog({
             title: 'Notificaciones Activadas',
-            description: 'Recibirás avisos instantáneos de nuevas reservas de clientes y alertas de existencias bajas de inventario.',
-            confirmLabel: 'Aceptar',
+            description: 'Recibirás avisos instantáneos de nuevas reservas de clientes y alertas de existencias bajas de inventario. Haz clic en la campana en cualquier momento para enviar una prueba.',
+            confirmLabel: 'Entendido',
             isAlertOnly: true
           });
         } else {
           openDialog({
             title: 'Notificaciones no activadas',
-            description: 'Puedes habilitar las notificaciones en cualquier momento desde los permisos de tu navegador.',
+            description: res.mensaje || 'Puedes habilitar las notificaciones en cualquier momento desde los permisos de tu navegador.',
             confirmLabel: 'Entendido',
             isAlertOnly: true
           });
@@ -458,11 +612,12 @@ window.addEventListener('hashchange', renderBackoffice);
 
 // Suscripción al bus de mutación de datos para actualización reactiva instantánea
 onDataMutation(async (detail) => {
-  const currentRoute = getActiveRoute(currentUser);
+  const user = authService.getCurrentUser();
+  const currentRoute = getActiveRoute(user);
   if (
     (detail.entity === 'citas' && currentRoute === 'agenda') ||
     (detail.entity === 'cortes' && (currentRoute === 'cortes' || currentRoute === 'agenda')) ||
-    (detail.entity === 'inventario' && (currentRoute === 'inventario' || currentRoute === 'agenda'))
+    (detail.entity === 'inventario' && (currentRoute === 'inventario' || currentRoute === 'agenda' || currentRoute === 'cortes'))
   ) {
     renderBackoffice();
   }

@@ -59,11 +59,12 @@ export function renderBackofficeHeader({
         <button
           id="btn-activate-push"
           type="button"
-          class="p-2 rounded-md text-[#4F4A42] hover:bg-[#E8DFCE] hover:text-[#1C1C1C] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center"
-          aria-label="Activar alertas de agenda e inventario"
-          title="Activar alertas de agenda e inventario"
+          class="p-2 rounded-md text-[#4F4A42] hover:bg-[#E8DFCE] hover:text-[#1C1C1C] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center relative"
+          aria-label="Notificaciones Push del Sistema"
+          title="Consultar o activar alertas Push"
         >
-          <span class="material-symbols-outlined text-[20px]">notifications_active</span>
+          <span id="btn-push-icon" class="material-symbols-outlined text-[20px]">notifications</span>
+          <span id="push-status-dot" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full bg-[#235D3A]"></span>
         </button>
 
         <!-- Divider -->

@@ -6,8 +6,9 @@
  * y drawer de registro rápido Walk-in.
  */
 
+import { cajaFinancialService } from '../../services/caja-financial.service.js';
 import { cortesService, barberosService, serviciosService, authService } from '../../services/index.js';
-import { formatCOP } from '../../utils/formatters.js';
+import { formatCOP, formatDateBogota } from '../../utils/formatters.js';
 import { emitDataMutation } from '../../utils/event-bus.js';
 
 // Estado local de filtros
@@ -22,54 +23,53 @@ let currentFilters = {
 let cachedCortes = [];
 let cachedBarberos = [];
 let cachedServicios = [];
+let financialState = null;
 
 export async function loadCortesData() {
-  const [cortesRes, barbRes, srvRes] = await Promise.all([
-    cortesService.getHistorialCortes(currentFilters),
-    barberosService.getBarberos(),
-    serviciosService.getServicios()
-  ]);
-
-  if (cortesRes.ok) cachedCortes = cortesRes.data;
-  if (barbRes.ok) cachedBarberos = barbRes.data;
-  if (srvRes.ok) cachedServicios = srvRes.data;
+  financialState = await cajaFinancialService.loadFinancialData(currentFilters);
+  cachedCortes = financialState.cortes;
+  cachedBarberos = financialState.barberos;
+  cachedServicios = financialState.servicios;
 }
 
 export function renderCortesPage() {
   const user = authService.getCurrentUser() || {};
   const isBarbero = user.rol === 'barbero';
 
-  const cortes = cachedCortes;
-  const activos = cortes.filter(c => c.estado === 'activo');
-  const anulados = cortes.filter(c => c.estado === 'anulado');
-
-  const totalIngresos = activos.reduce((sum, c) => sum + c.precio, 0);
-
-  // Desglose por método de pago normalizado
-  const breakdown = {
-    efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-primary' },
-    nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]' },
-    daviplata: { total: 0, count: 0, label: 'Daviplata', icon: 'account_balance_wallet', color: 'bg-[#E07A7A]' },
-    datafono: { total: 0, count: 0, label: 'Datáfono', icon: 'credit_card', color: 'bg-[#1F3A5F]' },
-    transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#235D3A]' }
+  const fs = financialState || {
+    totales: {
+      totalIngresosBrutosCop: 0,
+      ingresosServiciosCop: 0,
+      ingresosProductosCop: 0,
+      totalComisionesCop: 0,
+      margenSedeCop: 0,
+      totalAnuladosExcluidosCop: 0,
+      totalAtencionesActivas: 0,
+      totalAtencionesAnuladas: 0,
+      totalCitas: 0,
+      totalWalkIns: 0,
+      totalVentasProductos: 0,
+      totalOperaciones: 0
+    },
+    desgloseMetodosPago: {
+      efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-primary' },
+      nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]' },
+      daviplata: { total: 0, count: 0, label: 'Daviplata', icon: 'account_balance_wallet', color: 'bg-[#E07A7A]' },
+      datafono: { total: 0, count: 0, label: 'Datáfono', icon: 'credit_card', color: 'bg-[#1F3A5F]' },
+      transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#235D3A]' }
+    },
+    transacciones: [],
+    cortes: [],
+    activos: [],
+    anulados: []
   };
 
-  const normalizeMetodoPagoKey = (metodo) => {
-    const m = (metodo || 'efectivo').toLowerCase();
-    if (m === 'tarjeta_debito_credito' || m === 'datafono' || m === 'tarjeta') return 'datafono';
-    if (m === 'transferencia_bancaria' || m === 'transferencia') return 'transferencia';
-    if (m === 'nequi') return 'nequi';
-    if (m === 'daviplata') return 'daviplata';
-    return 'efectivo';
-  };
-
-  activos.forEach(c => {
-    const key = normalizeMetodoPagoKey(c.metodoPago);
-    if (breakdown[key]) {
-      breakdown[key].total += c.precio;
-      breakdown[key].count += 1;
-    }
-  });
+  const totalIngresos = fs.totales.totalIngresosBrutosCop;
+  const breakdown = fs.desgloseMetodosPago;
+  const transacciones = fs.transacciones;
+  const activos = fs.activos;
+  const anulados = fs.anulados;
+  const fechaHoyLabel = formatDateBogota(new Date(), { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
   return `
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
@@ -90,7 +90,7 @@ export function renderCortesPage() {
         <div class="flex items-center flex-wrap gap-2.5">
           <div class="flex items-center gap-2 bg-[#FAF7F2] border border-[#D5CBB8] px-3 py-2 rounded-lg text-xs font-mono font-medium text-[#1C1C1C]">
             <span class="material-symbols-outlined text-[16px] text-[#6B645A]">calendar_today</span>
-            <span>Hoy: 20 Nov 2026</span>
+            <span>Hoy: ${fechaHoyLabel}</span>
           </div>
           <button
             type="button"
@@ -118,7 +118,7 @@ export function renderCortesPage() {
           <div class="lg:col-span-5 flex flex-col justify-between pr-0 lg:pr-6 bg-[#FAF3E5] p-4 sm:p-5 rounded-lg border border-[#D5CBB8]/60">
             <div>
               <div class="flex items-center justify-between">
-                <span class="font-sans text-[11px] uppercase tracking-wider text-[#6B645A] font-semibold">Total Ingresos Brutos Activos (Hoy)</span>
+                <span class="font-sans text-[11px] uppercase tracking-wider text-[#6B645A] font-semibold">${isBarbero ? 'Mis Ingresos Cobrados (Hoy)' : 'Total Ingresos Brutos Caja (Hoy)'}</span>
                 <span class="material-symbols-outlined text-[18px] text-[#235D3A]">verified</span>
               </div>
               <div class="flex items-baseline gap-2 mt-1">
@@ -132,11 +132,14 @@ export function renderCortesPage() {
             <div class="mt-4 pt-3 border-t border-[#D5CBB8]/80 flex flex-col gap-1.5 text-xs text-[#4F4A42]">
               <div class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-[#1F3A5F]">info</span>
-                <span><strong>${activos.length} atenciones activas</strong> (${activos.filter(c => c.origen === 'cita').length} Cita · ${activos.filter(c => c.origen === 'walk-in').length} Walk-in)</span>
+                <span><strong>${fs.totales.totalOperaciones} operaciones</strong> (${fs.totales.totalCitas} Citas · ${fs.totales.totalWalkIns} Walk-in ${isBarbero ? '' : `· ${fs.totales.totalVentasProductos} Productos`})</span>
+              </div>
+              <div class="flex items-center justify-between text-[11px] text-[#6B645A]">
+                <span>${isBarbero ? `Mi Comisión Ganada: <strong class="font-mono text-[#1F3A5F]">${formatCOP(fs.totales.totalComisionesCop)}</strong>` : `Comisiones: <strong class="font-mono text-[#1F3A5F]">${formatCOP(fs.totales.totalComisionesCop)}</strong> · Margen Sede: <strong class="font-mono text-[#235D3A]">${formatCOP(fs.totales.margenSedeCop)}</strong>`}</span>
               </div>
               <div class="flex items-center gap-1.5 text-[11px] text-[#6B645A]">
                 <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#8A5300]"></span>
-                <span>${anulados.length} anulada(s) excluida(s) del arqueo (${formatCOP(anulados.reduce((s, c) => s + c.precio, 0))} COP)</span>
+                <span>${anulados.length} anulada(s) excluida(s) del arqueo (${formatCOP(fs.totales.totalAnuladosExcluidosCop)})</span>
               </div>
               <div class="flex items-center gap-1.5 text-[#235D3A] font-semibold text-[11px] mt-1">
                 <span class="material-symbols-outlined text-[15px]">check_circle</span>
@@ -254,9 +257,16 @@ export function renderCortesPage() {
             >Cita</button>
             <button
               type="button"
-              data-origen="walk-in"
-              class="px-2.5 py-1 rounded text-xs font-semibold ${currentFilters.origen === 'walk-in' ? 'bg-white text-[#1C1C1C] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
+              data-origen="walk_in"
+              class="px-2.5 py-1 rounded text-xs font-semibold ${(currentFilters.origen === 'walk_in' || currentFilters.origen === 'walk-in') ? 'bg-white text-[#1C1C1C] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
             >Walk-in</button>
+            ${isBarbero ? '' : `
+            <button
+              type="button"
+              data-origen="producto"
+              class="px-2.5 py-1 rounded text-xs font-semibold ${currentFilters.origen === 'producto' ? 'bg-white text-[#1C1C1C] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
+            >Productos</button>
+            `}
           </div>
 
           <!-- Estado Pills -->
@@ -265,12 +275,12 @@ export function renderCortesPage() {
               type="button"
               data-estado="all"
               class="px-2.5 py-1 rounded text-xs font-semibold ${currentFilters.estado === 'all' ? 'bg-white text-[#1C1C1C] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
-            >Todos (${cortes.length})</button>
+            >Todos (${transacciones.length})</button>
             <button
               type="button"
               data-estado="activo"
               class="px-2.5 py-1 rounded text-xs font-semibold ${currentFilters.estado === 'activo' ? 'bg-white text-[#235D3A] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
-            >Activos (${activos.length})</button>
+            >Activos (${transacciones.filter(t => !t.esAnulado).length})</button>
             <button
               type="button"
               data-estado="anulado"
@@ -297,7 +307,7 @@ export function renderCortesPage() {
               <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
                 <th class="py-3 px-4 font-semibold">ID / HORA</th>
                 <th class="py-3 px-4 font-semibold">BARBERO & SILLÓN</th>
-                <th class="py-3 px-4 font-semibold">SERVICIOS REALIZADOS</th>
+                <th class="py-3 px-4 font-semibold">SERVICIOS / PRODUCTO</th>
                 <th class="py-3 px-4 font-semibold">ORIGEN</th>
                 <th class="py-3 px-4 font-semibold">MÉTODO DE PAGO</th>
                 <th class="py-3 px-4 font-semibold text-right">VALOR (COP)</th>
@@ -306,45 +316,51 @@ export function renderCortesPage() {
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
-              ${cortes.length === 0 ? `
+              ${transacciones.length === 0 ? `
                 <tr>
                   <td colspan="8" class="py-12 text-center text-[#6B645A]">
                     <div class="flex flex-col items-center gap-2">
                       <span class="material-symbols-outlined text-[32px] text-[#8C8272]">receipt_long</span>
-                      <p class="font-medium text-sm">No se encontraron registros de cortes con los filtros seleccionados.</p>
+                      <p class="font-medium text-sm">No se encontraron movimientos de caja con los filtros seleccionados.</p>
                       <button type="button" id="btn-empty-reset" class="text-xs font-semibold text-[#1F3A5F] hover:underline">Restablecer filtros</button>
                     </div>
                   </td>
                 </tr>
-              ` : cortes.map(corte => {
-                const isAnulado = corte.estado === 'anulado';
+              ` : transacciones.map(tx => {
+                const isAnulado = tx.esAnulado;
+                const isProducto = tx.tipoTransaccion === 'producto';
                 return `
                   <tr class="hover:bg-[#FAF3E5] transition-colors ${isAnulado ? 'bg-[#FAF3E5]/50 opacity-80' : 'bg-white'}">
                     <!-- ID / Hora -->
                     <td class="py-3 px-4">
-                      <div class="font-mono text-xs font-bold text-[#1F3A5F]">#${corte.id}</div>
-                      <div class="text-[11px] text-[#6B645A] font-mono mt-0.5">${corte.horaFormato || '02:00 PM'}</div>
+                      <div class="font-mono text-xs font-bold ${isProducto ? 'text-[#235D3A]' : 'text-[#1F3A5F]'}">#${tx.id ? String(tx.id).slice(0, 8) : 'TX'}</div>
+                      <div class="text-[11px] text-[#6B645A] font-mono mt-0.5">${tx.horaFormato || '02:00 PM'}</div>
                     </td>
 
                     <!-- Barbero & Sillón -->
                     <td class="py-3 px-4">
-                      <div class="font-sans font-semibold text-[#1C1C1C]">${corte.barberoNombre}</div>
-                      <div class="text-[11px] text-[#6B645A]">${corte.sillon || 'Sillón 01'}</div>
+                      <div class="font-sans font-semibold text-[#1C1C1C]">${tx.barberoNombre}</div>
+                      <div class="text-[11px] text-[#6B645A]">${tx.sillon || 'Sillón 01'}</div>
                     </td>
 
-                    <!-- Servicios Realizados & Cliente -->
+                    <!-- Servicios / Producto & Cliente -->
                     <td class="py-3 px-4">
                       <div class="font-medium text-[#1C1C1C] ${isAnulado ? 'line-through text-[#6B645A]' : ''}">
-                        ${corte.servicioNombre}
+                        ${tx.descripcionPrincipal}
                       </div>
                       <div class="text-[11px] text-[#6B645A]">
-                        Cliente: ${corte.clienteNombre || 'Cliente Mostrador'}
+                        ${tx.descripcionSecundaria}
                       </div>
                     </td>
 
                     <!-- Origen -->
                     <td class="py-3 px-4">
-                      ${corte.origen === 'walk-in' ? `
+                      ${isProducto ? `
+                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold border border-[#235D3A]/20">
+                          <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
+                          <span>Producto</span>
+                        </span>
+                      ` : (tx.origen === 'walk_in' || tx.origen === 'walk-in') ? `
                         <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FDF1DC] text-[#8A5300] font-semibold border border-[#8A5300]/20">
                           <span class="material-symbols-outlined text-[13px]">directions_walk</span>
                           <span>Walk-in</span>
@@ -361,31 +377,31 @@ export function renderCortesPage() {
                     <td class="py-3 px-4">
                       <div class="inline-flex items-center gap-1.5 font-sans text-xs text-[#4F4A42] bg-[#E8DFCE]/60 px-2.5 py-1 rounded border border-[#D5CBB8]">
                         <span class="material-symbols-outlined text-[15px] ${
-                          corte.metodoPago === 'nequi' ? 'text-[#7BA3D4]' :
-                          corte.metodoPago === 'daviplata' ? 'text-[#E07A7A]' :
-                          corte.metodoPago === 'efectivo' ? 'text-[#235D3A]' :
-                          corte.metodoPago === 'datafono' ? 'text-[#1F3A5F]' : 'text-[#6B645A]'
+                          tx.metodoPago === 'nequi' ? 'text-[#7BA3D4]' :
+                          tx.metodoPago === 'daviplata' ? 'text-[#E07A7A]' :
+                          tx.metodoPago === 'efectivo' ? 'text-[#235D3A]' :
+                          (tx.metodoPago === 'datafono' || tx.metodoPago === 'tarjeta_debito_credito') ? 'text-[#1F3A5F]' : 'text-[#6B645A]'
                         }">
                           ${
-                            corte.metodoPago === 'nequi' ? 'phone_iphone' :
-                            corte.metodoPago === 'daviplata' ? 'account_balance_wallet' :
-                            corte.metodoPago === 'efectivo' ? 'payments' :
-                            corte.metodoPago === 'datafono' ? 'credit_card' : 'account_balance'
+                            tx.metodoPago === 'nequi' ? 'phone_iphone' :
+                            tx.metodoPago === 'daviplata' ? 'account_balance_wallet' :
+                            tx.metodoPago === 'efectivo' ? 'payments' :
+                            (tx.metodoPago === 'datafono' || tx.metodoPago === 'tarjeta_debito_credito') ? 'credit_card' : 'account_balance'
                           }
                         </span>
-                        <span class="capitalize">${corte.metodoPago}</span>
+                        <span class="capitalize">${String(tx.metodoPago || 'efectivo').replace('_', ' ')}</span>
                       </div>
                     </td>
 
                     <!-- Valor COP -->
                     <td class="py-3 px-4 text-right font-mono font-bold text-[#1C1C1C] tabular-nums ${isAnulado ? 'line-through text-[#8C8272]' : ''}">
-                      ${formatCOP(corte.precio)}
+                      ${formatCOP(tx.monto)}
                     </td>
 
                     <!-- Estado -->
                     <td class="py-3 px-4 text-center">
                       ${isAnulado ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold border border-[#B3261E]/30" title="${corte.motivoAnulacion || 'Corte anulado'}">
+                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold border border-[#B3261E]/30" title="${tx.motivoAnulacion || 'Corte anulado'}">
                           <span class="material-symbols-outlined text-[13px]">cancel</span>
                           <span>Anulado</span>
                         </span>
@@ -403,13 +419,18 @@ export function renderCortesPage() {
                         <button
                           type="button"
                           class="btn-ver-motivo text-xs text-[#1F3A5F] hover:underline font-semibold"
-                          data-id="${corte.id}"
-                          data-motivo="${corte.motivoAnulacion || 'Sin motivo registrado'}"
-                          data-autor="${corte.anuladoPor || 'Administrador'}"
-                          data-fecha="${corte.fechaAnulacion || ''}"
+                          data-id="${tx.id}"
+                          data-motivo="${tx.motivoAnulacion || 'Sin motivo registrado'}"
+                          data-autor="${tx.anuladoPor || 'Administrador'}"
+                          data-fecha="${tx.fechaAnulacion || ''}"
                         >
                           Ver Motivo
                         </button>
+                      ` : isProducto ? `
+                        <span class="inline-flex items-center gap-1 text-[11px] text-[#235D3A] font-semibold">
+                          <span class="material-symbols-outlined text-[13px]">receipt</span>
+                          <span>Venta POS</span>
+                        </span>
                       ` : isBarbero ? `
                         <span class="inline-flex items-center gap-1 text-[11px] text-[#235D3A] font-semibold">
                           <span class="material-symbols-outlined text-[13px]">check_circle</span>
@@ -419,10 +440,10 @@ export function renderCortesPage() {
                         <button
                           type="button"
                           class="btn-anular-corte text-xs text-[#B3261E] hover:text-[#8B1E1E] hover:underline font-semibold"
-                          data-id="${corte.id}"
-                          data-cliente="${corte.clienteNombre}"
-                          data-precio="${corte.precio}"
-                          data-servicio="${corte.servicioNombre}"
+                          data-id="${tx.id}"
+                          data-cliente="${tx.clienteNombre}"
+                          data-precio="${tx.precio}"
+                          data-servicio="${tx.servicioNombre}"
                         >
                           Ver / Anular
                         </button>
@@ -437,7 +458,7 @@ export function renderCortesPage() {
 
         <!-- Table Footer / Auditoría info -->
         <div class="bg-[#E8DFCE] px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#4F4A42]">
-          <span>Mostrando <strong>${cortes.length}</strong> registros (${activos.length} activos, ${anulados.length} auditados anulados)</span>
+          <span>Mostrando <strong>${transacciones.length}</strong> movimientos (${transacciones.filter(t => !t.esAnulado).length} activos, ${anulados.length} auditados anulados)</span>
           <span class="font-mono text-[11px] text-[#6B645A]">SmartBarber POS v2.0 · Arqueo Inmutable</span>
         </div>
       </section>
@@ -832,7 +853,7 @@ export function attachCortesListeners(onDataChange) {
   const exportBtn = document.getElementById('btn-export-csv');
   if (exportBtn) {
     exportBtn.addEventListener('click', () => {
-      exportarCierreCSV(cachedCortes);
+      exportarCierreCSV(financialState?.transacciones || cachedCortes);
     });
   }
 
@@ -1039,23 +1060,23 @@ export function attachCortesListeners(onDataChange) {
 }
 
 // Utilidad de exportación CSV (CU-007)
-function exportarCierreCSV(cortes = []) {
-  const headers = ['ID_Corte', 'Codigo_Cita', 'Fecha_Hora', 'Barbero', 'Sillon', 'Cliente', 'Servicio', 'Origen', 'Metodo_Pago', 'Valor_COP', 'Estado', 'Comision_Estimada_COP', 'Motivo_Anulacion'];
+function exportarCierreCSV(transacciones = []) {
+  const headers = ['ID_Transaccion', 'Codigo_Referencia', 'Fecha_Hora', 'Barbero_O_Responsable', 'Sillon', 'Cliente', 'Detalle_Servicio_O_Producto', 'Tipo_Origen', 'Metodo_Pago', 'Valor_COP', 'Estado', 'Comision_Estimada_COP', 'Motivo_Anulacion'];
   
-  const rows = cortes.map(c => [
-    `"${c.id}"`,
-    `"${c.codigoCita || ''}"`,
-    `"${c.fechaHora}"`,
-    `"${c.barberoNombre}"`,
-    `"${c.sillon || 'Sillón 01'}"`,
-    `"${c.clienteNombre}"`,
-    `"${c.servicioNombre}"`,
-    `"${c.origen}"`,
-    `"${c.metodoPago}"`,
-    c.precio,
-    `"${c.estado}"`,
-    c.comisionEstimada || 0,
-    `"${c.motivoAnulacion ? c.motivoAnulacion.replace(/"/g, '""') : ''}"`
+  const rows = transacciones.map(t => [
+    `"${t.id}"`,
+    `"${t.codigoCita || ''}"`,
+    `"${t.fechaHora}"`,
+    `"${t.barberoNombre || 'Caja'}"`,
+    `"${t.sillon || 'Mostrador / Sillón'}"`,
+    `"${t.clienteNombre || 'Cliente Mostrador'}"`,
+    `"${t.descripcionPrincipal || t.servicioNombre}"`,
+    `"${t.origen}"`,
+    `"${t.metodoPago}"`,
+    t.monto ?? t.precio ?? 0,
+    `"${t.estado}"`,
+    t.comisionCalculadaCop ?? t.comisionEstimada ?? 0,
+    `"${t.motivoAnulacion ? t.motivoAnulacion.replace(/"/g, '""') : ''}"`
   ]);
 
   const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');

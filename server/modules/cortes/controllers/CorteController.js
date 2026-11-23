@@ -35,10 +35,23 @@ export class CorteController {
   getHistorial = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const nowBogota = new Date(Date.now() - 5 * 60 * 60 * 1000);
-      const today = nowBogota.toISOString().slice(0, 10);
-      const fechaInicio = req.query.fechaInicio || `${today}T00:00:00-05:00`;
-      const fechaFin = req.query.fechaFin || `${today}T23:59:59-05:00`;
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+      
+      const rawInicio = req.query.fechaInicio?.trim();
+      const rawFin = req.query.fechaFin?.trim();
+
+      const fechaInicio = !rawInicio
+        ? `${today}T00:00:00.000-05:00`
+        : /^\d{4}-\d{2}-\d{2}$/.test(rawInicio)
+          ? `${rawInicio}T00:00:00.000-05:00`
+          : rawInicio;
+
+      const fechaFin = !rawFin
+        ? `${today}T23:59:59.999-05:00`
+        : /^\d{4}-\d{2}-\d{2}$/.test(rawFin)
+          ? `${rawFin}T23:59:59.999-05:00`
+          : rawFin;
+
       const barberoId = req.query.barberoId || null;
       const estado = req.query.estado || null;
 
@@ -55,10 +68,23 @@ export class CorteController {
   getResumenIngresos = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const nowBogota = new Date(Date.now() - 5 * 60 * 60 * 1000);
-      const today = nowBogota.toISOString().slice(0, 10);
-      const fechaInicio = req.query.fechaInicio || `${today}T00:00:00-05:00`;
-      const fechaFin = req.query.fechaFin || `${today}T23:59:59-05:00`;
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
+
+      const rawInicio = req.query.fechaInicio?.trim();
+      const rawFin = req.query.fechaFin?.trim();
+
+      const fechaInicio = !rawInicio
+        ? `${today}T00:00:00.000-05:00`
+        : /^\d{4}-\d{2}-\d{2}$/.test(rawInicio)
+          ? `${rawInicio}T00:00:00.000-05:00`
+          : rawInicio;
+
+      const fechaFin = !rawFin
+        ? `${today}T23:59:59.999-05:00`
+        : /^\d{4}-\d{2}-\d{2}$/.test(rawFin)
+          ? `${rawFin}T23:59:59.999-05:00`
+          : rawFin;
+
       const barberoId = req.query.barberoId || null;
 
       const resumen = await this.corteService.getResumenIngresos(

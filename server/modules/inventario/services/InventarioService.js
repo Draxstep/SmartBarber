@@ -167,9 +167,21 @@ export class InventarioService {
   }
 
   async getMovimientos(filters, user) {
+    let fechaInicio = filters.fechaInicio?.trim();
+    let fechaFin = filters.fechaFin?.trim();
+
+    if (fechaInicio && /^\d{4}-\d{2}-\d{2}$/.test(fechaInicio)) {
+      fechaInicio = `${fechaInicio}T00:00:00.000-05:00`;
+    }
+    if (fechaFin && /^\d{4}-\d{2}-\d{2}$/.test(fechaFin)) {
+      fechaFin = `${fechaFin}T23:59:59.999-05:00`;
+    }
+
     return await this.inventarioRepo.findMovimientosWithFilters({
       sedeId: user.sedeId,
-      ...filters
+      ...filters,
+      fechaInicio,
+      fechaFin
     });
   }
 }

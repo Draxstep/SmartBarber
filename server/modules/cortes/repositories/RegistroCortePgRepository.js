@@ -256,16 +256,57 @@ export class RegistroCortePgRepository extends IRegistroCorteRepository {
       const result = await executor.query(query, params);
       const row = result.rows[0];
 
+      // Consolidar ventas de inventario para alcance global (cuando no se filtra por barbero o en caja global)
+      let prodRow = {
+        total_ventas_productos: 0,
+        total_productos_cop: 0,
+        prod_efectivo_cop: 0,
+        prod_transferencia_cop: 0,
+        prod_tarjeta_cop: 0,
+        prod_nequi_cop: 0,
+        prod_daviplata_cop: 0
+      };
+
+      if (!barberoId) {
+        const prodRes = await executor.query(
+          `SELECT 
+            COUNT(*)::int as total_ventas_productos,
+            COALESCE(SUM(valor_total_cop), 0)::numeric as total_productos_cop,
+            COALESCE(SUM(CASE WHEN metodo_pago = 'efectivo' THEN valor_total_cop ELSE 0 END), 0)::numeric as prod_efectivo_cop,
+            COALESCE(SUM(CASE WHEN metodo_pago = 'transferencia_bancaria' THEN valor_total_cop ELSE 0 END), 0)::numeric as prod_transferencia_cop,
+            COALESCE(SUM(CASE WHEN metodo_pago = 'tarjeta_debito_credito' THEN valor_total_cop ELSE 0 END), 0)::numeric as prod_tarjeta_cop,
+            COALESCE(SUM(CASE WHEN metodo_pago = 'nequi' THEN valor_total_cop ELSE 0 END), 0)::numeric as prod_nequi_cop,
+            COALESCE(SUM(CASE WHEN metodo_pago = 'daviplata' THEN valor_total_cop ELSE 0 END), 0)::numeric as prod_daviplata_cop
+          FROM movimientos_inventario
+          WHERE sede_id = $1 
+            AND tipo = 'salida'
+            AND subtipo = 'venta_publico'
+            AND creado_en >= $2::timestamptz
+            AND creado_en <= $3::timestamptz`,
+          [sedeId, fechaInicio, fechaFin]
+        );
+        if (prodRes.rows.length > 0) {
+          prodRow = prodRes.rows[0];
+        }
+      }
+
+      const totalServiciosCop = Number(row.total_ingresos_cop);
+      const totalProductosCop = Number(prodRow.total_productos_cop);
+      const totalIngresosCop = totalServiciosCop + totalProductosCop;
+
       return {
         totalAtenciones: row.total_atenciones,
-        totalIngresosCop: Number(row.total_ingresos_cop),
+        totalVentasProductos: prodRow.total_ventas_productos,
+        totalServiciosCop,
+        totalProductosCop,
+        totalIngresosCop,
         totalComisionesCop: Number(row.total_comisiones_cop),
         desgloseMetodosPago: {
-          efectivo: Number(row.total_efectivo_cop),
-          transferenciaBancaria: Number(row.total_transferencia_cop),
-          tarjetaDebitoCredito: Number(row.total_tarjeta_cop),
-          nequi: Number(row.total_nequi_cop),
-          daviplata: Number(row.total_daviplata_cop)
+          efectivo: Number(row.total_efectivo_cop) + Number(prodRow.prod_efectivo_cop),
+          transferenciaBancaria: Number(row.total_transferencia_cop) + Number(prodRow.prod_transferencia_cop),
+          tarjetaDebitoCredito: Number(row.total_tarjeta_cop) + Number(prodRow.prod_tarjeta_cop),
+          nequi: Number(row.total_nequi_cop) + Number(prodRow.prod_nequi_cop),
+          daviplata: Number(row.total_daviplata_cop) + Number(prodRow.prod_daviplata_cop)
         }
       };
     } catch (error) {

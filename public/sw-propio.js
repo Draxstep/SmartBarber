@@ -206,35 +206,47 @@ self.addEventListener("push", (event) => {
   };
 
   try {
-    if (event.data) datos = { ...datos, ...event.data.json() };
+    if (event.data) {
+      const parsed = event.data.json();
+      datos = { ...datos, ...parsed };
+    }
   } catch {
-    if (event.data) datos.cuerpo = event.data.text();
+    if (event.data) {
+      datos.cuerpo = event.data.text();
+    }
   }
 
-  event.waitUntil(
-    self.registration.showNotification(datos.titulo, {
-      body: datos.cuerpo,
-      icon: "/icons/icon-192.png",
-      badge: "/icons/icon-192.png",
-      tag: datos.tag,
-      data: { url: datos.url },
-    })
-  );
+  const opciones = {
+    body: datos.cuerpo,
+    icon: "/icons/icon-192.png",
+    badge: "/icons/icon-192.png",
+    tag: datos.tag,
+    renotify: true,
+    vibrate: [100, 50, 100],
+    data: {
+      url: datos.url || "/backoffice.html#agenda",
+    },
+  };
+
+  event.waitUntil(self.registration.showNotification(datos.titulo, opciones));
 });
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const destino = new URL(event.notification.data?.url ?? "/backoffice.html", self.location.origin).href;
+  const destinoUrl = event.notification.data?.url || "/backoffice.html#agenda";
+  const destino = new URL(destinoUrl, self.location.origin).href;
 
   event.waitUntil(
     (async () => {
-      const ventanas = await clients.matchAll({ type: "window", includeUncontrolled: true });
+      const ventanas = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
       const abierta = ventanas.find((v) => new URL(v.url).origin === self.location.origin);
       if (abierta) {
-        if ("navigate" in abierta) await abierta.navigate(destino);
+        if ("navigate" in abierta) {
+          await abierta.navigate(destino);
+        }
         return abierta.focus();
       }
-      return clients.openWindow(destino);
+      return self.clients.openWindow(destino);
     })()
   );
 });
