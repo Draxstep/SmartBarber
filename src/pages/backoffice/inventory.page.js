@@ -696,7 +696,8 @@ function openStockExitModal(onUpdate, defaultSku = '', defaultReason = 'venta_pu
         return false;
       }
 
-      await backofficeStore.addStockExit(sku, qty, reason, metodoPago, note);
+      const targetId = product.productoId || product.id || sku;
+      await backofficeStore.addStockExit(targetId, qty, reason, metodoPago, note);
       await loadInventoryKardexData(userRole);
       onUpdate();
       return true;
@@ -793,7 +794,9 @@ function openStockEntryModal(onUpdate, defaultSku = '') {
       const qty = parseInt(document.getElementById('entry-qty').value, 10) || 1;
       const note = document.getElementById('entry-note').value;
 
-      await backofficeStore.addStockEntry(sku, qty, note);
+      const product = backofficeStore.products.find(p => p.sku === sku);
+      const targetId = product?.productoId || product?.id || sku;
+      await backofficeStore.addStockEntry(targetId, qty, note);
       await loadInventoryKardexData('administrador');
       onUpdate();
       return true;

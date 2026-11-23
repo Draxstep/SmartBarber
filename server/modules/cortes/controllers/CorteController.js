@@ -35,7 +35,8 @@ export class CorteController {
   getHistorial = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const today = new Date().toISOString().slice(0, 10);
+      const nowBogota = new Date(Date.now() - 5 * 60 * 60 * 1000);
+      const today = nowBogota.toISOString().slice(0, 10);
       const fechaInicio = req.query.fechaInicio || `${today}T00:00:00-05:00`;
       const fechaFin = req.query.fechaFin || `${today}T23:59:59-05:00`;
       const barberoId = req.query.barberoId || null;
@@ -54,7 +55,8 @@ export class CorteController {
   getResumenIngresos = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const today = new Date().toISOString().slice(0, 10);
+      const nowBogota = new Date(Date.now() - 5 * 60 * 60 * 1000);
+      const today = nowBogota.toISOString().slice(0, 10);
       const fechaInicio = req.query.fechaInicio || `${today}T00:00:00-05:00`;
       const fechaFin = req.query.fechaFin || `${today}T23:59:59-05:00`;
       const barberoId = req.query.barberoId || null;

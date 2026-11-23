@@ -18,6 +18,8 @@ import { renderLoginPage, attachLoginListeners } from './login.page.js';
 import { renderForbiddenPage, renderNotFoundPage } from './error.page.js';
 import { authService, inventarioService, sedesService } from '../../services/index.js';
 import { openDialog } from '../../components/ui-dialog.js';
+import { backofficeStore } from './backoffice-state.js';
+import { onDataMutation, AppEvent } from '../../utils/event-bus.js';
 
 // Módulos PWA Offline-First
 import { registrarServiceWorker, inicializarEventosConectividad } from '../../pwa/sw-register.js';
@@ -37,7 +39,7 @@ export const BACKOFFICE_ROUTES = {
     id: 'agenda',
     title: 'Agenda y Turnos',
     roles: ['administrador', 'barbero'],
-    loader: async () => {},
+    loader: async () => await backofficeStore.loadAgendaData(),
     render: () => renderAgendaPage(),
     attachListeners: (refresh) => attachAgendaListeners(refresh)
   },
@@ -420,10 +422,26 @@ function attachBackofficeCommonListeners() {
   }
 }
 
-// Escuchadores globales de eventos PWA
-window.addEventListener('smartbarber:outbox-updated', actualizarPillConectividad);
+// Escuchadores globales de eventos PWA y Reactividad en Vivo
+window.addEventListener('smartbarber:outbox-updated', async () => {
+  await actualizarPillConectividad();
+  // Al sincronizar operaciones offline pendientes, refrescar la vista activa
+  renderBackoffice();
+});
 window.addEventListener('smartbarber:connectivity-changed', actualizarPillConectividad);
 window.addEventListener('hashchange', renderBackoffice);
+
+// Suscripción al bus de mutación de datos para actualización reactiva instantánea
+onDataMutation(async (detail) => {
+  const currentRoute = getActiveRoute();
+  if (
+    (detail.entity === 'citas' && currentRoute === 'agenda') ||
+    (detail.entity === 'cortes' && (currentRoute === 'cortes' || currentRoute === 'agenda')) ||
+    (detail.entity === 'inventario' && (currentRoute === 'inventario' || currentRoute === 'agenda'))
+  ) {
+    renderBackoffice();
+  }
+});
 
 // Inicializar capacidades PWA del Backoffice
 registrarServiceWorker();

@@ -5,6 +5,15 @@
 
 import { httpClient, ValidationError, NetworkError } from './http-client.js';
 import { encolarCambio } from '../pwa/sync.js';
+import { emitDataMutation } from '../utils/event-bus.js';
+
+export function normalizePaymentMethodEnum(m) {
+  if (!m) return 'efectivo';
+  const val = String(m).toLowerCase().trim();
+  if (val === 'datafono' || val === 'tarjeta') return 'tarjeta_debito_credito';
+  if (val === 'transferencia') return 'transferencia_bancaria';
+  return val;
+}
 
 function normalizeCorte(c) {
   if (!c) return null;
@@ -47,17 +56,20 @@ export const cortesService = {
    * Registra un corte sin cita (Walk-in) o convierte cita a corte (CU-004, CU-005).
    */
   async registrarCorte(datos) {
+    const metodoPagoNormalizado = normalizePaymentMethodEnum(datos.metodoPago);
+
     // Si no hay conexión a internet, encolar en Outbox para Background Sync (CU-004, CU-005)
     if (!navigator.onLine) {
       if (datos.citaId) {
         const payload = {
           citaId: datos.citaId,
           servicioIds: datos.servicioIds || undefined,
-          metodoPago: datos.metodoPago || 'efectivo',
+          metodoPago: metodoPagoNormalizado,
           precioCobradoCop: datos.precioCobradoCop !== undefined ? Number(datos.precioCobradoCop) : (datos.precio ? Number(datos.precio) : undefined),
           notas: datos.notas || null
         };
         await encolarCambio('COMPLETAR_CITA', payload);
+        emitDataMutation('cortes', 'create');
         return {
           ok: true,
           success: true,
@@ -82,12 +94,13 @@ export const cortesService = {
         const payload = {
           barberoId: datos.barberoId || undefined,
           servicioIds,
-          metodoPago: datos.metodoPago || 'efectivo',
+          metodoPago: metodoPagoNormalizado,
           precioCobradoCop: datos.precioCobradoCop ? Number(datos.precioCobradoCop) : (datos.precio ? Number(datos.precio) : 25000),
           nombreCliente: datos.clienteNombre || datos.nombreCliente || 'Cliente Mostrador',
           notas: datos.notas || null
         };
         await encolarCambio('CREAR_CORTE_WALKIN', payload);
+        emitDataMutation('cortes', 'create');
         return {
           ok: true,
           success: true,
@@ -109,12 +122,14 @@ export const cortesService = {
     if (datos.citaId) {
       const payload = {
         servicioIds: datos.servicioIds || undefined,
-        metodoPago: datos.metodoPago || 'efectivo',
+        metodoPago: metodoPagoNormalizado,
         precioCobradoCop: datos.precioCobradoCop !== undefined ? Number(datos.precioCobradoCop) : (datos.precio ? Number(datos.precio) : undefined),
         notas: datos.notas || null
       };
 
       const response = await httpClient.post(`/cortes/convertir-cita/${datos.citaId}`, payload);
+      emitDataMutation('cortes', 'create');
+      emitDataMutation('citas', 'update');
       if (response?.data) {
         return { ok: true, success: true, data: normalizeCorte(response.data) };
       }
@@ -134,13 +149,14 @@ export const cortesService = {
     const payload = {
       barberoId: datos.barberoId || undefined,
       servicioIds,
-      metodoPago: datos.metodoPago || 'efectivo',
+      metodoPago: metodoPagoNormalizado,
       precioCobradoCop: datos.precioCobradoCop ? Number(datos.precioCobradoCop) : (datos.precio ? Number(datos.precio) : undefined),
       nombreCliente: datos.clienteNombre || datos.nombreCliente || null,
       notas: datos.notas || null
     };
 
     const response = await httpClient.post('/cortes/walk-in', payload);
+    emitDataMutation('cortes', 'create');
     if (response?.data) {
       return { ok: true, success: true, data: normalizeCorte(response.data) };
     }
@@ -227,6 +243,7 @@ export const cortesService = {
       revertirEstadoCita: false
     });
 
+    emitDataMutation('cortes', 'delete');
     if (response?.data) {
       return { ok: true, success: true, data: normalizeCorte(response.data) };
     }

@@ -8,6 +8,7 @@
 
 import { cortesService, barberosService, serviciosService } from '../../services/index.js';
 import { formatCOP } from '../../utils/formatters.js';
+import { emitDataMutation } from '../../utils/event-bus.js';
 
 // Estado local de filtros
 let currentFilters = {
@@ -41,7 +42,7 @@ export function renderCortesPage() {
 
   const totalIngresos = activos.reduce((sum, c) => sum + c.precio, 0);
 
-  // Desglose por método de pago
+  // Desglose por método de pago normalizado
   const breakdown = {
     efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-primary' },
     nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]' },
@@ -50,11 +51,20 @@ export function renderCortesPage() {
     transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#235D3A]' }
   };
 
+  const normalizeMetodoPagoKey = (metodo) => {
+    const m = (metodo || 'efectivo').toLowerCase();
+    if (m === 'tarjeta_debito_credito' || m === 'datafono' || m === 'tarjeta') return 'datafono';
+    if (m === 'transferencia_bancaria' || m === 'transferencia') return 'transferencia';
+    if (m === 'nequi') return 'nequi';
+    if (m === 'daviplata') return 'daviplata';
+    return 'efectivo';
+  };
+
   activos.forEach(c => {
-    const m = (c.metodoPago || 'efectivo').toLowerCase();
-    if (breakdown[m]) {
-      breakdown[m].total += c.precio;
-      breakdown[m].count += 1;
+    const key = normalizeMetodoPagoKey(c.metodoPago);
+    if (breakdown[key]) {
+      breakdown[key].total += c.precio;
+      breakdown[key].count += 1;
     }
   });
 
@@ -553,7 +563,7 @@ export function renderCortesPage() {
 
               <button
                 type="button"
-                data-method="datafono"
+                data-method="tarjeta_debito_credito"
                 class="walkin-pay-btn flex items-center gap-2 p-2.5 rounded-lg border text-left bg-white text-[#1C1C1C] border-[#D5CBB8] hover:bg-[#FAF3E5]"
               >
                 <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]">credit_card</span>
@@ -565,7 +575,7 @@ export function renderCortesPage() {
 
               <button
                 type="button"
-                data-method="transferencia"
+                data-method="transferencia_bancaria"
                 class="walkin-pay-btn col-span-2 flex items-center gap-2 p-2.5 rounded-lg border text-left bg-white text-[#1C1C1C] border-[#D5CBB8] hover:bg-[#FAF3E5]"
               >
                 <span class="material-symbols-outlined text-[18px] text-[#235D3A]">account_balance</span>
@@ -908,6 +918,7 @@ export function attachCortesListeners(onDataChange) {
           origen: 'walk_in'
         });
 
+        emitDataMutation('cortes', 'create');
         closeDrawer();
         await loadCortesData();
         if (typeof onDataChange === 'function') onDataChange();
@@ -979,6 +990,7 @@ export function attachCortesListeners(onDataChange) {
           adminNombre: 'Carlos Mendoza'
         });
 
+        emitDataMutation('cortes', 'delete');
         dialogAnular.close();
         await loadCortesData();
         if (typeof onDataChange === 'function') onDataChange();

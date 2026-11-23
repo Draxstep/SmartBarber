@@ -107,6 +107,17 @@ class HttpClient {
     return headers;
   }
 
+  invalidateServiceWorkerApiCache(pattern = '') {
+    try {
+      if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'INVALIDATE_API_CACHE',
+          pattern
+        });
+      }
+    } catch (_) {}
+  }
+
   async request(endpoint, options = {}) {
     const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
     const controller = new AbortController();
@@ -131,6 +142,11 @@ class HttpClient {
 
       if (!response.ok) {
         this.handleErrorResponse(response.status, data);
+      }
+
+      // Invalidar selectivamente la caché del Service Worker si hubo mutación exitosa
+      if (options.method && options.method.toUpperCase() !== 'GET') {
+        this.invalidateServiceWorkerApiCache();
       }
 
       if (data && typeof data === 'object') {

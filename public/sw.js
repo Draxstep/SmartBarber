@@ -61,10 +61,25 @@ setCatchHandler(async ({ request }) => {
   return Response.error();
 });
 
-// Control de actualización controlada (RF-PWA-08)
+// Control de actualización controlada (RF-PWA-08) e invalidación de caché reactiva
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();
+  }
+  if (event.data && event.data.type === "INVALIDATE_API_CACHE") {
+    const pattern = event.data.pattern || "";
+    event.waitUntil(
+      caches.open("smartbarber-api").then(async (cache) => {
+        const requests = await cache.keys();
+        return Promise.all(
+          requests.map((req) => {
+            if (!pattern || req.url.includes(pattern)) {
+              return cache.delete(req);
+            }
+          })
+        );
+      })
+    );
   }
 });
 

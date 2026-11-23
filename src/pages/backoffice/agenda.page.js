@@ -19,6 +19,8 @@ export function renderAgendaPage() {
   const visibleAppointments = backofficeStore.getVisibleAppointments();
 
   const timeRows = [
+    { start: '08:00', label: '08:00 AM' },
+    { start: '08:30', label: '08:30 AM' },
     { start: '09:00', label: '09:00 AM' },
     { start: '09:30', label: '09:30 AM' },
     { start: '10:00', label: '10:00 AM' },
@@ -27,14 +29,32 @@ export function renderAgendaPage() {
     { start: '11:30', label: '11:30 AM' },
     { start: '12:00', label: '12:00 PM' },
     { start: '12:30', label: '12:30 PM' },
+    { start: '13:00', label: '01:00 PM' },
+    { start: '13:30', label: '01:30 PM' },
     { start: '14:00', label: '02:00 PM' },
     { start: '14:30', label: '02:30 PM' },
     { start: '15:00', label: '03:00 PM' },
-    { start: '15:30', label: '03:30 PM' }
+    { start: '15:30', label: '03:30 PM' },
+    { start: '16:00', label: '04:00 PM' },
+    { start: '16:30', label: '04:30 PM' },
+    { start: '17:00', label: '05:00 PM' },
+    { start: '17:30', label: '05:30 PM' },
+    { start: '18:00', label: '06:00 PM' },
+    { start: '18:30', label: '06:30 PM' },
+    { start: '19:00', label: '07:00 PM' },
+    { start: '19:30', label: '07:30 PM' }
   ];
 
   // Configuración de grid según cantidad de sillones visibles (3 para admin, 1 para barbero)
   const gridColsClass = role === 'barbero' ? 'grid-cols-[80px_1fr]' : 'grid-cols-[80px_repeat(3,1fr)]';
+
+  const selectedDateStr = backofficeStore.selectedDate || new Date().toISOString().split('T')[0];
+  const dateFormatted = new Date(`${selectedDateStr}T12:00:00`).toLocaleDateString('es-CO', {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric'
+  });
 
   return `
     <div class="flex flex-col gap-6">
@@ -54,14 +74,14 @@ export function renderAgendaPage() {
         <div class="flex flex-wrap items-center gap-3">
           <!-- Selector de Fecha -->
           <div class="inline-flex items-center bg-[#FAF7F2] border border-[#D5CBB8] rounded-lg p-1 shadow-2xs">
-            <button aria-label="Día anterior" class="w-8 h-8 flex items-center justify-center rounded text-[#6B645A] hover:text-[#1C1C1C] hover:bg-[#E8DFCE] transition-colors" type="button">
+            <button id="btn-agenda-prev-day" aria-label="Día anterior" class="w-8 h-8 flex items-center justify-center rounded text-[#6B645A] hover:text-[#1C1C1C] hover:bg-[#E8DFCE] transition-colors" type="button">
               <span class="material-symbols-outlined text-[18px]">chevron_left</span>
             </button>
             <div class="flex items-center gap-1.5 px-2.5 py-1 text-[#1C1C1C] font-semibold text-xs font-sans">
               <span class="material-symbols-outlined text-[16px] text-[#6B645A]">calendar_today</span>
-              <span>Hoy, 20 Nov 2026</span>
+              <span id="agenda-current-date-text" class="capitalize">${dateFormatted}</span>
             </div>
-            <button aria-label="Día siguiente" class="w-8 h-8 flex items-center justify-center rounded text-[#6B645A] hover:text-[#1C1C1C] hover:bg-[#E8DFCE] transition-colors" type="button">
+            <button id="btn-agenda-next-day" aria-label="Día siguiente" class="w-8 h-8 flex items-center justify-center rounded text-[#6B645A] hover:text-[#1C1C1C] hover:bg-[#E8DFCE] transition-colors" type="button">
               <span class="material-symbols-outlined text-[18px]">chevron_right</span>
             </button>
           </div>
@@ -164,7 +184,7 @@ export function renderAgendaPage() {
                 ${visibleBarbers.map((barber, colIdx) => {
                   const targetChairIndex = barber.chairIndex;
                   const match = visibleAppointments.find(
-                    a => a.chairIndex === targetChairIndex && a.timeStart === row.start
+                    a => (a.barberId === barber.id || a.barberoId === barber.id || (a.chairIndex === targetChairIndex && !a.barberId)) && a.timeStart === row.start
                   );
 
                   if (match) {
@@ -201,7 +221,7 @@ export function renderAgendaPage() {
 
                   // Verificar si está cubierto por un turno multi-bloque previo
                   const isCoveredByMultiBlock = visibleAppointments.some(
-                    a => a.chairIndex === targetChairIndex && a.timeEnd > row.start && a.timeStart < row.start
+                    a => (a.barberId === barber.id || a.barberoId === barber.id || (a.chairIndex === targetChairIndex && !a.barberId)) && a.timeEnd > row.start && a.timeStart < row.start
                   );
 
                   if (isCoveredByMultiBlock) {
@@ -326,10 +346,10 @@ export function attachAgendaListeners(onUpdate) {
               confirmText: 'Registrar Cobro',
               cancelText: 'Volver',
               confirmVariant: 'primary',
-              onConfirm: () => {
+              onConfirm: async () => {
                 const methodInput = document.getElementById('pago_caja_metodo');
                 const selectedMethod = methodInput ? methodInput.value : 'efectivo';
-                backofficeStore.completeAppointment(apt.id, selectedMethod);
+                await backofficeStore.completeAppointment(apt.id, selectedMethod);
                 onUpdate();
                 return true;
               }
@@ -344,8 +364,8 @@ export function attachAgendaListeners(onUpdate) {
 
         const btnNoShow = document.getElementById('drawer-btn-mark-noshow');
         if (btnNoShow) {
-          btnNoShow.addEventListener('click', () => {
-            backofficeStore.markNoShow(apt.id);
+          btnNoShow.addEventListener('click', async () => {
+            await backofficeStore.markNoShow(apt.id);
             onUpdate();
           });
         }
@@ -358,8 +378,8 @@ export function attachAgendaListeners(onUpdate) {
               contentHtml: `<p class="text-xs text-[#B3261E]">Esta acción cancela la cita de ${apt.clientName}.</p>`,
               confirmText: 'Sí, Anular',
               confirmVariant: 'danger',
-              onConfirm: () => {
-                backofficeStore.cancelAppointment(apt.id);
+              onConfirm: async () => {
+                await backofficeStore.cancelAppointment(apt.id);
                 onUpdate();
                 return true;
               }
@@ -369,6 +389,29 @@ export function attachAgendaListeners(onUpdate) {
       }, 80);
     });
   });
+
+  // Selector de fecha: Día anterior y siguiente
+  const btnPrevDay = document.getElementById('btn-agenda-prev-day');
+  if (btnPrevDay) {
+    btnPrevDay.addEventListener('click', async () => {
+      const cur = new Date(`${backofficeStore.selectedDate || new Date().toISOString().split('T')[0]}T12:00:00`);
+      cur.setDate(cur.getDate() - 1);
+      const newDate = cur.toISOString().split('T')[0];
+      await backofficeStore.loadAgendaData(newDate);
+      onUpdate();
+    });
+  }
+
+  const btnNextDay = document.getElementById('btn-agenda-next-day');
+  if (btnNextDay) {
+    btnNextDay.addEventListener('click', async () => {
+      const cur = new Date(`${backofficeStore.selectedDate || new Date().toISOString().split('T')[0]}T12:00:00`);
+      cur.setDate(cur.getDate() + 1);
+      const newDate = cur.toISOString().split('T')[0];
+      await backofficeStore.loadAgendaData(newDate);
+      onUpdate();
+    });
+  }
 
   // Botón Walk-in POS (<= 4 clics)
   const btnWalkin = document.getElementById('btn-agenda-walkin');
@@ -381,12 +424,13 @@ export function attachAgendaListeners(onUpdate) {
   freeBlocks.forEach(block => {
     block.addEventListener('click', () => {
       const chairIndex = parseInt(block.getAttribute('data-free-chair'), 10) || 0;
-      openWalkinModal(onUpdate, chairIndex);
+      const freeTime = block.getAttribute('data-free-time') || '10:00';
+      openWalkinModal(onUpdate, chairIndex, freeTime);
     });
   });
 }
 
-function openWalkinModal(onUpdate, defaultChair = 0) {
+function openWalkinModal(onUpdate, defaultChair = 0, defaultTime = '10:00') {
   openDialog({
     title: '+ Registrar Corte Walk-in (Mostrador)',
     contentHtml: `
@@ -430,7 +474,7 @@ function openWalkinModal(onUpdate, defaultChair = 0) {
     confirmText: 'Registrar y Cobrar',
     cancelText: 'Cancelar',
     confirmVariant: 'accent',
-    onConfirm: () => {
+    onConfirm: async () => {
       const chairIndex = parseInt(document.getElementById('walkin-chair').value, 10) || 0;
       const srvRaw = document.getElementById('walkin-service').value.split(':');
       const serviceName = srvRaw[0];
@@ -440,13 +484,14 @@ function openWalkinModal(onUpdate, defaultChair = 0) {
       const paymentInput = document.getElementById('walkin_metodo_pago');
       const paymentMethod = paymentInput ? paymentInput.value : 'efectivo';
 
-      backofficeStore.addWalkinCut({
+      await backofficeStore.addWalkinCut({
         chairIndex,
         clientName,
         serviceName,
         price,
         durationMinutes,
-        paymentMethod
+        paymentMethod,
+        timeStart: defaultTime
       });
 
       onUpdate();

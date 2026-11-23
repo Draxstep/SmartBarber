@@ -8,6 +8,10 @@ import { httpClient, ValidationError } from './http-client.js';
 import { sedesService } from './sedes.service.js';
 import { encolarCambio } from '../pwa/sync.js';
 import { guardarLote, guardarRegistro, listarRegistros } from '../pwa/db.js';
+import { emitDataMutation } from '../utils/event-bus.js';
+import { normalizePaymentMethodEnum } from './cortes.service.js';
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function normalizeProducto(p) {
   if (!p) return null;
@@ -216,16 +220,22 @@ export const inventarioService = {
     return response;
   },
 
+  async resolverProductoId(productoIdOrSku) {
+    if (!productoIdOrSku) return null;
+    if (UUID_REGEX.test(productoIdOrSku)) {
+      return productoIdOrSku;
+    }
+    try {
+      const prods = await this.getProductos();
+      const found = prods.data?.find(p => p.sku === productoIdOrSku || p.id === productoIdOrSku || p.productoId === productoIdOrSku);
+      if (found) return found.productoId || found.id;
+    } catch (_) {}
+    return productoIdOrSku;
+  },
+
   async registrarEntrada(productoIdOrSku, cantidad, factura = '') {
     const qty = Math.max(1, parseInt(cantidad, 10) || 1);
-
-    // Si es SKU o UUID, resolver ID
-    let productoId = productoIdOrSku;
-    if (productoIdOrSku && !productoIdOrSku.includes('-')) {
-      const prods = await this.getProductos({ search: productoIdOrSku });
-      const found = prods.data?.find(p => p.sku === productoIdOrSku);
-      if (found) productoId = found.productoId;
-    }
+    const productoId = await this.resolverProductoId(productoIdOrSku);
 
     const payload = {
       cantidad: qty,
@@ -240,28 +250,26 @@ export const inventarioService = {
         tipo: 'entrada',
         ...payload
       });
+      emitDataMutation('inventario', 'update');
       return { ok: true, success: true, offline: true, message: 'Entrada encolada en modo sin conexión.' };
     }
 
     const response = await httpClient.post(`/inventario/${productoId}/entradas`, payload);
+    emitDataMutation('inventario', 'update');
     return response;
   },
 
   async registrarSalida(productoIdOrSku, cantidad, motivo = 'venta_publico', metodoPago = 'efectivo', observacion = '') {
     const qty = Math.max(1, parseInt(cantidad, 10) || 1);
-
-    let productoId = productoIdOrSku;
-    if (productoIdOrSku && !productoIdOrSku.includes('-')) {
-      const prods = await this.getProductos({ search: productoIdOrSku });
-      const found = prods.data?.find(p => p.sku === productoIdOrSku);
-      if (found) productoId = found.productoId;
-    }
+    const productoId = await this.resolverProductoId(productoIdOrSku);
 
     const subtipo = motivo === 'consumo_interno' ? 'consumo_interno' : 'venta_publico';
+    const finalMetodoPago = subtipo === 'venta_publico' ? normalizePaymentMethodEnum(metodoPago) : null;
+
     const payload = {
       cantidad: qty,
       tipo: subtipo,
-      metodoPago: subtipo === 'venta_publico' ? (metodoPago || 'efectivo') : null,
+      metodoPago: finalMetodoPago,
       observacion: observacion || (subtipo === 'consumo_interno' ? 'Consumo interno en cabina/sillón' : 'Venta de producto en caja')
     };
 
@@ -282,6 +290,7 @@ export const inventarioService = {
         }
       } catch (_) {}
 
+      emitDataMutation('inventario', 'update');
       return {
         ok: true,
         success: true,
@@ -295,6 +304,7 @@ export const inventarioService = {
 
     try {
       const response = await httpClient.post(`/inventario/${productoId}/salidas`, payload);
+      emitDataMutation('inventario', 'update');
       return response;
     } catch (err) {
       if (err.name === 'NetworkError') {
@@ -303,6 +313,7 @@ export const inventarioService = {
           tipo: 'salida',
           ...payload
         });
+        emitDataMutation('inventario', 'update');
         return { ok: true, success: true, offline: true, message: 'Salida encolada en modo sin conexión.' };
       }
       throw err;

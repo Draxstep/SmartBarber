@@ -5,6 +5,7 @@
 
 import { httpClient, ConflictError, ValidationError, NetworkError } from './http-client.js';
 import { encolarCambio } from '../pwa/sync.js';
+import { emitDataMutation } from '../utils/event-bus.js';
 
 export const citasService = {
   /**
@@ -127,6 +128,7 @@ export const citasService = {
           price: d.precioEstimadoCop,
           status: d.estado || 'pendiente'
         };
+        emitDataMutation('citas', 'create');
         return { ok: true, success: true, data: normalized };
       }
 
@@ -183,6 +185,7 @@ export const citasService = {
   async cancelarCitaPublica(codigo, motivo = '') {
     const codeClean = (codigo || '').toUpperCase().trim();
     const response = await httpClient.patch(`/public/reservas/${codeClean}/cancelar`, { motivo });
+    emitDataMutation('citas', 'update');
     return response;
   },
 
@@ -246,6 +249,7 @@ export const citasService = {
 
     if (!navigator.onLine) {
       await encolarCambio('CAMBIAR_ESTADO_CITA', { citaId, ...payload });
+      emitDataMutation('citas', 'update');
       return {
         ok: true,
         success: true,
@@ -255,6 +259,7 @@ export const citasService = {
     }
 
     const response = await httpClient.patch(`/citas/${citaId}/estado`, payload);
+    emitDataMutation('citas', 'update');
     return response;
   }
 };

@@ -9,8 +9,10 @@ import {
   cortesService,
   inventarioService,
   authService,
-  barberosService
+  barberosService,
+  serviciosService
 } from '../../services/index.js';
+import { emitDataMutation } from '../../utils/event-bus.js';
 
 class BackofficeStateStore {
   constructor() {
@@ -22,6 +24,7 @@ class BackofficeStateStore {
     this.inventorySearchQuery = '';
     this.inventoryStatusFilter = 'all';
 
+    this.selectedDate = new Date().toISOString().split('T')[0];
     this.init();
   }
 
@@ -39,15 +42,21 @@ class BackofficeStateStore {
       }
     }
 
+    await this.loadAgendaData();
+  }
+
+  async loadAgendaData(fecha = null) {
+    const targetDate = fecha || this.selectedDate || new Date().toISOString().split('T')[0];
+    this.selectedDate = targetDate;
+
     try {
-      const today = new Date().toISOString().split('T')[0];
       const [barbRes, citasRes, invRes] = await Promise.all([
-        barberosService.getBarberos(),
-        citasService.getCitasDelDia(today),
-        inventarioService.getProductos()
+        this.barbers.length === 0 ? barberosService.getBarberos() : Promise.resolve({ ok: true, data: this.barbers }),
+        citasService.getCitasDelDia(targetDate),
+        this.products.length === 0 ? inventarioService.getProductos() : Promise.resolve({ ok: true, data: this.products })
       ]);
 
-      if (barbRes?.ok && Array.isArray(barbRes.data)) {
+      if (barbRes?.ok && Array.isArray(barbRes.data) && this.barbers.length === 0) {
         this.barbers = barbRes.data.map((b, idx) => ({
           id: b.id,
           name: b.nombre,
@@ -63,10 +72,13 @@ class BackofficeStateStore {
         this.appointments = citasRes.data;
       }
 
-      if (invRes?.ok && Array.isArray(invRes.data)) {
+      if (invRes?.ok && Array.isArray(invRes.data) && this.products.length === 0) {
         this.products = invRes.data;
       }
-    } catch (_) {}
+    } catch (err) {
+      console.warn('⚠️ Error al cargar agenda:', err.message);
+    }
+    return this.appointments;
   }
 
   setRole(role) {
@@ -110,6 +122,8 @@ class BackofficeStateStore {
         metodoPago: paymentMethod,
         precio: apt.price
       });
+      emitDataMutation('citas', 'update');
+      emitDataMutation('cortes', 'create');
     }
     return apt;
   }
@@ -119,6 +133,7 @@ class BackofficeStateStore {
     if (apt) {
       apt.status = 'no_asistio';
       await citasService.cambiarEstadoCita(apt.citaId || apt.id, 'no_asistio', 'Inasistencia del cliente');
+      emitDataMutation('citas', 'update');
     }
     return apt;
   }
@@ -128,28 +143,48 @@ class BackofficeStateStore {
     if (apt) {
       apt.status = 'cancelada';
       await citasService.cambiarEstadoCita(apt.citaId || apt.id, 'cancelada', 'Cancelada desde agenda administrativa');
+      emitDataMutation('citas', 'update');
     }
     return apt;
   }
 
-  async addWalkinCut({ chairIndex = 0, clientName = 'Cliente Mostrador', serviceName = 'Corte Clásico', price = 25000, durationMinutes = 30, paymentMethod = 'efectivo' }) {
+  async addWalkinCut({ chairIndex = 0, clientName = 'Cliente Mostrador', serviceName = 'Corte Clásico', price = 25000, durationMinutes = 30, paymentMethod = 'efectivo', timeStart = '10:00' }) {
     const barber = this.barbers[chairIndex] || this.barbers[0] || this.activeBarber;
+
+    // Resolver servicioId si no viene
+    let finalServicioId = null;
+    try {
+      const srvRes = await serviciosService.getServicios();
+      const found = srvRes.data?.find(s => s.nombre.toLowerCase().includes(serviceName.toLowerCase()) || s.id === serviceName);
+      finalServicioId = found?.id || srvRes.data?.[0]?.id;
+    } catch (_) {}
 
     const res = await cortesService.registrarCorte({
       barberoId: barber?.id,
       barberoNombre: barber?.name,
       clienteNombre: clientName || 'Cliente Mostrador',
+      servicioId: finalServicioId,
+      servicioIds: finalServicioId ? [finalServicioId] : [],
       servicioNombre: serviceName,
       precio,
       metodoPago: paymentMethod
     });
 
+    const startH = parseInt(timeStart.split(':')[0], 10) || 10;
+    const startM = parseInt(timeStart.split(':')[1], 10) || 0;
+    const endMinutes = startH * 60 + startM + durationMinutes;
+    const endH = String(Math.floor(endMinutes / 60)).padStart(2, '0');
+    const endM = String(endMinutes % 60).padStart(2, '0');
+    const calculatedTimeEnd = `${endH}:${endM}`;
+
     const newApt = {
-      id: res.data?.id || `WK-${Math.floor(1000 + Math.random() * 9000)}`,
+      id: res?.data?.id || `WK-${Math.floor(1000 + Math.random() * 9000)}`,
       chairIndex,
       barberId: barber?.id,
-      timeStart: '11:30',
-      timeEnd: durationMinutes === 60 ? '12:30' : '12:00',
+      barberoId: barber?.id,
+      barberName: barber?.name,
+      timeStart,
+      timeEnd: calculatedTimeEnd,
       clientName: clientName || 'Cliente Mostrador',
       clientPhone: '3000000000',
       serviceName,
@@ -161,6 +196,8 @@ class BackofficeStateStore {
     };
 
     this.appointments.push(newApt);
+    emitDataMutation('citas', 'create');
+    emitDataMutation('cortes', 'create');
     return newApt;
   }
 
@@ -202,9 +239,9 @@ class BackofficeStateStore {
     return list;
   }
 
-  async addStockEntry(sku, quantity, note = '') {
-    const res = await inventarioService.registrarEntrada(sku, quantity, note);
-    const p = this.products.find(item => item.sku === sku);
+  async addStockEntry(productIdOrSku, quantity, note = '') {
+    const res = await inventarioService.registrarEntrada(productIdOrSku, quantity, note);
+    const p = this.products.find(item => item.sku === productIdOrSku || item.productoId === productIdOrSku || item.id === productIdOrSku);
     if (p) {
       const newStock = res?.data?.producto?.stockActual ?? res?.data?.stockActual;
       if (newStock !== undefined) {
@@ -216,9 +253,9 @@ class BackofficeStateStore {
     return p;
   }
 
-  async addStockExit(sku, quantity, reason = 'venta_publico', metodoPago = 'efectivo', observacion = '') {
-    const res = await inventarioService.registrarSalida(sku, quantity, reason, metodoPago, observacion);
-    const p = this.products.find(item => item.sku === sku);
+  async addStockExit(productIdOrSku, quantity, reason = 'venta_publico', metodoPago = 'efectivo', observacion = '') {
+    const res = await inventarioService.registrarSalida(productIdOrSku, quantity, reason, metodoPago, observacion);
+    const p = this.products.find(item => item.sku === productIdOrSku || item.productoId === productIdOrSku || item.id === productIdOrSku);
     if (p) {
       const newStock = res?.data?.producto?.stockActual ?? res?.data?.stockActual;
       if (newStock !== undefined) {
