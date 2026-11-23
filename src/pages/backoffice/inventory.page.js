@@ -25,10 +25,10 @@ export async function loadInventoryKardexData(userRole = 'administrador') {
         backofficeStore.products = prodRes.data;
       }
     } else {
-      // El administrador consulta catálogo completo y movimientos Kardex
+      // El administrador consulta catálogo completo (incluyendo archivados) y movimientos Kardex
       const [kdxRes, prodRes] = await Promise.all([
         inventarioService.getMovimientosKardex().catch(() => ({ ok: false, data: [] })),
-        inventarioService.getProductos().catch(() => ({ ok: false, data: [] }))
+        inventarioService.getProductos({ activosSolo: false }).catch(() => ({ ok: false, data: [] }))
       ]);
       if (kdxRes?.ok && Array.isArray(kdxRes.data)) {
         cachedKardexMovements = kdxRes.data;
@@ -48,11 +48,14 @@ export function renderInventoryPage(options = {}) {
 
   const products = backofficeStore.getFilteredProducts();
   const allProducts = backofficeStore.products;
+  const activeProducts = allProducts.filter(p => p.estado !== 'inactivo');
+  const archivedProducts = allProducts.filter(p => p.estado === 'inactivo');
 
-  const totalValueCOP = allProducts.reduce((sum, p) => sum + ((p.stockActual || 0) * (p.precioVenta || 0)), 0);
-  const optimalCount = allProducts.filter(p => (p.stockActual || 0) > (p.stockMinimo || 0)).length;
-  const lowCount = allProducts.filter(p => (p.stockActual || 0) > 0 && (p.stockActual || 0) <= (p.stockMinimo || 0)).length;
-  const outCount = allProducts.filter(p => (p.stockActual || 0) === 0).length;
+  const totalValueCOP = activeProducts.reduce((sum, p) => sum + ((p.stockActual || 0) * (p.precioVenta || 0)), 0);
+  const optimalCount = activeProducts.filter(p => (p.stockActual || 0) > (p.stockMinimo || 0)).length;
+  const lowCount = activeProducts.filter(p => (p.stockActual || 0) > 0 && (p.stockActual || 0) <= (p.stockMinimo || 0)).length;
+  const outCount = activeProducts.filter(p => (p.stockActual || 0) === 0).length;
+  const archivedCount = archivedProducts.length;
 
   const currentFilter = backofficeStore.inventoryStatusFilter;
 
@@ -139,9 +142,9 @@ export function renderInventoryPage(options = {}) {
       <!-- 4 TARJETAS KPI -->
       <section aria-label="Resumen de inventario" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         ${renderKpiCard({
-          label: isBarbero ? 'Productos Disponibles' : 'Total Referencias',
-          value: allProducts.length,
-          caption: isBarbero ? 'Catálogo activo para mostrador' : `Valoración: ${formatCOP(totalValueCOP)}`,
+          label: isBarbero ? 'Productos Disponibles' : 'Total Referencias Activas',
+          value: activeProducts.length,
+          caption: isBarbero ? 'Catálogo activo para mostrador' : `Valoración activa: ${formatCOP(totalValueCOP)}`,
           icon: 'inventory_2',
           iconBg: 'bg-[#E4ECF5]',
           iconColor: 'text-[#1F3A5F]'
@@ -194,7 +197,7 @@ export function renderInventoryPage(options = {}) {
             data-inv-filter="all"
             class="inv-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${currentFilter === 'all' ? 'bg-[#1F3A5F] text-white shadow-2xs' : 'bg-white border border-[#D5CBB8] text-[#4F4A42] hover:bg-[#FAF3E5]'}"
           >
-            Todos (${allProducts.length})
+            Todos (${activeProducts.length})
           </button>
           <button
             type="button"
@@ -217,6 +220,16 @@ export function renderInventoryPage(options = {}) {
           >
             Agotados (${outCount})
           </button>
+          ${!isBarbero ? `
+            <button
+              type="button"
+              data-inv-filter="archivado"
+              class="inv-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${currentFilter === 'archivado' ? 'bg-[#1F3A5F] text-white shadow-2xs' : 'bg-white border border-[#D5CBB8] text-[#4F4A42] hover:bg-[#FAF3E5]'}"
+              title="Ver productos inactivos o archivados"
+            >
+              Archivados (${archivedCount})
+            </button>
+          ` : ''}
         </div>
       </section>
 
@@ -233,7 +246,7 @@ export function renderInventoryPage(options = {}) {
                 ${!isBarbero ? `<th class="py-3 px-4 font-semibold text-center">Mínimo</th>` : ''}
                 <th class="py-3 px-4 font-semibold text-right">Precio Venta (COP)</th>
                 <th class="py-3 px-4 font-semibold text-center">Estado</th>
-                <th class="py-3 px-4 font-semibold text-right min-w-[120px]">Acción</th>
+                <th class="py-3 px-4 font-semibold text-right min-w-[140px]">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
@@ -252,8 +265,11 @@ export function renderInventoryPage(options = {}) {
               ` : products.map(p => {
                 const stock = p.stockActual ?? 0;
                 const min = p.stockMinimo ?? 0;
+                const isArchived = p.estado === 'inactivo';
                 let statusBadge;
-                if (stock === 0) {
+                if (isArchived) {
+                  statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8DFCE] text-[#6B645A] border border-[#D5CBB8]">Archivado</span>`;
+                } else if (stock === 0) {
                   statusBadge = renderStatusBadge('agotado', { customLabel: 'Agotado', size: 'sm' });
                 } else if (stock <= min) {
                   statusBadge = renderStatusBadge('stock_bajo', { customLabel: 'Bajo', size: 'sm' });
@@ -262,8 +278,8 @@ export function renderInventoryPage(options = {}) {
                 }
 
                 return `
-                  <tr class="hover:bg-[#FAF3E5] transition-colors bg-white">
-                    <td class="py-3 px-4 font-mono font-bold text-xs text-[#1F3A5F]">
+                  <tr class="hover:bg-[#FAF3E5] transition-colors ${isArchived ? 'bg-[#FAF7F2]/60 opacity-80' : 'bg-white'}">
+                    <td class="py-3 px-4 font-mono font-bold text-xs ${isArchived ? 'text-[#8C8272]' : 'text-[#1F3A5F]'}">
                       ${p.sku}
                     </td>
                     <td class="py-3 px-4">
@@ -277,7 +293,7 @@ export function renderInventoryPage(options = {}) {
                         ${p.categoria}
                       </span>
                     </td>
-                    <td class="py-3 px-4 text-center font-mono font-bold text-sm ${stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
+                    <td class="py-3 px-4 text-center font-mono font-bold text-sm ${isArchived ? 'text-[#8C8272]' : stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
                       ${stock}
                     </td>
                     ${!isBarbero ? `
@@ -308,22 +324,63 @@ export function renderInventoryPage(options = {}) {
                         `}
                       ` : `
                         <div class="inline-flex items-center justify-end gap-1">
-                          <button
-                            type="button"
-                            data-quick-entry="${p.sku}"
-                            class="p-1 rounded text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
-                            title="Entrada de reposición"
-                          >
-                            <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                          </button>
-                          <button
-                            type="button"
-                            data-quick-exit="${p.sku}"
-                            class="p-1 rounded text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
-                            title="Descontar stock / Venta"
-                          >
-                            <span class="material-symbols-outlined text-[18px]">remove_circle</span>
-                          </button>
+                          ${isArchived ? `
+                            <button
+                              type="button"
+                              data-reactivate-product="${p.productoId || p.id}"
+                              class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                              title="Reactivar producto"
+                              aria-label="Reactivar producto ${p.nombre}"
+                            >
+                              <span class="material-symbols-outlined text-[18px]">unarchive</span>
+                            </button>
+                            <button
+                              type="button"
+                              data-edit-product="${p.productoId || p.id}"
+                              class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
+                              title="Editar producto"
+                              aria-label="Editar producto ${p.nombre}"
+                            >
+                              <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                          ` : `
+                            <button
+                              type="button"
+                              data-quick-entry="${p.sku}"
+                              class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                              title="Entrada de reposición"
+                              aria-label="Entrada de reposición para ${p.nombre}"
+                            >
+                              <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                            </button>
+                            <button
+                              type="button"
+                              data-quick-exit="${p.sku}"
+                              class="p-1.5 rounded-md text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
+                              title="Descontar stock / Venta"
+                              aria-label="Descontar stock para ${p.nombre}"
+                            >
+                              <span class="material-symbols-outlined text-[18px]">remove_circle</span>
+                            </button>
+                            <button
+                              type="button"
+                              data-edit-product="${p.productoId || p.id}"
+                              class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
+                              title="Editar ficha del producto"
+                              aria-label="Editar ficha de ${p.nombre}"
+                            >
+                              <span class="material-symbols-outlined text-[18px]">edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              data-deactivate-product="${p.productoId || p.id}"
+                              class="p-1.5 rounded-md text-[#8C8272] hover:text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
+                              title="Archivar producto (Desactivar)"
+                              aria-label="Archivar producto ${p.nombre}"
+                            >
+                              <span class="material-symbols-outlined text-[18px]">archive</span>
+                            </button>
+                          `}
                         </div>
                       `}
                     </td>
@@ -335,8 +392,8 @@ export function renderInventoryPage(options = {}) {
         </div>
 
         <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between text-xs text-[#4F4A42]">
-          <span>Mostrando <strong>${products.length}</strong> de <strong>${allProducts.length}</strong> referencias registradas</span>
-          ${!isBarbero ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total: ${formatCOP(totalValueCOP)}</span>` : ''}
+          <span>Mostrando <strong>${products.length}</strong> de <strong>${currentFilter === 'archivado' ? archivedProducts.length : activeProducts.length}</strong> referencias ${currentFilter === 'archivado' ? 'archivadas' : 'activas'}</span>
+          ${!isBarbero ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total activa: ${formatCOP(totalValueCOP)}</span>` : ''}
         </div>
       </section>
     </div>
@@ -551,6 +608,33 @@ export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
       btn.addEventListener('click', () => {
         const sku = btn.getAttribute('data-quick-exit');
         openStockExitModal(onUpdate, sku, 'venta_publico', userRole);
+      });
+    });
+
+    const editBtns = document.querySelectorAll('button[data-edit-product]');
+    editBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prodId = btn.getAttribute('data-edit-product');
+        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
+        if (product) openEditarProductoModal(product, onUpdate);
+      });
+    });
+
+    const deactivateBtns = document.querySelectorAll('button[data-deactivate-product]');
+    deactivateBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prodId = btn.getAttribute('data-deactivate-product');
+        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
+        if (product) confirmarDesactivarProducto(product, onUpdate);
+      });
+    });
+
+    const reactivateBtns = document.querySelectorAll('button[data-reactivate-product]');
+    reactivateBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const prodId = btn.getAttribute('data-reactivate-product');
+        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
+        if (product) confirmarReactivarProducto(product, onUpdate);
       });
     });
   }
@@ -880,6 +964,226 @@ function openNuevoProductoModal(onUpdate) {
       });
 
       return true;
+    }
+  });
+}
+
+/**
+ * Modal accesible de Edición de Ficha Maestra de Producto (CU-016)
+ * Mantiene stockActual estrictamente de solo lectura (RF-INV-01 y DESIGN.md).
+ */
+function openEditarProductoModal(product, onUpdate) {
+  if (!product) return;
+  const targetId = product.productoId || product.id;
+
+  openDialog({
+    title: `Editar Producto: ${product.nombre}`,
+    contentHtml: `
+      <form id="form-editar-producto" class="flex flex-col gap-3 text-xs">
+        <div class="flex flex-col gap-1">
+          <label class="font-semibold text-[#1C1C1C]">Nombre del Producto <span class="text-[#8B1E1E]">*</span></label>
+          <input
+            type="text"
+            id="prd-edit-nombre"
+            required
+            value="${product.nombre || ''}"
+            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C]"
+          />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="font-semibold text-[#1C1C1C]">SKU Único</label>
+            <input
+              type="text"
+              id="prd-edit-sku"
+              value="${product.sku || ''}"
+              class="h-10 px-3 bg-[#FAF7F2] border border-[#D5CBB8] rounded-lg uppercase font-mono text-xs text-[#6B645A]"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-semibold text-[#1C1C1C]">Categoría <span class="text-[#8B1E1E]">*</span></label>
+            <input
+              type="text"
+              id="prd-edit-cat"
+              required
+              value="${product.categoria || 'General'}"
+              list="list-categorias-inv"
+              class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C]"
+            />
+            <datalist id="list-categorias-inv">
+              <option value="Peinado"></option>
+              <option value="Cuidado Facial"></option>
+              <option value="Afeitado"></option>
+              <option value="Ceras y Pomadas"></option>
+              <option value="Uso en Cabina"></option>
+              <option value="General"></option>
+            </datalist>
+          </div>
+        </div>
+
+        <!-- Indicador de Stock Físico (Estrictamente de Solo Lectura según DESIGN.md y RF-INV-01) -->
+        <div class="p-3 bg-[#FAF7F2] border border-[#D5CBB8] rounded-lg flex flex-col gap-1">
+          <div class="flex items-center justify-between">
+            <span class="font-sans font-semibold text-xs text-[#4F4A42]">Stock Físico Actual:</span>
+            <span class="font-mono font-bold text-sm text-[#1F3A5F]">${product.stockActual ?? 0} unidades</span>
+          </div>
+          <p class="text-[11px] text-[#6B645A] leading-tight flex items-center gap-1.5 mt-0.5">
+            <span class="material-symbols-outlined text-[15px] text-[#8C8272]">lock</span>
+            <span>Solo modificable mediante movimientos inmutables de Entrada o Salida en el Kardex.</span>
+          </p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-3">
+          <div class="flex flex-col gap-1">
+            <label class="font-semibold text-[#1C1C1C]">Stock Mínimo</label>
+            <input
+              type="number"
+              id="prd-edit-min"
+              min="0"
+              value="${product.stockMinimo ?? 3}"
+              class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg font-mono text-xs text-[#1C1C1C]"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-semibold text-[#1C1C1C]">Precio Venta COP <span class="text-[#8B1E1E]">*</span></label>
+            <input
+              type="number"
+              id="prd-edit-precio"
+              step="1000"
+              min="1000"
+              value="${product.precioVentaCop || product.precioVenta || 0}"
+              class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg font-mono font-bold text-xs text-[#1C1C1C]"
+            />
+          </div>
+          <div class="flex flex-col gap-1">
+            <label class="font-semibold text-[#1C1C1C]">Costo Unitario COP</label>
+            <input
+              type="number"
+              id="prd-edit-costo"
+              step="1000"
+              min="0"
+              value="${product.costoUnitarioCop || product.costoUnitario || 0}"
+              class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg font-mono text-xs text-[#1C1C1C]"
+            />
+          </div>
+        </div>
+      </form>
+    `,
+    confirmText: 'Guardar Cambios',
+    cancelText: 'Cancelar',
+    confirmVariant: 'primary',
+    onConfirm: async () => {
+      const nombre = document.getElementById('prd-edit-nombre')?.value.trim();
+      const sku = document.getElementById('prd-edit-sku')?.value.trim().toUpperCase();
+      const categoria = document.getElementById('prd-edit-cat')?.value.trim();
+      const stockMinimo = parseInt(document.getElementById('prd-edit-min')?.value, 10);
+      const precioVenta = parseInt(document.getElementById('prd-edit-precio')?.value, 10);
+      const costoUnitario = parseInt(document.getElementById('prd-edit-costo')?.value, 10);
+
+      if (!nombre || isNaN(precioVenta) || precioVenta <= 0) {
+        alert('Por favor completa el nombre del producto y un precio de venta positivo.');
+        return false;
+      }
+
+      try {
+        await inventarioService.actualizarProducto(targetId, {
+          nombre,
+          sku: sku || product.sku,
+          categoria: categoria || product.categoria,
+          stockMinimo: isNaN(stockMinimo) ? 0 : stockMinimo,
+          precioVentaCop: precioVenta,
+          costoUnitarioCop: isNaN(costoUnitario) ? null : costoUnitario
+        });
+        await loadInventoryKardexData('administrador');
+        onUpdate();
+        return true;
+      } catch (err) {
+        alert('Error al actualizar el producto: ' + err.message);
+        return false;
+      }
+    }
+  });
+}
+
+/**
+ * Diálogo de confirmación para borrado lógico / archivo de producto (RN-13)
+ */
+function confirmarDesactivarProducto(product, onUpdate) {
+  if (!product) return;
+  const targetId = product.productoId || product.id;
+
+  openDialog({
+    title: '¿Archivar Producto?',
+    subtitle: `Confirmación de baja lógica (RN-13) para ${product.nombre}`,
+    contentHtml: `
+      <div class="flex flex-col gap-3 text-xs text-[#1C1C1C]">
+        <p>
+          ¿Estás seguro de archivar <strong>"${product.nombre}"</strong> (<span class="font-mono">${product.sku}</span>)?
+        </p>
+        <div class="p-3 bg-[#FAF7F2] border border-[#D5CBB8] rounded-lg text-[#4F4A42] flex flex-col gap-1.5">
+          <p class="flex items-center gap-1.5 font-semibold text-[#8B1E1E]">
+            <span class="material-symbols-outlined text-[16px]">warning</span>
+            <span>Consecuencias del archivado:</span>
+          </p>
+          <ul class="list-disc list-inside space-y-1 text-[11px] text-[#6B645A]">
+            <li>No aparecerá en el catálogo de venta en mostrador ni cabina.</li>
+            <li>No generará alertas de stock bajo ni agotado en el panel.</li>
+            <li>Su historial de entradas y salidas permanecerá intacto en el Kardex (RN-13).</li>
+          </ul>
+        </div>
+      </div>
+    `,
+    confirmText: 'Sí, Archivar Producto',
+    cancelText: 'Cancelar',
+    confirmVariant: 'danger',
+    onConfirm: async () => {
+      try {
+        await inventarioService.desactivarProducto(targetId);
+        await loadInventoryKardexData('administrador');
+        onUpdate();
+        return true;
+      } catch (err) {
+        alert('Error al archivar el producto: ' + err.message);
+        return false;
+      }
+    }
+  });
+}
+
+/**
+ * Diálogo de confirmación para reactivar un producto archivado
+ */
+function confirmarReactivarProducto(product, onUpdate) {
+  if (!product) return;
+  const targetId = product.productoId || product.id;
+
+  openDialog({
+    title: '¿Reactivar Producto?',
+    subtitle: `Habilitación de catálogo para ${product.nombre}`,
+    contentHtml: `
+      <div class="flex flex-col gap-3 text-xs text-[#1C1C1C]">
+        <p>
+          ¿Deseas reactivar <strong>"${product.nombre}"</strong> (<span class="font-mono">${product.sku}</span>)?
+        </p>
+        <p class="text-[11px] text-[#4F4A42]">
+          El producto volverá a mostrarse en el catálogo activo para ventas en mostrador y sus existencias serán monitoreadas para alertas de reposición.
+        </p>
+      </div>
+    `,
+    confirmText: 'Sí, Reactivar Producto',
+    cancelText: 'Cancelar',
+    confirmVariant: 'primary',
+    onConfirm: async () => {
+      try {
+        await inventarioService.reactivarProducto(targetId);
+        await loadInventoryKardexData('administrador');
+        onUpdate();
+        return true;
+      } catch (err) {
+        alert('Error al reactivar el producto: ' + err.message);
+        return false;
+      }
     }
   });
 }

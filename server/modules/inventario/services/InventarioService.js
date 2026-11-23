@@ -13,7 +13,7 @@ export class InventarioService {
     this.inventarioRepo = inventarioRepo || new InventarioPgRepository();
   }
 
-  async listProductos(sedeId, { categoria = null, activosSolo = false } = {}) {
+  async listProductos(sedeId, { categoria = null, activosSolo = true } = {}) {
     return await this.inventarioRepo.findBySede(sedeId, { categoria, activosSolo });
   }
 

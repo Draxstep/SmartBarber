@@ -207,8 +207,9 @@ class BackofficeStateStore {
     const totalIncome = completed.reduce((sum, a) => sum + (a.price || 0), 0);
     const pending = visible.filter(a => a.status === 'pendiente' || a.status === 'confirmada');
 
-    const lowStock = this.products.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
-    const outOfStock = this.products.filter(p => p.stockActual === 0);
+    const activeProducts = this.products.filter(p => p.estado !== 'inactivo');
+    const lowStock = activeProducts.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
+    const outOfStock = activeProducts.filter(p => p.stockActual === 0);
 
     // Calcular comisiones exactas según porcentaje del barbero o snapshots (RN-12)
     const user = authService.getCurrentUser();
@@ -234,17 +235,23 @@ class BackofficeStateStore {
   getFilteredProducts() {
     let list = this.products;
 
+    if (this.inventoryStatusFilter === 'archivado' || this.inventoryStatusFilter === 'inactivo') {
+      list = list.filter(p => p.estado === 'inactivo');
+    } else {
+      list = list.filter(p => p.estado !== 'inactivo');
+
+      if (this.inventoryStatusFilter === 'disponible') {
+        list = list.filter(p => p.stockActual > p.stockMinimo);
+      } else if (this.inventoryStatusFilter === 'stock_bajo') {
+        list = list.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
+      } else if (this.inventoryStatusFilter === 'agotado') {
+        list = list.filter(p => p.stockActual === 0);
+      }
+    }
+
     if (this.inventorySearchQuery) {
       const q = this.inventorySearchQuery.toLowerCase();
       list = list.filter(p => p.nombre.toLowerCase().includes(q) || p.sku.toLowerCase().includes(q) || p.categoria.toLowerCase().includes(q));
-    }
-
-    if (this.inventoryStatusFilter === 'disponible') {
-      list = list.filter(p => p.stockActual > p.stockMinimo);
-    } else if (this.inventoryStatusFilter === 'stock_bajo') {
-      list = list.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
-    } else if (this.inventoryStatusFilter === 'agotado') {
-      list = list.filter(p => p.stockActual === 0);
     }
 
     return list;

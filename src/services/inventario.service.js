@@ -101,6 +101,7 @@ export const inventarioService = {
     const query = new URLSearchParams();
     if (filtros.search) query.append('busqueda', filtros.search);
     if (filtros.categoria && filtros.categoria !== 'all') query.append('categoria', filtros.categoria);
+    if (filtros.activosSolo === false) query.append('activosSolo', 'false');
 
     if (filtros.estado === 'disponible') {
       query.append('estadoStock', 'disponible');
@@ -147,6 +148,12 @@ export const inventarioService = {
           estado: p.estado,
           sedeId: p.sede_id
         })).filter(Boolean);
+
+        if (filtros.activosSolo !== false && !filtros.archivadosSolo) {
+          list = list.filter(p => p.estado !== 'inactivo');
+        } else if (filtros.archivadosSolo) {
+          list = list.filter(p => p.estado === 'inactivo');
+        }
 
         if (filtros.search) {
           const s = filtros.search.toLowerCase();
@@ -218,6 +225,56 @@ export const inventarioService = {
       return { ok: true, success: true, data: normalized };
     }
     return response;
+  },
+
+  /**
+   * Actualiza la ficha maestra de un producto (exclusivo Administrador, CU-016).
+   * Mantiene stockActual estrictamente inmutable (solo vía Kardex, RF-INV-01).
+   */
+  async actualizarProducto(id, datos = {}) {
+    const payload = {};
+    if (datos.nombre !== undefined) payload.nombre = datos.nombre?.trim();
+    if (datos.categoria !== undefined) payload.categoria = datos.categoria?.trim();
+    if (datos.sku !== undefined) payload.sku = (datos.sku || '').trim() || null;
+    if (datos.precioVentaCop !== undefined || datos.precioVenta !== undefined) {
+      payload.precioVentaCop = Math.round(Number(datos.precioVentaCop ?? datos.precioVenta ?? 0));
+    }
+    if (datos.costoUnitarioCop !== undefined || datos.costoUnitario !== undefined) {
+      const costo = datos.costoUnitarioCop ?? datos.costoUnitario;
+      payload.costoUnitarioCop = costo !== null && costo !== '' && !isNaN(Number(costo)) ? Math.round(Number(costo)) : null;
+    }
+    if (datos.stockMinimo !== undefined) {
+      payload.stockMinimo = Math.max(0, parseInt(datos.stockMinimo, 10) || 0);
+    }
+    if (datos.estado !== undefined) {
+      payload.estado = datos.estado;
+    }
+
+    const response = await httpClient.put(`/inventario/${id}`, payload);
+    if (response?.data) {
+      const normalized = normalizeProducto(response.data);
+      if (normalized) {
+        guardarRegistro('inventario', toIDBProducto(normalized)).catch(() => {});
+      }
+      emitDataMutation('inventario', 'update');
+      return { ok: true, success: true, data: normalized };
+    }
+    emitDataMutation('inventario', 'update');
+    return response;
+  },
+
+  /**
+   * Desactiva / Archiva lógicamente un producto sin borrado físico (RN-13).
+   */
+  async desactivarProducto(id) {
+    return await this.actualizarProducto(id, { estado: 'inactivo' });
+  },
+
+  /**
+   * Reactiva un producto previamente archivado.
+   */
+  async reactivarProducto(id) {
+    return await this.actualizarProducto(id, { estado: 'activo' });
   },
 
   async resolverProductoId(productoIdOrSku) {
@@ -364,11 +421,13 @@ export const inventarioService = {
             nombre: p.nombre,
             categoria: p.categoria,
             stockActual: p.stock_actual,
-            stockMinimo: p.stock_minimo
+            stockMinimo: p.stock_minimo,
+            estado: p.estado
           })).filter(Boolean);
 
-          const bajoStock = prods.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
-          const agotados = prods.filter(p => p.stockActual === 0);
+          const activeProds = prods.filter(p => p.estado !== 'inactivo');
+          const bajoStock = activeProds.filter(p => p.stockActual > 0 && p.stockActual <= p.stockMinimo);
+          const agotados = activeProds.filter(p => p.stockActual === 0);
           return {
             ok: true,
             success: true,

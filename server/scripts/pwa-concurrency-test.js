@@ -266,6 +266,11 @@ async function runPwaConcurrencyTests() {
       `Exitosos: ${exitososInv.length}, Rechazados 409: ${conflictosInv.length}, Stock BD final: ${stockFinal}`
     );
 
+    // Desactivar producto de prueba para no contaminar inventario activo ni generar falsas alertas (RN-11, RN-13)
+    if (productoCarreraId) {
+      await pool.query("UPDATE productos_inventario SET estado = 'inactivo' WHERE producto_id = $1", [productoCarreraId]);
+    }
+
     // --------------------------------------------------------------------------
     // TEST 4: Idempotency of Background Outbox Synchronization
     // --------------------------------------------------------------------------

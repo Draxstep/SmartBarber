@@ -14,7 +14,7 @@ export class InventarioController {
     try {
       const sedeId = req.user.sedeId;
       const { categoria } = req.query;
-      const activosSolo = req.query.activosSolo === 'true' || req.user.rol === 'barbero';
+      const activosSolo = req.user.rol === 'barbero' ? true : req.query.activosSolo !== 'false';
 
       const productos = await this.inventarioService.listProductos(sedeId, { categoria, activosSolo });
       return sendSuccess(res, productos, 200);
