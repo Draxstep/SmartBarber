@@ -117,6 +117,15 @@ export class BarberoController {
     }
   };
 
+  uploadFoto = async (req, res, next) => {
+    try {
+      const resultado = await this.barberoService.guardarFoto(req.body.imagenBase64);
+      return sendSuccess(res, resultado, 201);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   getHorarios = async (req, res, next) => {
     try {
       const horarios = await this.barberoService.getHorarios(req.params.id);

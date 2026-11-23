@@ -10,6 +10,9 @@ import { UsuarioPgRepository } from '../../seguridad/repositories/UsuarioPgRepos
 import { NotFoundError, ValidationError, ForbiddenError } from '../../../shared/errors/domainErrors.js';
 import { getDatabasePool } from '../../../shared/database/connection.js';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
+import crypto from 'crypto';
 
 export class BarberoService {
   constructor(barberoRepo = null, corteRepo = null, usuarioRepo = null) {
@@ -107,6 +110,53 @@ export class BarberoService {
     if (data.biografiaBreve !== undefined) barbero.biografiaBreve = data.biografiaBreve;
 
     return await this.barberoRepo.save(barbero);
+  }
+
+  async guardarFoto(imagenBase64) {
+    if (!imagenBase64 || typeof imagenBase64 !== 'string') {
+      throw new ValidationError('La imagen es requerida en formato base64.');
+    }
+
+    let mimeType = 'image/webp';
+    let base64Data = imagenBase64;
+    const matches = imagenBase64.match(/^data:(image\/[a-zA-Z+]+);base64,(.+)$/);
+    if (matches) {
+      mimeType = matches[1];
+      base64Data = matches[2];
+    }
+
+    const extensionMap = {
+      'image/jpeg': 'jpg',
+      'image/jpg': 'jpg',
+      'image/png': 'png',
+      'image/webp': 'webp'
+    };
+
+    const ext = extensionMap[mimeType] || 'webp';
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Validar peso máximo 2MB (2 * 1024 * 1024 bytes)
+    const MAX_SIZE_BYTES = 2 * 1024 * 1024;
+    if (buffer.length > MAX_SIZE_BYTES) {
+      throw new ValidationError(`La imagen supera el límite máximo permitido de 2 MB (tamaño actual: ${(buffer.length / (1024 * 1024)).toFixed(2)} MB).`);
+    }
+
+    const uploadsDir = path.resolve(process.cwd(), 'public/uploads/barberos');
+    if (!fs.existsSync(uploadsDir)) {
+      fs.mkdirSync(uploadsDir, { recursive: true });
+    }
+
+    const filename = `barbero-${crypto.randomUUID()}.${ext}`;
+    const filePath = path.join(uploadsDir, filename);
+    await fs.promises.writeFile(filePath, buffer);
+
+    const fotoUrl = `/uploads/barberos/${filename}`;
+    return {
+      fotoUrl,
+      filename,
+      size: buffer.length,
+      mimeType
+    };
   }
 
   async getCitasFuturas(id) {

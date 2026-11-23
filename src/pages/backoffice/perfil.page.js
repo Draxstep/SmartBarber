@@ -4,7 +4,7 @@
  * edición de datos permitidos y cambio seguro de contraseña.
  */
 
-import { barberosService, authService } from '../../services/index.js';
+import { barberosService, authService, cameraService } from '../../services/index.js';
 
 let cachedProfile = null;
 let profileSuccessMsg = '';
@@ -174,14 +174,67 @@ export function renderPerfilPage() {
               />
             </div>
 
-            <div class="flex flex-col gap-1">
-              <label class="font-semibold text-[#1C1C1C]" for="input-perfil-foto">URL de Foto de Perfil (JPG, PNG, WebP &le; 2MB)</label>
+            <div class="flex flex-col gap-2 p-3 bg-white rounded-xl border border-[#D5CBB8]">
+              <label class="font-semibold text-[#1C1C1C]">Fotografía de Perfil (JPG, PNG, WebP &le; 2MB)</label>
+              <div class="flex items-center gap-3">
+                <div class="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    id="btn-perfil-usar-camara"
+                    class="min-h-[38px] px-3 py-1.5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                    <span>Usar Cámara</span>
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-perfil-subir-archivo"
+                    class="min-h-[38px] px-3 py-1.5 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#1C1C1C] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                    <span>Subir Archivo</span>
+                  </button>
+                  <input
+                    type="file"
+                    id="perfil-file-input"
+                    accept="image/jpeg,image/png,image/webp"
+                    capture="user"
+                    class="hidden"
+                  />
+                </div>
+              </div>
+
+              <!-- Visor de cámara en vivo para perfil -->
+              <div id="perfil-camera-box" class="hidden flex flex-col gap-2 mt-2 p-2 bg-black rounded-xl">
+                <div class="relative w-full max-h-52 aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
+                  <video id="perfil-video" playsinline muted autoplay class="w-full h-full object-cover"></video>
+                </div>
+                <div class="flex items-center justify-between px-1">
+                  <span class="text-[11px] text-white/80">Centra tu rostro en el recuadro</span>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      id="btn-perfil-cancelar-camara"
+                      class="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-medium"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="button"
+                      id="btn-perfil-capturar-foto"
+                      class="px-4 py-1.5 rounded-lg bg-[#235D3A] hover:bg-[#1c492e] text-white text-xs font-bold flex items-center gap-1.5 shadow-md"
+                    >
+                      <span class="material-symbols-outlined text-[18px]">camera</span>
+                      <span>Capturar</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <input
-                type="url"
+                type="hidden"
                 id="input-perfil-foto"
                 value="${foto}"
-                placeholder="https://images.unsplash.com/..."
-                class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
               />
             </div>
 
@@ -325,6 +378,69 @@ export function renderPerfilPage() {
 }
 
 export function attachPerfilListeners(refresh) {
+  let perfilPhotoBase64 = null;
+
+  // 0. Controles de Cámara y Archivo en Mi Perfil
+  const btnUsarCamara = document.getElementById('btn-perfil-usar-camara');
+  const cameraBox = document.getElementById('perfil-camera-box');
+  const videoEl = document.getElementById('perfil-video');
+  const btnCapturar = document.getElementById('btn-perfil-capturar-foto');
+  const btnCancelarCamara = document.getElementById('btn-perfil-cancelar-camara');
+  const avatarPreview = document.getElementById('profile-avatar-preview');
+  const fileInput = document.getElementById('perfil-file-input');
+  const btnSubirArchivo = document.getElementById('btn-perfil-subir-archivo');
+
+  if (btnUsarCamara && videoEl && cameraBox) {
+    btnUsarCamara.addEventListener('click', async () => {
+      try {
+        await cameraService.startCamera(videoEl);
+        cameraBox.classList.remove('hidden');
+      } catch (err) {
+        alert(err.message);
+        if (fileInput) fileInput.click();
+      }
+    });
+  }
+
+  if (btnCapturar && videoEl && cameraBox) {
+    btnCapturar.addEventListener('click', () => {
+      try {
+        const result = cameraService.capturePhoto(videoEl);
+        perfilPhotoBase64 = result.dataUrl;
+        if (avatarPreview) avatarPreview.src = result.dataUrl;
+        cameraBox.classList.add('hidden');
+      } catch (err) {
+        alert('Error al capturar foto: ' + err.message);
+      }
+    });
+  }
+
+  if (btnCancelarCamara && videoEl && cameraBox) {
+    btnCancelarCamara.addEventListener('click', () => {
+      cameraService.stopCamera(videoEl);
+      cameraBox.classList.add('hidden');
+    });
+  }
+
+  if (btnSubirArchivo && fileInput) {
+    btnSubirArchivo.addEventListener('click', () => fileInput.click());
+  }
+
+  if (fileInput) {
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        try {
+          const result = await cameraService.processImageFile(file);
+          perfilPhotoBase64 = result.dataUrl;
+          if (avatarPreview) avatarPreview.src = result.dataUrl;
+        } catch (err) {
+          alert('Error al procesar archivo: ' + err.message);
+        }
+      }
+    });
+  }
+
   // 1. Guardar Datos Personales
   const formDatos = document.getElementById('form-perfil-datos');
   if (formDatos) {
@@ -335,13 +451,24 @@ export function attachPerfilListeners(refresh) {
 
       const nombrePublico = document.getElementById('input-perfil-nombre-publico')?.value.trim();
       const telefono = document.getElementById('input-perfil-telefono')?.value.trim();
-      const fotoUrl = document.getElementById('input-perfil-foto')?.value.trim();
+      let fotoUrl = document.getElementById('input-perfil-foto')?.value.trim() || null;
       const biografiaBreve = document.getElementById('input-perfil-bio')?.value.trim();
 
       const btn = document.getElementById('btn-guardar-perfil');
       if (btn) btn.disabled = true;
 
       try {
+        if (perfilPhotoBase64) {
+          btn.innerHTML = `
+            <span class="material-symbols-outlined text-[16px] animate-spin">refresh</span>
+            <span>Subiendo Fotografía...</span>
+          `;
+          const uploadRes = await barberosService.subirFoto(perfilPhotoBase64);
+          if (uploadRes?.data?.fotoUrl) {
+            fotoUrl = uploadRes.data.fotoUrl;
+          }
+        }
+
         const res = await barberosService.actualizarMiPerfil({
           nombrePublico,
           telefono,
@@ -359,6 +486,7 @@ export function attachPerfilListeners(refresh) {
         profileErrorMsg = err.message || 'Error de comunicación con el servidor.';
       } finally {
         if (btn) btn.disabled = false;
+        cameraService.stopAllCameras();
         if (typeof refresh === 'function') refresh();
       }
     });

@@ -29,6 +29,13 @@ app.use(
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Servir directorio de archivos subidos (avatares de barberos, etc.)
+const uploadsPath = path.resolve(__dirname, '../public/uploads');
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+}
+app.use('/uploads', express.static(uploadsPath));
+
 // Endpoint de salud del sistema (RNF-13)
 app.get('/api/health', async (req, res) => {
   const health = await checkDatabaseHealth();

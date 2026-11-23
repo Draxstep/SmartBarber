@@ -7,7 +7,7 @@ import { BarberoController } from '../controllers/BarberoController.js';
 import { authenticate } from '../../../shared/middlewares/authenticate.js';
 import { authorize } from '../../../shared/middlewares/authorize.js';
 import { validate } from '../../../shared/middlewares/validate.js';
-import { createBarberoSchema, updateBarberoSchema, createBloqueoSchema, updateMiPerfilSchema } from '../dto/barberoDto.js';
+import { createBarberoSchema, updateBarberoSchema, createBloqueoSchema, updateMiPerfilSchema, uploadFotoSchema } from '../dto/barberoDto.js';
 
 export const barberoRouter = Router();
 const controller = new BarberoController();
@@ -17,6 +17,14 @@ barberoRouter.use(authenticate);
 // Perfil propio (Barbero y Administrador) - Debe ir antes de /:id
 barberoRouter.get('/me/perfil', authorize(['administrador', 'barbero']), controller.getMiPerfil);
 barberoRouter.put('/me/perfil', authorize(['administrador', 'barbero']), validate({ body: updateMiPerfilSchema }), controller.updateMiPerfil);
+
+// Carga de fotografía de barbero
+barberoRouter.post(
+  '/upload-foto',
+  authorize(['administrador', 'barbero']),
+  validate({ body: uploadFotoSchema }),
+  controller.uploadFoto
+);
 
 // Listado y consulta individual
 barberoRouter.get('/', controller.list);

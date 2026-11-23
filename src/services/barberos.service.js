@@ -96,6 +96,11 @@ export const barberosService = {
     return response;
   },
 
+  async subirFoto(imagenBase64) {
+    const response = await httpClient.post('/barberos/upload-foto', { imagenBase64 });
+    return response;
+  },
+
   async crearBarbero(datos) {
     let sedeId = datos.sedeId;
     if (!sedeId) {

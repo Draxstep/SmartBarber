@@ -28,3 +28,7 @@ claves-vapid.json
 *.njsproj
 *.sln
 *.sw?
+
+# Uploads
+public/uploads/*
+!public/uploads/**/.gitkeep

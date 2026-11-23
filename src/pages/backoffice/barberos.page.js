@@ -6,7 +6,7 @@
  * alta/edición de barbero (CU-009, CU-010) y borrado lógico con preservación contable.
  */
 
-import { barberosService } from '../../services/index.js';
+import { barberosService, cameraService } from '../../services/index.js';
 
 let cachedBarberos = [];
 let selectedBarberId = null;
@@ -323,15 +323,103 @@ export function renderBarberosPage() {
         </div>
 
         <form id="form-nuevo-barbero" class="flex flex-col gap-3 text-xs">
-          <div class="flex flex-col gap-1">
-            <label class="font-semibold text-[#1C1C1C]">Nombre Completo <span class="text-[#8B1E1E]">*</span></label>
-            <input
-              type="text"
-              id="new-barb-name"
-              required
-              placeholder="Ej. Andrés Camilo Ríos"
-              class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
-            />
+          <!-- Widget de Fotografía con Cámara WebRTC y Archivo -->
+          <div class="flex flex-col gap-2 p-3 bg-white rounded-xl border border-[#D5CBB8]">
+            <span class="text-xs font-semibold text-[#1C1C1C]">Fotografía de Perfil (JPG, PNG, WebP &le; 2MB)</span>
+            <div class="flex items-center gap-3">
+              <div class="relative shrink-0">
+                <img
+                  id="new-barb-avatar-preview"
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80"
+                  alt="Vista previa"
+                  class="w-14 h-14 rounded-full object-cover border-2 border-[#1F3A5F]"
+                />
+                <span id="new-barb-avatar-badge" class="hidden absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#235D3A] border-2 border-white flex items-center justify-center text-[10px] text-white">✓</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  id="btn-new-barb-usar-camara"
+                  class="min-h-[38px] px-3 py-1.5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                  <span>Usar Cámara</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-new-barb-subir-archivo"
+                  class="min-h-[38px] px-3 py-1.5 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#1C1C1C] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+                >
+                  <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                  <span>Subir Archivo</span>
+                </button>
+                <button
+                  type="button"
+                  id="btn-new-barb-quitar-foto"
+                  class="hidden min-h-[38px] px-2.5 py-1.5 rounded-lg text-[#B3261E] hover:bg-[#FCE8E6] text-xs font-semibold flex items-center gap-1 transition-colors"
+                  title="Quitar foto personalizada"
+                >
+                  <span class="material-symbols-outlined text-[18px]">delete</span>
+                </button>
+                <input
+                  type="file"
+                  id="new-barb-file-input"
+                  accept="image/jpeg,image/png,image/webp"
+                  capture="user"
+                  class="hidden"
+                />
+              </div>
+            </div>
+
+            <!-- Visor de cámara WebRTC en vivo -->
+            <div id="new-barb-camera-box" class="hidden flex flex-col gap-2 mt-2 p-2 bg-black rounded-xl">
+              <div class="relative w-full max-h-52 aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
+                <video id="new-barb-video" playsinline muted autoplay class="w-full h-full object-cover"></video>
+                <div class="absolute inset-0 pointer-events-none border-2 border-dashed border-white/50 rounded-lg m-2"></div>
+              </div>
+              <div class="flex items-center justify-between px-1">
+                <span class="text-[11px] text-white/80">Centra el rostro en el recuadro</span>
+                <div class="flex items-center gap-2">
+                  <button
+                    type="button"
+                    id="btn-new-barb-cancelar-camara"
+                    class="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-medium"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    id="btn-new-barb-capturar-foto"
+                    class="px-4 py-1.5 rounded-lg bg-[#235D3A] hover:bg-[#1c492e] text-white text-xs font-bold flex items-center gap-1.5 shadow-md"
+                  >
+                    <span class="material-symbols-outlined text-[18px]">camera</span>
+                    <span>Capturar Foto</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="flex flex-col gap-1">
+              <label class="font-semibold text-[#1C1C1C]">Nombre Completo (Legal) <span class="text-[#8B1E1E]">*</span></label>
+              <input
+                type="text"
+                id="new-barb-name"
+                required
+                placeholder="Ej. Andrés Camilo Ríos"
+                class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+              />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="font-semibold text-[#1C1C1C]">Nombre Público / Alias (Landing)</label>
+              <input
+                type="text"
+                id="new-barb-nombre-publico"
+                placeholder="Ej. Andrés Barber"
+                class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+              />
+            </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -378,8 +466,9 @@ export function renderBarberosPage() {
                   type="number"
                   id="new-barb-comision"
                   required
-                  min="10"
-                  max="90"
+                  min="0"
+                  max="100"
+                  step="0.01"
                   value="50"
                   class="h-10 pl-3 pr-8 w-full bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
                 />
@@ -389,14 +478,14 @@ export function renderBarberosPage() {
           </div>
 
           <div class="flex flex-col gap-1">
-            <label class="font-semibold text-[#1C1C1C]">Especialidad / Cargo</label>
-            <input
-              type="text"
+            <label class="font-semibold text-[#1C1C1C]">Biografía Breve / Especialidad (máx. 200 caracteres)</label>
+            <textarea
               id="new-barb-especialidad"
+              rows="2"
+              maxlength="200"
               placeholder="Ej. Especialista en Degradados y Barba Clásica"
-              value="Maestro Barbero"
-              class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
-            />
+              class="p-2.5 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] resize-none"
+            >Maestro Barbero · Estilo & Navaja</textarea>
           </div>
 
           <div class="p-3 rounded-lg bg-[#E4ECF5] border border-[#7BA3D4]/40 flex flex-col gap-2">
@@ -655,6 +744,7 @@ function renderPerfilTab(barber) {
               required
               min="0"
               max="100"
+              step="0.01"
               value="${barber.comisionPorcentaje || barber.porcentajeComision || 50}"
               class="h-10 pl-3 pr-8 w-full bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] font-mono font-bold focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
             />
@@ -662,14 +752,78 @@ function renderPerfilTab(barber) {
           </div>
         </div>
 
-        <div class="md:col-span-2 flex flex-col gap-1">
-          <label class="font-semibold text-[#1C1C1C]">URL de Foto de Perfil (JPG, PNG, WebP &le; 2MB)</label>
+        <!-- Widget de Fotografía con Cámara WebRTC y Archivo en Edición -->
+        <div class="md:col-span-2 flex flex-col gap-2 p-3.5 bg-white rounded-xl border border-[#D5CBB8]">
+          <span class="text-xs font-semibold text-[#1C1C1C]">Fotografía de Perfil (JPG, PNG, WebP &le; 2MB)</span>
+          <div class="flex items-center gap-4">
+            <div class="relative shrink-0">
+              <img
+                id="edit-barb-avatar-preview"
+                src="${barber.foto || barber.fotoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'}"
+                alt="${barber.nombre}"
+                class="w-16 h-16 rounded-full object-cover border-2 border-[#1F3A5F]"
+              />
+              <span id="edit-barb-avatar-badge" class="hidden absolute bottom-0 right-0 w-4 h-4 rounded-full bg-[#235D3A] border-2 border-white flex items-center justify-center text-[10px] text-white">✓</span>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                id="btn-edit-barb-usar-camara"
+                class="min-h-[38px] px-3 py-1.5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+              >
+                <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                <span>Usar Cámara</span>
+              </button>
+              <button
+                type="button"
+                id="btn-edit-barb-subir-archivo"
+                class="min-h-[38px] px-3 py-1.5 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#1C1C1C] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+              >
+                <span class="material-symbols-outlined text-[18px]">upload_file</span>
+                <span>Subir Archivo</span>
+              </button>
+              <input
+                type="file"
+                id="edit-barb-file-input"
+                accept="image/jpeg,image/png,image/webp"
+                capture="user"
+                class="hidden"
+              />
+            </div>
+          </div>
+
+          <!-- Visor de cámara WebRTC en vivo para edición -->
+          <div id="edit-barb-camera-box" class="hidden flex flex-col gap-2 mt-2 p-2 bg-black rounded-xl">
+            <div class="relative w-full max-h-52 aspect-video bg-black rounded-lg overflow-hidden flex items-center justify-center">
+              <video id="edit-barb-video" playsinline muted autoplay class="w-full h-full object-cover"></video>
+              <div class="absolute inset-0 pointer-events-none border-2 border-dashed border-white/50 rounded-lg m-2"></div>
+            </div>
+            <div class="flex items-center justify-between px-1">
+              <span class="text-[11px] text-white/80">Centra el rostro en el recuadro</span>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  id="btn-edit-barb-cancelar-camara"
+                  class="px-3 py-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-medium"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="button"
+                  id="btn-edit-barb-capturar-foto"
+                  class="px-4 py-1.5 rounded-lg bg-[#235D3A] hover:bg-[#1c492e] text-white text-xs font-bold flex items-center gap-1.5 shadow-md"
+                >
+                  <span class="material-symbols-outlined text-[18px]">camera</span>
+                  <span>Capturar Foto</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <input
-            type="url"
+            type="hidden"
             id="edit-barb-foto"
             value="${barber.foto || barber.fotoUrl || ''}"
-            placeholder="https://images.unsplash.com/..."
-            class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
           />
         </div>
 
@@ -869,10 +1023,14 @@ function renderBloqueosTab() {
 }
 
 export function attachBarberosListeners(onDataChange) {
+  let newBarbPhotoBase64 = null;
+  let editBarbPhotoBase64 = null;
+
   // 1. Selección de barbero en lista maestra
   const barberCards = document.querySelectorAll('.barber-card-item');
   barberCards.forEach(card => {
     card.addEventListener('click', async () => {
+      cameraService.stopAllCameras();
       const id = card.getAttribute('data-barber-id');
       if (id && id !== selectedBarberId) {
         selectedBarberId = id;
@@ -919,24 +1077,91 @@ export function attachBarberosListeners(onDataChange) {
 
   if (tabPerfil) {
     tabPerfil.addEventListener('click', () => {
+      cameraService.stopAllCameras();
       currentTab = 'perfil';
       if (typeof onDataChange === 'function') onDataChange();
     });
   }
   if (tabHorario) {
     tabHorario.addEventListener('click', () => {
+      cameraService.stopAllCameras();
       currentTab = 'horario';
       if (typeof onDataChange === 'function') onDataChange();
     });
   }
   if (tabBloqueos) {
     tabBloqueos.addEventListener('click', () => {
+      cameraService.stopAllCameras();
       currentTab = 'bloqueos';
       if (typeof onDataChange === 'function') onDataChange();
     });
   }
 
-  // 4.1. Guardar Edición de Ficha del Barbero
+  // 4.1. Cámara y Fotografía en Edición de Ficha
+  const btnEditUsarCamara = document.getElementById('btn-edit-barb-usar-camara');
+  const editCameraBox = document.getElementById('edit-barb-camera-box');
+  const editVideoEl = document.getElementById('edit-barb-video');
+  const btnEditCapturar = document.getElementById('btn-edit-barb-capturar-foto');
+  const btnEditCancelarCamara = document.getElementById('btn-edit-barb-cancelar-camara');
+  const editAvatarPreview = document.getElementById('edit-barb-avatar-preview');
+  const editAvatarBadge = document.getElementById('edit-barb-avatar-badge');
+  const editFileInput = document.getElementById('edit-barb-file-input');
+  const btnEditSubirArchivo = document.getElementById('btn-edit-barb-subir-archivo');
+
+  if (btnEditUsarCamara && editVideoEl && editCameraBox) {
+    btnEditUsarCamara.addEventListener('click', async () => {
+      try {
+        await cameraService.startCamera(editVideoEl);
+        editCameraBox.classList.remove('hidden');
+      } catch (err) {
+        alert(err.message);
+        if (editFileInput) editFileInput.click();
+      }
+    });
+  }
+
+  if (btnEditCapturar && editVideoEl && editCameraBox) {
+    btnEditCapturar.addEventListener('click', () => {
+      try {
+        const result = cameraService.capturePhoto(editVideoEl);
+        editBarbPhotoBase64 = result.dataUrl;
+        if (editAvatarPreview) editAvatarPreview.src = result.dataUrl;
+        if (editAvatarBadge) editAvatarBadge.classList.remove('hidden');
+        editCameraBox.classList.add('hidden');
+      } catch (err) {
+        alert('Error al capturar foto: ' + err.message);
+      }
+    });
+  }
+
+  if (btnEditCancelarCamara && editVideoEl && editCameraBox) {
+    btnEditCancelarCamara.addEventListener('click', () => {
+      cameraService.stopCamera(editVideoEl);
+      editCameraBox.classList.add('hidden');
+    });
+  }
+
+  if (btnEditSubirArchivo && editFileInput) {
+    btnEditSubirArchivo.addEventListener('click', () => editFileInput.click());
+  }
+
+  if (editFileInput) {
+    editFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        try {
+          const result = await cameraService.processImageFile(file);
+          editBarbPhotoBase64 = result.dataUrl;
+          if (editAvatarPreview) editAvatarPreview.src = result.dataUrl;
+          if (editAvatarBadge) editAvatarBadge.classList.remove('hidden');
+        } catch (err) {
+          alert('Error al procesar archivo: ' + err.message);
+        }
+      }
+    });
+  }
+
+  // 4.2. Guardar Edición de Ficha del Barbero
   const formEditar = document.getElementById('form-editar-barbero');
   if (formEditar) {
     formEditar.addEventListener('submit', async (e) => {
@@ -947,13 +1172,29 @@ export function attachBarberosListeners(onDataChange) {
       const telefono = document.getElementById('edit-barb-telefono')?.value.trim();
       const sillon = document.getElementById('edit-barb-sillon')?.value;
       const porcentajeComision = Number(document.getElementById('edit-barb-comision')?.value);
-      const fotoUrl = document.getElementById('edit-barb-foto')?.value.trim();
+      let fotoUrl = document.getElementById('edit-barb-foto')?.value.trim() || null;
       const biografiaBreve = document.getElementById('edit-barb-bio')?.value.trim();
 
       const btn = document.getElementById('btn-guardar-ficha-barbero');
       if (btn) btn.disabled = true;
 
       try {
+        if (editBarbPhotoBase64) {
+          btn.innerHTML = `
+            <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+            <span>Subiendo Fotografía...</span>
+          `;
+          const uploadRes = await barberosService.subirFoto(editBarbPhotoBase64);
+          if (uploadRes?.data?.fotoUrl) {
+            fotoUrl = uploadRes.data.fotoUrl;
+          }
+        }
+
+        btn.innerHTML = `
+          <span class="material-symbols-outlined text-[18px] animate-spin">refresh</span>
+          <span>Guardando Ficha...</span>
+        `;
+
         await barberosService.actualizarBarbero(selectedBarberId, {
           nombreCompleto,
           nombrePublico,
@@ -970,7 +1211,13 @@ export function attachBarberosListeners(onDataChange) {
       } catch (err) {
         alert('Error al actualizar barbero: ' + err.message);
       } finally {
-        if (btn) btn.disabled = false;
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = `
+            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span>Guardar Cambios de la Ficha</span>
+          `;
+        }
       }
     });
   }
@@ -1073,43 +1320,158 @@ export function attachBarberosListeners(onDataChange) {
     });
   }
 
-  // 7. Modal + Nuevo Barbero
+  // 7. Modal + Nuevo Barbero (CU-009 con Cámara WebRTC)
   const dialogNuevo = document.getElementById('dialog-nuevo-barbero');
   const openNuevoBtn = document.getElementById('btn-open-nuevo-barbero');
   const closeNuevoBtn = document.getElementById('btn-close-nuevo-barbero');
   const cancelNuevoBtn = document.getElementById('btn-cancelar-nuevo-barbero');
   const formNuevo = document.getElementById('form-nuevo-barbero');
 
+  // Controles de foto y cámara para nuevo barbero
+  const btnNewUsarCamara = document.getElementById('btn-new-barb-usar-camara');
+  const newCameraBox = document.getElementById('new-barb-camera-box');
+  const newVideoEl = document.getElementById('new-barb-video');
+  const btnNewCapturar = document.getElementById('btn-new-barb-capturar-foto');
+  const btnNewCancelarCamara = document.getElementById('btn-new-barb-cancelar-camara');
+  const newAvatarPreview = document.getElementById('new-barb-avatar-preview');
+  const newAvatarBadge = document.getElementById('new-barb-avatar-badge');
+  const newFileInput = document.getElementById('new-barb-file-input');
+  const btnNewSubirArchivo = document.getElementById('btn-new-barb-subir-archivo');
+  const btnNewQuitarFoto = document.getElementById('btn-new-barb-quitar-foto');
+
+  const resetNuevoBarberoFoto = () => {
+    newBarbPhotoBase64 = null;
+    if (newAvatarPreview) {
+      newAvatarPreview.src = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
+    }
+    if (newAvatarBadge) newAvatarBadge.classList.add('hidden');
+    if (btnNewQuitarFoto) btnNewQuitarFoto.classList.add('hidden');
+    if (newCameraBox) newCameraBox.classList.add('hidden');
+    if (newFileInput) newFileInput.value = '';
+    cameraService.stopAllCameras();
+  };
+
   if (openNuevoBtn && dialogNuevo) {
-    openNuevoBtn.addEventListener('click', () => dialogNuevo.showModal());
+    openNuevoBtn.addEventListener('click', () => {
+      resetNuevoBarberoFoto();
+      dialogNuevo.showModal();
+    });
   }
 
   const closeDialogNuevo = () => {
+    cameraService.stopAllCameras();
     if (dialogNuevo) dialogNuevo.close();
   };
   if (closeNuevoBtn) closeNuevoBtn.addEventListener('click', closeDialogNuevo);
   if (cancelNuevoBtn) cancelNuevoBtn.addEventListener('click', closeDialogNuevo);
+  if (dialogNuevo) dialogNuevo.addEventListener('close', () => cameraService.stopAllCameras());
+
+  if (btnNewUsarCamara && newVideoEl && newCameraBox) {
+    btnNewUsarCamara.addEventListener('click', async () => {
+      try {
+        await cameraService.startCamera(newVideoEl);
+        newCameraBox.classList.remove('hidden');
+      } catch (err) {
+        alert(err.message);
+        if (newFileInput) newFileInput.click();
+      }
+    });
+  }
+
+  if (btnNewCapturar && newVideoEl && newCameraBox) {
+    btnNewCapturar.addEventListener('click', () => {
+      try {
+        const result = cameraService.capturePhoto(newVideoEl);
+        newBarbPhotoBase64 = result.dataUrl;
+        if (newAvatarPreview) newAvatarPreview.src = result.dataUrl;
+        if (newAvatarBadge) newAvatarBadge.classList.remove('hidden');
+        if (btnNewQuitarFoto) btnNewQuitarFoto.classList.remove('hidden');
+        newCameraBox.classList.add('hidden');
+      } catch (err) {
+        alert('Error al capturar foto: ' + err.message);
+      }
+    });
+  }
+
+  if (btnNewCancelarCamara && newVideoEl && newCameraBox) {
+    btnNewCancelarCamara.addEventListener('click', () => {
+      cameraService.stopCamera(newVideoEl);
+      newCameraBox.classList.add('hidden');
+    });
+  }
+
+  if (btnNewSubirArchivo && newFileInput) {
+    btnNewSubirArchivo.addEventListener('click', () => newFileInput.click());
+  }
+
+  if (btnNewQuitarFoto) {
+    btnNewQuitarFoto.addEventListener('click', () => resetNuevoBarberoFoto());
+  }
+
+  if (newFileInput) {
+    newFileInput.addEventListener('change', async (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        try {
+          const result = await cameraService.processImageFile(file);
+          newBarbPhotoBase64 = result.dataUrl;
+          if (newAvatarPreview) newAvatarPreview.src = result.dataUrl;
+          if (newAvatarBadge) newAvatarBadge.classList.remove('hidden');
+          if (btnNewQuitarFoto) btnNewQuitarFoto.classList.remove('hidden');
+        } catch (err) {
+          alert('Error al procesar archivo: ' + err.message);
+        }
+      }
+    });
+  }
 
   if (formNuevo) {
     formNuevo.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const nombre = document.getElementById('new-barb-name')?.value.trim();
-      const email = document.getElementById('new-barb-email')?.value.trim();
+      const nombreCompleto = document.getElementById('new-barb-name')?.value.trim();
+      const nombrePublico = document.getElementById('new-barb-nombre-publico')?.value.trim();
+      const correo = document.getElementById('new-barb-email')?.value.trim();
       const telefono = document.getElementById('new-barb-phone')?.value.trim();
       const sillon = document.getElementById('new-barb-sillon')?.value;
-      const comisionPorcentaje = document.getElementById('new-barb-comision')?.value;
-      const especialidad = document.getElementById('new-barb-especialidad')?.value.trim();
+      const porcentajeComision = Number(document.getElementById('new-barb-comision')?.value);
+      const biografiaBreve = document.getElementById('new-barb-especialidad')?.value.trim();
       const crearUsuario = document.getElementById('new-barb-crear-usuario')?.checked ?? true;
       const contrasenaInicial = document.getElementById('new-barb-pass')?.value || 'Barbero2026*';
 
+      const submitBtn = formNuevo.querySelector('button[type="submit"]');
+      if (submitBtn) submitBtn.disabled = true;
+
       try {
+        let fotoUrl = null;
+        if (newBarbPhotoBase64) {
+          if (submitBtn) {
+            submitBtn.innerHTML = `
+              <span class="material-symbols-outlined text-[16px] animate-spin">refresh</span>
+              <span>Subiendo Foto...</span>
+            `;
+          }
+          const uploadRes = await barberosService.subirFoto(newBarbPhotoBase64);
+          if (uploadRes?.data?.fotoUrl) {
+            fotoUrl = uploadRes.data.fotoUrl;
+          }
+        }
+
+        if (submitBtn) {
+          submitBtn.innerHTML = `
+            <span class="material-symbols-outlined text-[16px] animate-spin">refresh</span>
+            <span>Creando Barbero...</span>
+          `;
+        }
+
         const res = await barberosService.crearBarbero({
-          nombre,
-          email,
+          nombreCompleto,
+          nombrePublico: nombrePublico || nombreCompleto,
+          correo,
           telefono,
           sillon,
-          comisionPorcentaje,
-          especialidad,
+          porcentajeComision,
+          biografiaBreve,
+          fotoUrl,
           crearUsuario,
           contrasenaInicial
         });
@@ -1117,11 +1479,17 @@ export function attachBarberosListeners(onDataChange) {
         if (res.ok) {
           selectedBarberId = res.data.id;
           closeDialogNuevo();
+          alert(`Barbero "${res.data.nombre}" registrado exitosamente.`);
           await loadBarberosData();
           if (typeof onDataChange === 'function') onDataChange();
         }
       } catch (err) {
         alert('Error al crear barbero: ' + err.message);
+      } finally {
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = 'Guardar Barbero';
+        }
       }
     });
   }

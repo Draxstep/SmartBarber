@@ -14,3 +14,4 @@ export * from './citas.service.js';
 export * from './cortes.service.js';
 export * from './inventario.service.js';
 export * from './auth.service.js';
+export * from './camera.service.js';

@@ -5,6 +5,19 @@
 import { z } from 'zod';
 import { EstadoRegistro } from '../../../../shared/contracts/enums.js';
 
+export const fotoUrlSchema = z.string().trim().max(1000000).refine((val) => {
+  if (!val) return true;
+  return (
+    /^https?:\/\//i.test(val) ||
+    val.startsWith('/uploads/') ||
+    val.startsWith('data:image/')
+  );
+}, { message: 'Formato de imagen o URL no válido' }).nullable().optional();
+
+export const uploadFotoSchema = z.object({
+  imagenBase64: z.string().min(1, 'La imagen en base64 es requerida')
+});
+
 export const createBarberoSchema = z.object({
   sedeId: z.string().uuid('ID de sede inválido'),
   usuarioId: z.string().uuid('ID de usuario inválido').nullable().optional(),
@@ -12,7 +25,7 @@ export const createBarberoSchema = z.object({
   nombrePublico: z.string().trim().max(80).nullable().optional(),
   telefono: z.string().trim().min(7, 'El teléfono debe tener al menos 7 caracteres').max(20),
   correo: z.string().trim().email('Correo electrónico inválido').max(150),
-  fotoUrl: z.string().url().nullable().optional(),
+  fotoUrl: fotoUrlSchema,
   biografiaBreve: z.string().trim().max(200).nullable().optional(),
   porcentajeComision: z.number().min(0).max(100).nullable().optional(),
   estado: z.enum([EstadoRegistro.ACTIVO, EstadoRegistro.INACTIVO]).default(EstadoRegistro.ACTIVO),
@@ -25,7 +38,7 @@ export const updateBarberoSchema = createBarberoSchema.partial();
 export const updateMiPerfilSchema = z.object({
   nombrePublico: z.string().trim().max(80).nullable().optional(),
   telefono: z.string().trim().min(7, 'El teléfono debe tener al menos 7 caracteres').max(20).optional(),
-  fotoUrl: z.string().url('URL de imagen inválida').nullable().optional(),
+  fotoUrl: fotoUrlSchema,
   biografiaBreve: z.string().trim().max(200).nullable().optional()
 });
 

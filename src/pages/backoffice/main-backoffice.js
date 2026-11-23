@@ -18,7 +18,7 @@ import { renderConfiguracionPage, attachConfiguracionListeners } from './configu
 import { renderPerfilPage, loadPerfilData, attachPerfilListeners } from './perfil.page.js';
 import { renderLoginPage, attachLoginListeners } from './login.page.js';
 import { renderForbiddenPage, renderNotFoundPage } from './error.page.js';
-import { authService, inventarioService, sedesService } from '../../services/index.js';
+import { authService, inventarioService, sedesService, cameraService } from '../../services/index.js';
 import { openDialog } from '../../components/ui-dialog.js';
 import { backofficeStore } from './backoffice-state.js';
 import { onDataMutation, AppEvent } from '../../utils/event-bus.js';
@@ -126,6 +126,11 @@ function getActiveRoute(user = null) {
 
 export async function renderBackoffice() {
   if (!appRoot) return;
+
+  // Liberación preventiva obligatoria de hardware (cámara) al navegar entre vistas
+  try {
+    cameraService.stopAllCameras();
+  } catch (_) {}
 
   // 1. Guard de Autenticación Estricto
   const currentUser = authService.getCurrentUser();
