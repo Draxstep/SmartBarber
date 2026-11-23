@@ -62,13 +62,15 @@ class BookingStateStore {
   }
 
   getInitialState() {
-    const today = new Date().toISOString().split('T')[0];
+    const nowUtc = new Date();
+    const nowBogota = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000);
+    const today = nowBogota.toISOString().slice(0, 10);
     return {
       currentStep: 1,
       selectedServiceIds: [],
       selectedBarberId: 'any',
       selectedDate: today,
-      selectedTime: '10:00',
+      selectedTime: null,
       customer: {
         nombre: '',
         telefono: '',
@@ -91,6 +93,11 @@ class BookingStateStore {
     this.save();
   }
 
+  clearTimeSelection() {
+    this.state.selectedTime = null;
+    this.save();
+  }
+
   toggleService(serviceId) {
     const idx = this.state.selectedServiceIds.indexOf(serviceId);
     if (idx > -1) {
@@ -100,17 +107,27 @@ class BookingStateStore {
     } else {
       this.state.selectedServiceIds.push(serviceId);
     }
+    // Si cambia la selección de servicios, la duración acumulada cambia -> invalidar horario
+    this.state.selectedTime = null;
     this.save();
   }
 
   setBarber(barberId) {
-    this.state.selectedBarberId = barberId;
-    this.save();
+    if (this.state.selectedBarberId !== barberId) {
+      this.state.selectedBarberId = barberId;
+      // Si cambia el barbero, la disponibilidad cambia -> invalidar horario
+      this.state.selectedTime = null;
+      this.save();
+    }
   }
 
   setDateTime(date, time) {
-    this.state.selectedDate = date;
-    this.state.selectedTime = time;
+    if (date && this.state.selectedDate !== date) {
+      this.state.selectedDate = date;
+      this.state.selectedTime = time ?? null;
+    } else if (time !== undefined) {
+      this.state.selectedTime = time;
+    }
     this.save();
   }
 
@@ -176,6 +193,19 @@ class BookingStateStore {
 
   getTotalBlocks() {
     return Math.ceil(this.getTotalDuration() / 30);
+  }
+
+  canProceedToStep(targetStep) {
+    if (targetStep === 2) {
+      return this.state.selectedServiceIds.length > 0;
+    }
+    if (targetStep === 3) {
+      return this.state.selectedServiceIds.length > 0 && !!this.state.selectedBarberId;
+    }
+    if (targetStep === 4) {
+      return this.state.selectedServiceIds.length > 0 && !!this.state.selectedDate && !!this.state.selectedTime;
+    }
+    return true;
   }
 }
 

@@ -12,7 +12,13 @@ import { renderBookingStep4, attachStep4Listeners } from './booking-step4.page.j
 import { renderBookingStep5, attachStep5Listeners } from './booking-step5.page.js';
 
 export function renderBookingWizard() {
-  const currentStep = bookingStore.state.currentStep;
+  let currentStep = bookingStore.state.currentStep;
+
+  // Guardia defensiva: Si se intenta ver paso 4 sin haber elegido fecha y hora válida, retornar a paso 3
+  if (currentStep === 4 && (!bookingStore.state.selectedTime || !bookingStore.state.selectedDate)) {
+    bookingStore.setStep(3);
+    currentStep = 3;
+  }
 
   let stepContent = '';
   switch (currentStep) {
@@ -83,6 +89,9 @@ export function attachWizardListeners(onStepChange) {
   }
 
   const navigateStep = (step) => {
+    if (step > bookingStore.state.currentStep && !bookingStore.canProceedToStep(step)) {
+      return;
+    }
     bookingStore.setStep(step);
     if (typeof onStepChange === 'function') {
       onStepChange();

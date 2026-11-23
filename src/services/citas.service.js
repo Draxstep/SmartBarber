@@ -30,7 +30,10 @@ export const citasService = {
     const response = await httpClient.get(`/public/disponibilidad?${query.toString()}`);
 
     if (response?.data) {
-      const { slotsDisponibles = [], porBarbero = {} } = response.data;
+      const slotsDisponibles = Array.isArray(response.data.horariosDisponibles)
+        ? response.data.horariosDisponibles
+        : (Array.isArray(response.data.slotsDisponibles) ? response.data.slotsDisponibles : []);
+      const porBarbero = response.data.porBarbero || {};
       const allSlots = [
         '08:00', '08:30', '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
         '12:00', '12:30', '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
@@ -53,6 +56,7 @@ export const citasService = {
         success: true,
         data: {
           ...response.data,
+          horariosDisponibles: slotsDisponibles,
           slotsDisponibles,
           porBarbero,
           slots

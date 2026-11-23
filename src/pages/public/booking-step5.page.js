@@ -8,7 +8,16 @@ import { bookingStore } from './booking-state.js';
 import { formatCOP, formatDurationBlocks } from '../../utils/formatters.js';
 
 export function renderBookingStep5() {
-  const booking = bookingStore.state.confirmedBooking || bookingStore.confirmBooking();
+  const booking = bookingStore.state.confirmedBooking || {
+    codigo: 'SB-PENDIENTE',
+    fecha: bookingStore.state.selectedDate,
+    hora: bookingStore.state.selectedTime || '',
+    servicios: bookingStore.getSelectedServices(),
+    barbero: bookingStore.getSelectedBarber() || { nombre: 'Barbero Asignado' },
+    cliente: bookingStore.state.customer,
+    totalCOP: bookingStore.getTotalPrice(),
+    duracionMinutos: bookingStore.getTotalDuration()
+  };
 
   return `
     <div class="flex flex-col gap-6">
