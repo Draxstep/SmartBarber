@@ -79,8 +79,8 @@ export function renderBookingWizard() {
       <!-- STEPPER HORIZONTAL -->
       ${renderBookingStepper(currentStep)}
 
-      <!-- CONTENEDOR CENTRAL DEL PASO ACTUAL (scroll-mt-32 para compensar header sticky de 118px) -->
-      <main class="max-w-[680px] mx-auto w-full px-4 pt-6 pb-8 scroll-mt-32" id="wizard-step-container">
+      <!-- CONTENEDOR CENTRAL DEL PASO ACTUAL (scroll-mt-36 para compensar header sticky de 118px) -->
+      <main class="max-w-[680px] mx-auto w-full px-4 pt-8 sm:pt-10 pb-8 scroll-mt-36" id="wizard-step-container">
         ${stepContent}
       </main>
     </div>

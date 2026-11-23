@@ -42,6 +42,25 @@ export const serviciosService = {
    * En backoffice autenticado, consume /servicios.
    */
   async getServicios(filtros = {}) {
+    // Si no hay sesión autenticada (portal público), consultar directamente /public/info sin disparar 401
+    if (!httpClient.getToken()) {
+      try {
+        const pub = await sedesService.getPublicInfo();
+        if (pub?.data?.servicios && Array.isArray(pub.data.servicios)) {
+          let list = pub.data.servicios.map(normalizeServicio);
+          if (filtros.sort) {
+            if (filtros.sort === 'price-asc') list.sort((a, b) => a.precio - b.precio);
+            else if (filtros.sort === 'price-desc') list.sort((a, b) => b.precio - a.precio);
+            else if (filtros.sort === 'duration') list.sort((a, b) => b.duracionMinutos - a.duracionMinutos);
+            else list.sort((a, b) => a.orden - b.orden);
+          }
+          return { ok: true, success: true, data: list };
+        }
+      } catch (publicErr) {
+        console.warn('[ServiciosService] Fallback a /servicios tras error en /public/info:', publicErr.message);
+      }
+    }
+
     try {
       const query = new URLSearchParams();
       if (filtros.activo !== undefined && filtros.activo !== 'all') {

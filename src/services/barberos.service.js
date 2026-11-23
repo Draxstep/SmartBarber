@@ -47,6 +47,22 @@ export const barberosService = {
    * Si la sesión no está autenticada, consume /public/info.
    */
   async getBarberos() {
+    // Si no hay sesión autenticada (portal público), consultar directamente /public/info sin disparar 401
+    if (!httpClient.getToken()) {
+      try {
+        const pub = await sedesService.getPublicInfo();
+        if (pub?.data?.barberos && Array.isArray(pub.data.barberos)) {
+          return {
+            ok: true,
+            success: true,
+            data: pub.data.barberos.map((b, idx) => normalizeBarbero(b, idx))
+          };
+        }
+      } catch (publicErr) {
+        console.warn('[BarberosService] Fallback a /barberos tras error en /public/info:', publicErr.message);
+      }
+    }
+
     try {
       const response = await httpClient.get('/barberos');
       if (response?.data && Array.isArray(response.data)) {

@@ -153,7 +153,7 @@ async function runTests() {
         descripcionBreve: 'Corte con lavado y masaje capilar',
         precioCop: 45000,
         duracionBloques: 2,
-        visiblePublico: true,
+        visiblePublico: false,
         estado: 'activo'
       }
     });
@@ -162,6 +162,16 @@ async function runTests() {
       'CU-014: Crear servicio con duración de 2 bloques (60 min) y precio en COP',
       resCreateServicio.status === 201 && resCreateServicio.data.data.precioCop === 45000
     );
+
+    // Limpieza/desactivación del servicio de prueba para no contaminar el catálogo
+    const createdServicioId = resCreateServicio.data?.data?.servicioId;
+    if (createdServicioId) {
+      await request(`/api/v1/servicios/${createdServicioId}/estado`, {
+        method: 'PATCH',
+        headers: authHeaders,
+        body: { estado: 'inactivo' }
+      });
+    }
 
     // --------------------------------------------------------------------------
     // 5. Módulo 2: Barberos y Horarios (CU-009, CU-011, CU-012, CU-013)
@@ -433,6 +443,15 @@ async function runTests() {
       resKardex.status === 200 && resKardex.data.data.length >= 3,
       `Movimientos registrados: ${resKardex.data.data.length}`
     );
+
+    // Desactivar producto de prueba para no contaminar inventario activo
+    if (testProductoId) {
+      await request(`/api/v1/inventario/${testProductoId}`, {
+        method: 'PUT',
+        headers: authHeaders,
+        body: { estado: 'inactivo' }
+      });
+    }
 
     const resLiquidacion = await request('/api/v1/barberos/liquidaciones?formato=csv', { headers: authHeaders });
     logTest(

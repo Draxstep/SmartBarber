@@ -68,7 +68,7 @@ export function renderBookingStep3() {
     : 'Pendiente de selección';
 
   return `
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-6 pt-2 sm:pt-4">
       <div class="flex flex-col gap-1">
         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C] scroll-mt-32">
           3. Elige el Día y la Hora
@@ -264,7 +264,7 @@ export function attachStep3Listeners(onNavigate) {
 
     const date = bookingStore.state.selectedDate;
     const barber = bookingStore.getSelectedBarber();
-    const barberId = barber?.id === 'any' ? null : barber?.id;
+    const barberoId = barber?.id === 'any' ? null : barber?.id;
     const blocks = bookingStore.getTotalBlocks();
     const serviceIds = (bookingStore.state.selectedServiceIds || []).filter(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id));
 
@@ -384,6 +384,7 @@ export function attachStep3Listeners(onNavigate) {
         if (statusText) statusText.textContent = 'Horarios actualizados';
       }
     } catch (err) {
+      console.error('[BookingStep3] Error al cargar disponibilidad:', err);
       if (statusText) statusText.textContent = 'No fue posible consultar turnos';
       container.innerHTML = `
         <div class="col-span-full py-6 px-4 bg-[#FCE8E6] rounded-xl border border-[#B3261E]/30 text-center flex flex-col items-center gap-2">
