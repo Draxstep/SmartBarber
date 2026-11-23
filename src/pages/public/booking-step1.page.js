@@ -17,13 +17,10 @@ export function renderBookingStep1() {
 
   return `
     <div class="flex flex-col gap-6">
-      <div class="flex flex-col gap-1">
+      <div>
         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C]">
           1. Selecciona uno o varios servicios
         </h2>
-        <p class="font-sans text-xs sm:text-sm text-[#4F4A42]">
-          Puedes combinar varios servicios en una sola visita. El tiempo total y los bloques de 30 minutos se calcularán automáticamente.
-        </p>
       </div>
 
       <!-- LISTA DE SERVICIOS -->

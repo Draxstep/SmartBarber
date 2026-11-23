@@ -43,9 +43,6 @@ export function renderInventoryPage() {
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Inventario de Productos & Kardex
             </h1>
-            <p class="font-sans text-xs sm:text-sm text-[#6B645A] mt-0.5">
-              Control de existencias físicas en sede, alertas de reposición y movimientos de bodega
-            </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
@@ -287,7 +284,6 @@ export function renderInventoryPage() {
             </div>
             <div>
               <h2 class="font-serif text-xl font-bold text-[#1C1C1C]">Historial de Movimientos (Kardex)</h2>
-              <p class="text-xs text-[#6B645A]">Bitácora inmutable de ingresos, salidas por venta y consumos en sillón</p>
             </div>
           </div>
           <button type="button" id="btn-close-kardex-modal" class="text-[#6B645A] hover:text-[#1C1C1C] p-1">
@@ -502,7 +498,6 @@ function openStockEntryModal(onUpdate, defaultSku = '') {
 
   openDialog({
     title: '+ Registrar Entrada de Stock (Kardex)',
-    subtitle: 'Recepción de pedido o reposición física en bodega.',
     contentHtml: `
       <form id="form-stock-entry" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
@@ -560,7 +555,6 @@ function openStockExitModal(onUpdate, defaultSku = '') {
 
   openDialog({
     title: '- Registrar Salida de Stock (Kardex)',
-    subtitle: 'Venta directa en mostrador o consumo interno en cabina.',
     contentHtml: `
       <form id="form-stock-exit" class="flex flex-col gap-4">
         <div class="flex flex-col gap-1">
@@ -615,7 +609,6 @@ function openStockExitModal(onUpdate, defaultSku = '') {
 function openNuevoProductoModal(onUpdate) {
   openDialog({
     title: '+ Registrar Nuevo Producto',
-    subtitle: 'Creación de referencia en catálogo físico de bodega.',
     contentHtml: `
       <form id="form-nuevo-producto" class="flex flex-col gap-3 text-xs">
         <div class="flex flex-col gap-1">

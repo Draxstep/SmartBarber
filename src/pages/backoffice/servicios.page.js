@@ -265,7 +265,6 @@ export function renderServiciosPage() {
             </div>
             <div>
               <h3 class="font-serif text-lg font-bold text-[#1C1C1C]" id="modal-service-title">Nuevo Servicio</h3>
-              <p class="text-xs text-[#6B645A]">Definición de tarifa en COP y duración en bloques de 30 minutos</p>
             </div>
           </div>
           <button type="button" id="btn-close-service-modal" class="text-[#6B645A] hover:text-[#1C1C1C]">

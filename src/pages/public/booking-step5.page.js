@@ -22,7 +22,7 @@ export function renderBookingStep5() {
           Te Esperamos en SmartBarber
         </h2>
         <p class="font-sans text-xs sm:text-sm text-[#4F4A42] max-w-sm mt-1">
-          Hemos reservado tu turno con precisión de 30 minutos. Te recomendamos llegar 5 minutos antes.
+          Te recomendamos llegar 5 minutos antes a la sede.
         </p>
       </div>
 

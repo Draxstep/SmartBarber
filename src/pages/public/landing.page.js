@@ -109,9 +109,6 @@ export function renderLandingPage({ services = [], barbers = [], isLoading = fal
           <span class="font-sans text-xs uppercase tracking-widest text-[#8B1E1E] font-bold">Nuestra Carta</span>
           <h2 class="font-serif text-2xl sm:text-4xl font-bold text-[#1C1C1C] mt-1">Servicios & Tarifas</h2>
           <div class="double-rule-divider w-24 my-3"></div>
-          <p class="text-xs sm:text-sm text-[#4F4A42] max-w-md">
-            Tarifas fijas transparentes en pesos colombianos. Incluyen asesoría de corte personalizada.
-          </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-[800px] mx-auto">

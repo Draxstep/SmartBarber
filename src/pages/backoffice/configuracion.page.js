@@ -33,9 +33,6 @@ export function renderConfiguracionPage() {
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
             Configuración del Negocio
           </h1>
-          <p class="font-sans text-xs sm:text-sm text-[#4F4A42]">
-            Los cambios de sede se reflejan en el Portal Público en tiempo real (PWA).
-          </p>
         </div>
         <div class="flex items-center gap-2 self-start md:self-auto shrink-0 px-3 py-1.5 rounded-lg bg-[#E8DFCE] text-[#4F4A42] border border-[#D5CBB8] text-xs">
           <span class="material-symbols-outlined text-[16px]">store</span>
@@ -59,7 +56,6 @@ export function renderConfiguracionPage() {
             </div>
             <div>
               <h2 class="font-serif text-lg font-bold text-[#1C1C1C]">Información Pública de la Sede</h2>
-              <p class="text-xs text-[#6B645A]">Datos visibles en el Portal de Clientes y confirmaciones de citas.</p>
             </div>
           </div>
 
@@ -158,7 +154,6 @@ export function renderConfiguracionPage() {
               </div>
               <div>
                 <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Reglas de Agendamiento</h3>
-                <p class="text-xs text-[#6B645A]">Parámetros estrictos de atención</p>
               </div>
             </div>
 

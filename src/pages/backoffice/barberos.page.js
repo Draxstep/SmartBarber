@@ -77,9 +77,6 @@ export function renderBarberosPage() {
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Equipo de Barberos
             </h1>
-            <p class="font-sans text-xs sm:text-sm text-[#4F4A42] mt-0.5 max-w-3xl">
-              Gestión de perfiles, esquemas de comisión y plantillas de disponibilidad semanal en bloques de 30 minutos.
-            </p>
           </div>
 
           <div class="flex items-center gap-2.5 shrink-0">
@@ -305,7 +302,6 @@ export function renderBarberosPage() {
             </div>
             <div>
               <h3 class="font-serif text-lg font-bold text-[#1C1C1C]">Registrar Nuevo Barbero</h3>
-              <p class="text-xs text-[#6B645A]">Alta de personal con asignación de sillón y horario</p>
             </div>
           </div>
           <button type="button" id="btn-close-nuevo-barbero" class="text-[#6B645A] hover:text-[#1C1C1C]">
@@ -424,7 +420,6 @@ export function renderBarberosPage() {
             </div>
             <div>
               <h3 class="font-serif text-lg font-bold text-[#1C1C1C]">Bloqueo de Franja de Agenda</h3>
-              <p class="text-xs text-[#6B645A]">Inhabilita turnos sin afectar la plantilla semanal</p>
             </div>
           </div>
           <button type="button" id="btn-close-nuevo-bloqueo" class="text-[#6B645A] hover:text-[#1C1C1C]">
@@ -631,7 +626,6 @@ function renderBloqueosTab() {
       <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Excepciones y Bloqueos de Agenda</h3>
-          <p class="text-xs text-[#6B645A]">Franjas inhabilitadas puntuales sin alterar la disponibilidad regular.</p>
         </div>
         <button
           type="button"

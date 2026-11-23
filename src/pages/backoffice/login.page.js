@@ -69,9 +69,6 @@ export function renderLoginPage({ error = '' } = {}) {
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Iniciar Sesión
             </h1>
-            <p class="font-sans text-xs text-[#6B645A]">
-              Ingresa tus credenciales autorizadas para acceder a la agenda, caja e inventario.
-            </p>
           </div>
 
           <!-- Banner de Error si aplica -->

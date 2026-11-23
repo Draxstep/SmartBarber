@@ -75,9 +75,6 @@ export function renderComisionesPage() {
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
             Liquidación de Comisiones
           </h1>
-          <p class="font-sans text-xs sm:text-sm text-[#4F4A42] max-w-2xl">
-            Cálculo y auditoría de comisiones por servicios prestados en base a cortes activos y porcentajes vigentes.
-          </p>
         </div>
 
         <!-- Botones de Acción -->

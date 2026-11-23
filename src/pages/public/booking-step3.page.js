@@ -70,7 +70,7 @@ export function renderBookingStep3() {
           3. Elige el Día y la Hora
         </h2>
         <p class="font-sans text-xs sm:text-sm text-[#4F4A42]">
-          Duración requerida: <strong>${formatDurationBlocks(totalDuration)}</strong> (bloques de 30 min).
+          Duración total: <strong>${formatDurationBlocks(totalDuration)}</strong>
         </p>
       </div>
 

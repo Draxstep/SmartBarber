@@ -19,9 +19,10 @@ export function renderBookingStep4() {
         <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C]">
           4. Datos de Contacto & Reserva
         </h2>
-        <p class="font-sans text-xs sm:text-sm text-[#4F4A42]">
-          No requerimos tarjetas de crédito ni contraseñas. Pagas directamente en la barbería tras finalizar tu servicio.
-        </p>
+        <span class="inline-flex items-center gap-1.5 text-xs text-[#235D3A] font-semibold w-fit">
+          <span class="material-symbols-outlined text-[16px]">check_circle</span>
+          <span>Pago presencial en sede al finalizar tu atención</span>
+        </span>
       </div>
 
       <!-- FORMULARIO DE CLIENTE -->

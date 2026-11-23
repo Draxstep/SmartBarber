@@ -71,9 +71,6 @@ export function renderCortesPage() {
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight mt-0.5">
             Cortes y Caja Diaria
           </h1>
-          <p class="font-sans text-xs sm:text-sm text-[#4F4A42] max-w-2xl mt-0.5">
-            Liquidación operativa, auditoría fiscal y registro directo de clientes en sillón (UTC-5 Bogotá).
-          </p>
         </div>
 
         <!-- Botones de Acción -->
@@ -424,17 +421,6 @@ export function renderCortesPage() {
           <span class="font-mono text-[11px] text-[#6B645A]">SmartBarber POS v2.0 · Arqueo Inmutable</span>
         </div>
       </section>
-
-      <!-- NOTA DE AUDITORÍA Y CUMPLIMIENTO FISCAL -->
-      <section class="bg-[#FAF3E5] border border-[#D5CBB8] rounded-xl p-4 flex items-start gap-3 text-xs text-[#4F4A42]">
-        <span class="material-symbols-outlined text-[#1F3A5F] text-[22px] shrink-0 mt-0.5">policy</span>
-        <div class="flex flex-col gap-1">
-          <strong class="font-semibold text-[#1C1C1C]">Auditoría Fiscal & Bitácora Inmutable (SmartBarber POS)</strong>
-          <p class="leading-relaxed">
-            De acuerdo con la normatividad contable y el régimen de facturación local, ningún registro cobrado puede ser eliminado físicamente de la base de datos. Las anulaciones quedan registradas con huella del usuario administrador, hora exacta y justificación operativa obligatoria. Los valores anulados se excluyen de la liquidación de comisiones de barberos y del arqueo total.
-          </p>
-        </div>
-      </section>
     </div>
 
     <!-- ========================================== -->
@@ -457,7 +443,6 @@ export function renderCortesPage() {
             </div>
             <div>
               <h2 class="font-serif text-lg font-bold text-white tracking-tight leading-tight">Registrar Corte (Walk-in)</h2>
-              <p class="font-sans text-[11px] text-[#BDB4A5]">Atención espontánea sin cita previa</p>
             </div>
           </div>
           <button
@@ -654,7 +639,9 @@ export function renderCortesPage() {
           </div>
           <div>
             <h3 class="font-serif text-lg font-bold text-[#1C1C1C]">Anular Registro de Corte</h3>
-            <p class="font-sans text-xs text-[#6B645A] mt-0.5">Acción no destructiva · Excluye del arqueo y comisiones</p>
+            <span class="inline-block text-[11px] font-semibold text-[#B3261E] bg-[#FCE8E6] px-2 py-0.5 rounded mt-0.5">
+              Excluye del arqueo y liquidación de comisiones
+            </span>
           </div>
         </div>
 

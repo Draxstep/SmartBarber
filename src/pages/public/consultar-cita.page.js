@@ -38,9 +38,6 @@ export function renderConsultarCitaPage() {
               <span class="material-symbols-outlined text-[24px]">manage_search</span>
             </div>
             <h1 class="font-serif text-2xl font-bold text-[#1C1C1C]">Consultar o Gestionar mi Cita</h1>
-            <p class="text-xs text-[#6B645A]">
-              Ingresa el código oficial de tu cita (ej. SB-00124) para consultar el estado o cancelarla.
-            </p>
           </div>
 
           <!-- Formulario de Consulta -->

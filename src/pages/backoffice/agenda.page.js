@@ -49,9 +49,6 @@ export function renderAgendaPage() {
               ${role === 'admin' ? 'Vista Administrador' : 'Vista Barbero'}
             </span>
           </div>
-          <p class="font-sans text-xs sm:text-sm text-[#6B645A] mt-0.5">
-            ${role === 'admin' ? 'Supervisión de 3 sillones activos en sede · Tiempo real' : 'Mi agenda de turnos asignados · Sillón 1 (Mateo Restrepo)'}
-          </p>
         </div>
 
         <div class="flex flex-wrap items-center gap-3">
@@ -139,7 +136,6 @@ export function renderAgendaPage() {
               ${role === 'admin' ? 'Línea de Tiempo Operativa (3 Sillones)' : 'Mi Sillón de Trabajo · Sillón 1'}
             </h2>
           </div>
-          <span class="font-mono text-xs text-[#6B645A]">Escala: 30 min = 48px · Multi-bloque proporcional</span>
         </div>
 
         <!-- SILLONES HEADER -->
@@ -359,7 +355,6 @@ export function attachAgendaListeners(onUpdate) {
           btnCancel.addEventListener('click', () => {
             openDialog({
               title: `¿Anular Cita ${apt.id}?`,
-              subtitle: 'El bloque será liberado para otros turnos.',
               contentHtml: `<p class="text-xs text-[#B3261E]">Esta acción cancela la cita de ${apt.clientName}.</p>`,
               confirmText: 'Sí, Anular',
               confirmVariant: 'danger',
@@ -394,7 +389,6 @@ export function attachAgendaListeners(onUpdate) {
 function openWalkinModal(onUpdate, defaultChair = 0) {
   openDialog({
     title: '+ Registrar Corte Walk-in (Mostrador)',
-    subtitle: 'Registro inmediato sin cita previa en <= 4 clics.',
     contentHtml: `
       <form id="form-walkin" class="flex flex-col gap-4">
         <!-- 1. Sillón / Barbero -->
