@@ -119,7 +119,10 @@ function renderWithLayout(activeRoute, user, contentHtml) {
   const roleDisplay = user.rol === 'administrador' ? 'Administrador' : 'Barbero';
 
   appRoot.innerHTML = `
-    <div class="min-h-screen bg-[#F2EBDD] flex">
+    <div class="min-h-screen bg-[#F2EBDD] flex relative">
+      <!-- Sidebar Backdrop para Móvil -->
+      <div id="sidebar-backdrop" class="fixed inset-0 bg-black/60 z-40 hidden lg:hidden backdrop-blur-xs transition-opacity" aria-hidden="true"></div>
+
       <!-- Sidebar -->
       ${renderBackofficeSidebar({
         activeRoute,
@@ -128,7 +131,7 @@ function renderWithLayout(activeRoute, user, contentHtml) {
       })}
 
       <!-- Main Panel Wrapper -->
-      <div class="flex-1 flex flex-col lg:pl-[240px] min-w-0">
+      <div class="flex-1 flex flex-col lg:pl-[240px] min-w-0 min-h-screen">
         <!-- Header -->
         ${renderBackofficeHeader({
           sedeName: sedeActivaNombre,
@@ -139,8 +142,8 @@ function renderWithLayout(activeRoute, user, contentHtml) {
           notificationCount: totalAlertasInventario
         })}
 
-        <!-- Main Content (Padding top compensa header h-16) -->
-        <main class="flex-1 pt-20 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+        <!-- Main Content -->
+        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           ${contentHtml}
         </main>
       </div>
@@ -282,13 +285,40 @@ function abrirDrawerConflictos(conflictos) {
 }
 
 function attachBackofficeCommonListeners() {
-  // Mobile sidebar toggle
+  // Mobile sidebar toggle & backdrop
   const toggleBtn = document.getElementById('btn-toggle-sidebar');
+  const closeSidebarBtn = document.getElementById('btn-close-sidebar-mobile');
   const sidebar = document.getElementById('backoffice-sidebar');
-  if (toggleBtn && sidebar) {
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('hidden');
-      sidebar.classList.toggle('flex');
+  const backdrop = document.getElementById('sidebar-backdrop');
+
+  const openSidebar = () => {
+    if (sidebar) {
+      sidebar.classList.remove('hidden');
+      sidebar.classList.add('flex');
+    }
+    if (backdrop) backdrop.classList.remove('hidden');
+  };
+
+  const closeSidebar = () => {
+    if (sidebar) {
+      sidebar.classList.add('hidden');
+      sidebar.classList.remove('flex');
+    }
+    if (backdrop) backdrop.classList.add('hidden');
+  };
+
+  if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+  if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', closeSidebar);
+  if (backdrop) backdrop.addEventListener('click', closeSidebar);
+
+  // Cerrar sidebar al hacer clic en un enlace de navegación en móvil
+  if (sidebar) {
+    sidebar.querySelectorAll('a[data-route]').forEach((link) => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth < 1024) {
+          closeSidebar();
+        }
+      });
     });
   }
 

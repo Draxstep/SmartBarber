@@ -19,7 +19,7 @@ export function renderBackofficeHeader({
     : 'bg-[#F2EBDD] text-[#8B1E1E] border-[#8B1E1E]/30';
 
   return `
-    <header class="fixed top-0 left-0 lg:left-[240px] right-0 h-16 bg-[#F2EBDD]/90 backdrop-blur-md border-b border-[#D5CBB8] shadow-[0_1px_4px_rgba(28,28,28,0.05)] z-40 flex items-center justify-between px-4 sm:px-6">
+    <header class="sticky top-0 z-30 h-16 w-full bg-[#F2EBDD]/95 backdrop-blur-md border-b border-[#D5CBB8] shadow-[0_1px_4px_rgba(28,28,28,0.05)] flex items-center justify-between px-4 sm:px-6 shrink-0">
       <!-- Sede Activa e Indicador PWA Offline -->
       <div class="flex items-center gap-3">
         <!-- Mobile Sidebar Toggle -->

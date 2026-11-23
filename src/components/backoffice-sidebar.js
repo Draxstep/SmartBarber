@@ -67,12 +67,12 @@ export function renderBackofficeSidebar({
   return `
     <aside
       id="backoffice-sidebar"
-      class="fixed left-0 top-0 h-full w-[240px] bg-[#1C1C1C] z-50 flex flex-col justify-between select-none shadow-[2px_0_12px_rgba(0,0,0,0.25)]"
+      class="fixed left-0 top-0 h-full w-[240px] bg-[#1C1C1C] z-50 flex-col justify-between select-none shadow-[2px_0_12px_rgba(0,0,0,0.25)] hidden lg:flex"
       aria-label="Navegación principal Backoffice"
     >
       <div class="flex flex-col">
         <!-- Logo / Marca Heritage -->
-        <div class="pt-6 pb-6 px-5 border-b border-white/10">
+        <div class="pt-6 pb-6 px-5 border-b border-white/10 flex items-center justify-between">
           <a href="/backoffice.html#agenda" class="flex items-center gap-2.5 group">
             <div class="w-8 h-8 rounded-md bg-[#8B1E1E] flex items-center justify-center text-[#F2EBDD] font-bold shadow-xs">
               <span class="material-symbols-outlined text-[18px]">content_cut</span>
@@ -82,6 +82,14 @@ export function renderBackofficeSidebar({
               <span class="block font-sans text-[10px] text-[#BDB4A5] mt-1 uppercase tracking-wider font-semibold">Panel Administrativo</span>
             </div>
           </a>
+          <button
+            type="button"
+            id="btn-close-sidebar-mobile"
+            class="lg:hidden p-1 rounded-md text-[#BDB4A5] hover:text-[#F2EBDD] hover:bg-white/10 transition-colors min-h-[40px] min-w-[40px] flex items-center justify-center"
+            aria-label="Cerrar menú"
+          >
+            <span class="material-symbols-outlined text-[20px]">close</span>
+          </button>
         </div>
 
         <!-- Enlaces de Navegación -->
