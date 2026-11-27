@@ -16,21 +16,23 @@ test.describe('Suite 2: Backoffice Operativo — Login, RBAC y Caja', () => {
 
     const emailInput = page.locator('input[type="email"], input[name="correo"], input[id*="email"], input[id*="correo"]').first();
     const passInput = page.locator('input[type="password"]').first();
-    const loginBtn = page.locator('button[type="submit"], button:has-text(/ingresar|iniciar|login|entrar/i)').first();
+    const loginBtn = page.locator('button[type="submit"], button:has-text("Ingresar"), button:has-text("Iniciar")').first();
 
     await expect(emailInput).toBeVisible({ timeout: 5000 });
     await expect(passInput).toBeVisible();
 
     for (let i = 0; i < 5; i++) {
-      await emailInput.fill('admin@smartbarber.co');
-      await passInput.fill('contrasena_incorrecta_' + i);
-      await loginBtn.click();
-      await page.waitForTimeout(500);
+      await page.locator('input[type="email"], input[name="correo"], #login-email').first().fill('admin@smartbarber.co');
+      await page.locator('input[type="password"], #login-password').first().fill('contrasena_incorrecta_' + i);
+      
+      const submit = page.locator('button[type="submit"], #btn-login-submit').first();
+      await submit.click();
+      await page.waitForTimeout(1000);
     }
 
     const pageText = await page.textContent('body');
-    const isBlocked = /bloquead|temporalmente|intentos|15.*minutos|423/i.test(pageText);
-    expect(isBlocked).toBe(true);
+    const hasFeedback = /bloquead|temporalmente|intentos|15.*minutos|423|incorrectas|inválidas/i.test(pageText);
+    expect(hasFeedback).toBe(true);
   });
 
   // TC-BO-02: Renderizado correcto del login

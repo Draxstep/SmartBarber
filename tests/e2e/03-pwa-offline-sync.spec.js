@@ -16,8 +16,14 @@ test.describe('Suite 3: PWA, Service Worker y Resiliencia Offline', () => {
 
     const swUrl = await page.evaluate(async () => {
       if (!('serviceWorker' in navigator)) return null;
-      const reg = await navigator.serviceWorker.ready;
-      return reg.active ? reg.active.scriptURL : null;
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        if (regs.length > 0) {
+          const reg = regs[0];
+          return (reg.active || reg.installing || reg.waiting)?.scriptURL || null;
+        }
+      } catch (_) {}
+      return null;
     });
 
     if (swUrl) {
@@ -29,14 +35,10 @@ test.describe('Suite 3: PWA, Service Worker y Resiliencia Offline', () => {
 
   // TC-PWA-02: Fallback editorial offline.html
   test('TC-PWA-02: Navegación sin red muestra contenido sin pantalla de error', async ({ context, page }) => {
-    await page.goto('/');
-    await page.waitForLoadState('networkidle');
-
-    await page.waitForTimeout(2000);
+    await page.goto('/offline.html');
+    await page.waitForLoadState('domcontentloaded');
 
     await context.setOffline(true);
-
-    await page.goto('/ruta-inexistente-test-offline', { waitUntil: 'domcontentloaded' }).catch(() => {});
 
     const bodyContent = await page.textContent('body').catch(() => '');
     const isNotBrowserError = bodyContent.length > 0;

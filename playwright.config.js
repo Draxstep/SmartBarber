@@ -12,7 +12,7 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [
-    ['html', { outputFolder: 'tests/reports/playwright' }],
+    ['html', { outputFolder: 'playwright-report', open: 'never' }],
     ['list']
   ],
   timeout: 30000,
@@ -45,13 +45,16 @@ export default defineConfig({
       command: 'npm run dev:server',
       port: 3001,
       reuseExistingServer: !process.env.CI,
-      timeout: 15000
+      timeout: 60000
     },
     {
       command: 'npm run dev',
       port: 5173,
       reuseExistingServer: !process.env.CI,
-      timeout: 15000
+      timeout: 60000,
+      env: {
+        VITE_ENABLE_SW_DEV: 'true'
+      }
     }
   ]
 });

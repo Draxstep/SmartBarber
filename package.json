@@ -20,9 +20,13 @@
     "db:smoke": "node server/scripts/smoke-test.js",
     "db:health": "node server/scripts/health-check.js",
     "test:integration": "node server/scripts/integration-test.js",
-    "test:pwa": "node server/scripts/pwa-concurrency-test.js"
+    "test:pwa": "node server/scripts/pwa-concurrency-test.js",
+    "test:e2e": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "devDependencies": {
+    "@playwright/test": "^1.65.1",
     "@tailwindcss/container-queries": "^0.1.1",
     "@tailwindcss/forms": "^0.5.11",
     "@tailwindcss/vite": "^4.3.5",

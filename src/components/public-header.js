@@ -43,8 +43,8 @@ export function renderPublicHeader({ title = 'SmartBarber', subtitle = 'Tradici√
             <span class="material-symbols-outlined text-[18px]">admin_panel_settings</span>
             <span>Backoffice</span>
           </a>
-          <a href="${ctaHref}" class="inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-md bg-[#F2EBDD] hover:bg-white text-[#1C1C1C] font-semibold text-sm shadow-sm transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1F3A5F]">
-            <span class="material-symbols-outlined text-[18px] mr-1.5 text-[#8B1E1E]">event_available</span>
+          <a href="${ctaHref}" class="inline-flex items-center justify-center min-h-[44px] px-2.5 sm:px-4 py-2 rounded-md bg-[#F2EBDD] hover:bg-white text-[#1C1C1C] font-semibold text-xs sm:text-sm shadow-sm transition-all active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1F3A5F]">
+            <span class="material-symbols-outlined text-[18px] mr-1 text-[#8B1E1E]">event_available</span>
             <span>${ctaText}</span>
           </a>
         </div>

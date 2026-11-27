@@ -38,15 +38,15 @@ test.describe('Suite 1: Portal Público y Wizard de Agendamiento', () => {
     await ctaButton.click();
 
     // Esperar a que cargue la lista de servicios del Paso 1
-    const serviceItems = page.locator('[data-testid="service-item"], .service-item, [class*="servicio"]');
-    await expect(serviceItems.first()).toBeVisible({ timeout: 5000 });
+    const serviceItems = page.locator('.service-card, [data-service-id]');
+    await expect(serviceItems.first()).toBeVisible({ timeout: 10000 });
 
     // Seleccionar al menos un servicio (primer servicio disponible)
     await serviceItems.first().click();
 
     // Verificar que el botón "Continuar" se habilita
-    const continueBtn = page.locator('button:has-text(/continuar|siguiente/i)');
-    await expect(continueBtn).toBeEnabled({ timeout: 3000 });
+    const continueBtn = page.locator('#btn-step1-continue, button:has-text("Elegir Barbero"), button:has-text("Continuar")');
+    await expect(continueBtn).toBeEnabled({ timeout: 5000 });
   });
 
   // TC-PUB-04: Validación del formulario y Habeas Data (Ley 1581)
@@ -59,14 +59,25 @@ test.describe('Suite 1: Portal Público y Wizard de Agendamiento', () => {
   });
 
   // TC-PUB-05: Responsividad Mobile-First (360px a 1920px)
-  test('TC-PUB-05: La Landing Page no tiene scroll horizontal en móvil 360px (RF-AGE-01)', async ({ page }) => {
-    await page.setViewportSize({ width: 360, height: 640 });
+  test('TC-PUB-05: La Landing Page no tiene scroll horizontal en móvil (RF-AGE-01)', async ({ page, isMobile }) => {
+    if (!isMobile) {
+      await page.setViewportSize({ width: 360, height: 640 });
+    }
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    const hasHorizontalScroll = await page.evaluate(() => {
-      return document.documentElement.scrollWidth > document.documentElement.clientWidth;
+    const overflowElement = await page.evaluate(() => {
+      const all = document.querySelectorAll('*');
+      const overflowing = [];
+      for (const el of all) {
+        const rect = el.getBoundingClientRect();
+        if (rect.right > window.innerWidth + 2) {
+          overflowing.push({ tag: el.tagName, id: el.id, className: el.className, right: rect.right, width: rect.width });
+        }
+      }
+      return overflowing.slice(0, 5);
     });
-    expect(hasHorizontalScroll).toBe(false);
+    console.log('Overflowing elements on iOS:', overflowElement);
+    expect(overflowElement.length === 0).toBe(true);
   });
 });
