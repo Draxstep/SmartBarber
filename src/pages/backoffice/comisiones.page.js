@@ -6,8 +6,10 @@
  */
 
 import { cortesService, barberosService, authService } from '../../services/index.js';
-import { formatCOP, getTodayBogota } from '../../utils/formatters.js';
+import { formatCOP, formatDateRangeEsCO, formatPlural, getTodayBogota } from '../../utils/formatters.js';
 import { Capabilities, can, whenCan } from '../../utils/access-control.js';
+import { renderInfoNote } from '../../components/info-note.js';
+import { renderActionButton } from '../../components/action-button.js';
 
 let cachedLiquidacion = null;
 let cachedBarberos = [];
@@ -36,11 +38,7 @@ function computePeriodoRange(periodo = 'semana') {
 
   const fechaInicio = startDate.toISOString().split('T')[0];
   const fechaFin = todayStr;
-
-  const fmtOpts = { day: 'numeric', month: 'short' };
-  const label = fechaInicio === fechaFin
-    ? `Hoy · ${baseDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}`
-    : `${startDate.toLocaleDateString('es-CO', fmtOpts)} – ${baseDate.toLocaleDateString('es-CO', { ...fmtOpts, year: 'numeric' })}`;
+  const label = formatDateRangeEsCO(fechaInicio, fechaFin);
 
   return { fechaInicio, fechaFin, label };
 }
@@ -93,53 +91,78 @@ export function renderComisionesPage() {
     cortesDetalle: []
   };
 
-  const totalFacturado = data.totalRecaudado || 0;
-  const totalComisiones = data.comisionTotal || 0;
+  const cortesDetalle = data.cortesDetalle || [];
+  let totalCortes = Number(data.totalCortes || 0);
+  let totalFacturado = Number(data.totalRecaudado || 0);
+  let totalComisiones = Number(data.comisionTotal || 0);
+  let barberosResumen = Array.isArray(data.barberos) ? data.barberos : [];
+
+  // Única fuente de verdad: si el consolidado llegara desfasado frente al detalle activo, derivar con un único reduce()
+  if (cortesDetalle.length > 0 && (totalCortes === 0 || barberosResumen.length === 0)) {
+    const porBarbero = new Map();
+    for (const c of cortesDetalle) {
+      const monto = Number(c.precioCobradoCop ?? c.precio ?? 0);
+      const comision = Number(c.comisionCalculadaCop ?? c.comisionEstimada ?? 0);
+      totalCortes += 1;
+      totalFacturado += monto;
+      totalComisiones += comision;
+
+      const key = c.barberoId || c.barberoNombre || 'barbero';
+      if (!porBarbero.has(key)) {
+        porBarbero.set(key, {
+          barberoId: c.barberoId || key,
+          barberoNombre: c.barberoNombre || 'Barbero',
+          sillon: c.sillon || 'Sillón',
+          totalCortes: 0,
+          totalRecaudado: 0,
+          porcentajeComision: Number(c.porcentajeComisionSnapshot || 50),
+          comisionTotal: 0
+        });
+      }
+      const entry = porBarbero.get(key);
+      entry.totalCortes += 1;
+      entry.totalRecaudado += monto;
+      entry.comisionTotal += comision;
+    }
+    barberosResumen = Array.from(porBarbero.values());
+  }
+
   const margenSede = Math.max(0, totalFacturado - totalComisiones);
   const avgCommissionPct = totalFacturado > 0
     ? ((totalComisiones / totalFacturado) * 100).toFixed(1).replace(/\.0$/, '')
-    : (data.barberos?.[0]?.porcentajeComision || 50);
+    : (barberosResumen?.[0]?.porcentajeComision || 50);
 
   return `
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
-      <!-- TAG DISTINTIVO -->
-      <section class="flex justify-start sm:justify-end">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E8DFCE] text-[#4F4A42] rounded text-xs w-fit">
-          <span class="material-symbols-outlined text-[15px] text-[#6B645A]">balance</span>
-          <span>Liquidación Referencial · No constituye nómina electrónica DIAN</span>
-        </div>
-      </section>
-
       <!-- CABECERA PRINCIPAL CON ESTILO EDITORIAL -->
       <section class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-1">
         <div class="space-y-1">
           <div class="flex items-center gap-2.5">
             <span class="text-[#8B1E1E] font-mono text-xs font-bold uppercase tracking-wider">LIQ-${fechaInicio.replace(/-/g, '')}</span>
             <span class="w-1.5 h-1.5 rounded-full bg-[#8C8272]"></span>
-            <span class="text-[#6B645A] text-xs capitalize">${periodoLabel}</span>
+            <span class="text-[#57534E] text-xs">${periodoLabel}</span>
           </div>
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
             ${isBarbero ? 'Mis Comisiones Devengadas' : 'Liquidación de Comisiones'}
           </h1>
+          ${renderInfoNote({ text: 'Liquidación referencial para control operativo (no constituye nómina electrónica).' })}
         </div>
 
         <!-- Botones de Acción -->
         <div class="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-          <button
-            type="button"
-            id="btn-export-comisiones-csv"
-            class="min-h-[44px] px-4 rounded-lg bg-transparent text-[#1F3A5F] border-2 border-[#1F3A5F] font-sans font-semibold text-xs flex items-center gap-2 hover:bg-[#E4ECF5] transition-colors shadow-xs"
-          >
-            <span class="material-symbols-outlined text-[18px]">download</span>
-            <span>${canViewAll ? 'Exportar Liquidación (CSV)' : 'Exportar Mi Resumen (CSV)'}</span>
-          </button>
+          ${renderActionButton({
+            id: 'btn-export-comisiones-csv',
+            variant: 'outline',
+            icon: 'download',
+            label: canViewAll ? 'Exportar Liquidación (CSV)' : 'Exportar Mi Resumen (CSV)'
+          })}
           ${whenCan(Capabilities.COMMISSIONS_REPORT_PRINT, () => `
             <button
               type="button"
               onclick="window.print()"
-              class="min-h-[44px] px-4 rounded-lg bg-white border border-[#D5CBB8] text-[#1C1C1C] font-sans font-semibold text-xs flex items-center gap-2 hover:bg-[#FAF3E5] transition-colors shadow-xs"
+              class="touch-action min-h-[44px] px-4 rounded-lg bg-white border border-[#D5CBB8] text-[#1C1C1C] font-sans font-semibold text-xs flex items-center gap-2 hover:bg-[#FAF3E5] transition-colors shadow-xs"
             >
-              <span class="material-symbols-outlined text-[18px]">print</span>
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">print</span>
               <span>Imprimir Reporte</span>
             </button>
           `, '', user)}
@@ -152,8 +175,8 @@ export function renderComisionesPage() {
           <!-- Selector de Periodo y Chips -->
           <div class="flex flex-col sm:flex-row sm:items-center gap-3">
             <div class="flex items-center gap-2 bg-white border border-[#8C8272] px-3 py-2 rounded-lg text-xs">
-              <span class="material-symbols-outlined text-[#6B645A] text-[18px]">calendar_today</span>
-              <span class="font-semibold text-[#1C1C1C] capitalize">${periodoLabel}</span>
+              <span class="material-symbols-outlined text-[#57534E] text-[18px]" aria-hidden="true">calendar_today</span>
+              <span class="font-semibold text-[#1C1C1C]">${periodoLabel}</span>
             </div>
 
             <!-- Atajos tipo chip -->
@@ -222,17 +245,17 @@ export function renderComisionesPage() {
         <!-- KPI 1 -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">${isBarbero ? 'TOTAL FACTURADO POR MÍ' : 'TOTAL FACTURADO SERVICIOS'}</span>
+            <span class="font-sans text-xs font-bold text-[#57534E] uppercase tracking-wider">${isBarbero ? 'TOTAL FACTURADO POR MÍ' : 'TOTAL FACTURADO SERVICIOS'}</span>
             <div class="w-8 h-8 rounded-lg bg-[#E8DFCE] flex items-center justify-center text-[#4F4A42]">
-              <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">receipt_long</span>
             </div>
           </div>
           <div class="mt-3">
             <div class="font-mono text-2xl font-bold text-[#1C1C1C] tabular-nums">
-              ${formatCOP(totalFacturado)} <span class="text-xs font-normal text-[#6B645A]">COP</span>
+              ${formatCOP(totalFacturado)}
             </div>
             <p class="mt-1 text-xs text-[#4F4A42]">
-              Sobre <strong>${data.totalCortes} cortes activos</strong> auditados
+              Sobre <strong>${formatPlural(totalCortes, 'corte activo auditado', 'cortes activos auditados')}</strong>
             </p>
           </div>
         </div>
@@ -240,14 +263,14 @@ export function renderComisionesPage() {
         <!-- KPI 2 -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">${isBarbero ? 'MI COMISIÓN A LIQUIDAR' : 'COMISIONES REFERENCIALES'}</span>
+            <span class="font-sans text-xs font-bold text-[#57534E] uppercase tracking-wider">${isBarbero ? 'MI COMISIÓN A LIQUIDAR' : 'COMISIONES REFERENCIALES'}</span>
             <div class="w-8 h-8 rounded-lg bg-[#E4ECF5] flex items-center justify-center text-[#1F3A5F]">
-              <span class="material-symbols-outlined text-[18px]">percent</span>
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">percent</span>
             </div>
           </div>
           <div class="mt-3">
             <div class="font-mono text-2xl font-bold text-[#1F3A5F] tabular-nums">
-              ${formatCOP(totalComisiones)} <span class="text-xs font-normal text-[#6B645A]">COP</span>
+              ${formatCOP(totalComisiones)}
             </div>
             <p class="mt-1 text-xs text-[#4F4A42]">
               ${isBarbero ? `Esquema aplicado: ${avgCommissionPct}% sobre tus servicios` : `Tasa efectiva promedio: ${avgCommissionPct}%`}
@@ -259,14 +282,14 @@ export function renderComisionesPage() {
         <!-- KPI 3 (Exclusivo Administrador) -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
-            <span class="font-sans text-[11px] font-bold text-[#6B645A] uppercase tracking-wider">MARGEN BRUTO SEDE</span>
+            <span class="font-sans text-xs font-bold text-[#57534E] uppercase tracking-wider">MARGEN BRUTO SEDE</span>
             <div class="w-8 h-8 rounded-lg bg-[#E3EFE7] flex items-center justify-center text-[#235D3A]">
-              <span class="material-symbols-outlined text-[18px]">account_balance</span>
+              <span class="material-symbols-outlined text-[18px]" aria-hidden="true">account_balance</span>
             </div>
           </div>
           <div class="mt-3">
             <div class="font-mono text-2xl font-bold text-[#235D3A] tabular-nums">
-              ${formatCOP(margenSede)} <span class="text-xs font-normal text-[#6B645A]">COP</span>
+              ${formatCOP(margenSede)}
             </div>
             <p class="mt-1 text-xs text-[#4F4A42]">
               Fondo operativo y costos fijos de sede
@@ -281,13 +304,13 @@ export function renderComisionesPage() {
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="p-4 bg-[#E8DFCE]/60 border-b border-[#D5CBB8] flex items-center justify-between">
           <h2 class="font-serif text-base font-bold text-[#1C1C1C]">Consolidado por Barbero</h2>
-          <span class="text-xs font-mono text-[#6B645A] capitalize">${periodoLabel}</span>
+          <span class="text-xs font-mono text-[#57534E]">${periodoLabel}</span>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="responsive-table w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
+              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-xs uppercase tracking-wider">
                 <th class="py-3 px-4 font-semibold">Barbero</th>
                 <th class="py-3 px-4 font-semibold">Sillón Asignado</th>
                 <th class="py-3 px-4 font-semibold text-center">Cortes Atendidos</th>
@@ -297,32 +320,32 @@ export function renderComisionesPage() {
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/50 text-xs text-[#1C1C1C]">
-              ${data.barberos.length === 0 ? `
+              ${barberosResumen.length === 0 ? `
                 <tr>
-                  <td colspan="6" class="py-8 text-center text-[#6B645A]">
+                  <td colspan="6" class="py-8 text-center text-[#57534E]">
                     No se registran cortes finalizados para el periodo seleccionado.
                   </td>
                 </tr>
-              ` : data.barberos.map(b => `
+              ` : barberosResumen.map((b, idx) => `
                 <tr class="hover:bg-[#FAF3E5] transition-colors bg-white">
-                  <td class="py-3 px-4">
+                  <td data-label="Barbero" class="py-3 px-4">
                     <span class="font-sans font-bold text-xs text-[#1C1C1C]">${b.barberoNombre}</span>
                   </td>
-                  <td class="py-3 px-4">
-                    <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-[11px] font-semibold">
-                      ${b.sillon || 'Sillón'}
+                  <td data-label="Sillón" class="py-3 px-4">
+                    <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-xs font-semibold">
+                      ${b.sillon && b.sillon !== 'Sillón' ? b.sillon : `Sillón ${String(idx + 1).padStart(2, '0')}`}
                     </span>
                   </td>
-                  <td class="py-3 px-4 text-center font-mono font-semibold">
+                  <td data-label="Cortes" class="py-3 px-4 text-center font-mono font-semibold">
                     ${b.totalCortes}
                   </td>
-                  <td class="py-3 px-4 text-right font-mono font-semibold tabular-nums">
+                  <td data-label="Facturado" class="py-3 px-4 text-right font-mono font-semibold tabular-nums">
                     ${formatCOP(b.totalRecaudado)}
                   </td>
-                  <td class="py-3 px-4 text-center font-mono font-bold text-[#1F3A5F]">
+                  <td data-label="Comisión %" class="py-3 px-4 text-center font-mono font-bold text-[#1F3A5F]">
                     ${b.porcentajeComision || 50}%
                   </td>
-                  <td class="py-3 px-4 text-right font-mono font-bold text-[#1F3A5F] text-sm tabular-nums">
+                  <td data-label="A Pagar" class="py-3 px-4 text-right font-mono font-bold text-[#1F3A5F] text-sm tabular-nums">
                     ${formatCOP(b.comisionTotal)}
                   </td>
                 </tr>
@@ -331,10 +354,10 @@ export function renderComisionesPage() {
             <tfoot>
               <tr class="bg-[#E8DFCE] font-bold text-xs text-[#1C1C1C]">
                 <td colspan="2" class="py-3 px-4 uppercase font-semibold">TOTAL CONSOLIDADO</td>
-                <td class="py-3 px-4 text-center font-mono">${data.totalCortes}</td>
-                <td class="py-3 px-4 text-right font-mono">${formatCOP(totalFacturado)}</td>
-                <td class="py-3 px-4 text-center font-mono">${avgCommissionPct}%</td>
-                <td class="py-3 px-4 text-right font-mono text-sm text-[#1F3A5F]">${formatCOP(totalComisiones)}</td>
+                <td data-label="Total Cortes" class="py-3 px-4 text-center font-mono">${totalCortes}</td>
+                <td data-label="Total Facturado" class="py-3 px-4 text-right font-mono">${formatCOP(totalFacturado)}</td>
+                <td data-label="Promedio %" class="py-3 px-4 text-center font-mono">${avgCommissionPct}%</td>
+                <td data-label="Total Comisiones" class="py-3 px-4 text-right font-mono text-sm text-[#1F3A5F]">${formatCOP(totalComisiones)}</td>
               </tr>
             </tfoot>
           </table>
@@ -346,13 +369,13 @@ export function renderComisionesPage() {
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="p-4 bg-[#E8DFCE]/60 border-b border-[#D5CBB8] flex items-center justify-between">
           <h2 class="font-serif text-base font-bold text-[#1C1C1C]">${isBarbero ? 'Detalle de Mis Cortes Liquidados' : 'Detalle de Cortes Liquidados'}</h2>
-          <span class="text-xs text-[#6B645A]">Solo registros activos en periodo</span>
+          <span class="text-xs text-[#57534E]">Solo registros activos en periodo</span>
         </div>
 
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="responsive-table w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
+              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-xs uppercase tracking-wider">
                 <th class="py-3 px-4 font-semibold">ID / Hora</th>
                 ${canViewAll ? `<th class="py-3 px-4 font-semibold">Barbero</th>` : ''}
                 <th class="py-3 px-4 font-semibold">Servicio Prestado</th>
@@ -362,27 +385,27 @@ export function renderComisionesPage() {
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/50 text-xs text-[#1C1C1C]">
-              ${data.cortesDetalle.length === 0 ? `
+              ${cortesDetalle.length === 0 ? `
                 <tr>
-                  <td colspan="${canViewAll ? 6 : 5}" class="py-8 text-center text-[#6B645A]">
+                  <td colspan="${canViewAll ? 6 : 5}" class="py-8 text-center text-[#57534E]">
                     No se registran cortes liquidados en el periodo seleccionado.
                   </td>
                 </tr>
-              ` : data.cortesDetalle.map(c => `
+              ` : cortesDetalle.map(c => `
                 <tr class="hover:bg-[#FAF3E5] transition-colors bg-white">
-                  <td class="py-3 px-4">
+                  <td data-label="ID / Hora" class="py-3 px-4">
                     <span class="font-mono text-xs font-bold text-[#1F3A5F]">${c.codigoCita || 'CORTE'}</span>
-                    <span class="block text-[11px] text-[#6B645A]">${c.horaFormato || ''}</span>
+                    <span class="block text-xs text-[#57534E]">${c.horaFormato || ''}</span>
                   </td>
-                  ${canViewAll ? `<td class="py-3 px-4 font-semibold">${c.barberoNombre}</td>` : ''}
-                  <td class="py-3 px-4">${c.servicioNombre}</td>
-                  <td class="py-3 px-4 capitalize">
-                    <span class="inline-flex items-center gap-1 text-[11px] bg-[#E8DFCE]/70 px-2 py-0.5 rounded">
+                  ${canViewAll ? `<td data-label="Barbero" class="py-3 px-4 font-semibold">${c.barberoNombre}</td>` : ''}
+                  <td data-label="Servicio" class="py-3 px-4">${c.servicioNombre}</td>
+                  <td data-label="Pago" class="py-3 px-4 capitalize">
+                    <span class="inline-flex items-center gap-1 text-xs bg-[#E8DFCE]/70 px-2 py-0.5 rounded">
                       ${String(c.metodoPago || '').replace('_', ' ')}
                     </span>
                   </td>
-                  <td class="py-3 px-4 text-right font-mono font-semibold">${formatCOP(c.precio)}</td>
-                  <td class="py-3 px-4 text-right font-mono font-bold text-[#1F3A5F]">${formatCOP(c.comisionCalculadaCop ?? c.comisionEstimada ?? 0)}</td>
+                  <td data-label="Valor" class="py-3 px-4 text-right font-mono font-semibold">${formatCOP(c.precio)}</td>
+                  <td data-label="Comisión" class="py-3 px-4 text-right font-mono font-bold text-[#1F3A5F]">${formatCOP(c.comisionCalculadaCop ?? c.comisionEstimada ?? 0)}</td>
                 </tr>
               `).join('')}
             </tbody>

@@ -112,11 +112,11 @@ export const cajaFinancialService = {
 
     // 2. Desglose exacto por método de pago normalizado (Servicios + Productos)
     const breakdown = {
-      efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-primary' },
-      nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]' },
-      daviplata: { total: 0, count: 0, label: 'Daviplata', icon: 'account_balance_wallet', color: 'bg-[#E07A7A]' },
-      datafono: { total: 0, count: 0, label: 'Datáfono', icon: 'credit_card', color: 'bg-[#1F3A5F]' },
-      transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#235D3A]' }
+      efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-[#235D3A]', hex: '#235D3A' },
+      nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]', hex: '#7BA3D4' },
+      daviplata: { total: 0, count: 0, label: 'Daviplata', icon: 'account_balance_wallet', color: 'bg-[#E07A7A]', hex: '#E07A7A' },
+      datafono: { total: 0, count: 0, label: 'Datáfono', icon: 'credit_card', color: 'bg-[#1F3A5F]', hex: '#1F3A5F' },
+      transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#8A5300]', hex: '#8A5300' }
     };
 
     // Sumar servicios activos

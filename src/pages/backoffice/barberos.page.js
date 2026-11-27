@@ -7,13 +7,22 @@
  */
 
 import { barberosService, cameraService } from '../../services/index.js';
+import {
+  normalizeWeeklySchedule,
+  serializeWeeklySchedule,
+  computeDayMetrics,
+  getHalfHourTimeOptions
+} from '../../utils/schedule-adapter.js';
+import { renderUserAvatar } from '../../components/user-avatar.js';
+import { renderActionButton } from '../../components/action-button.js';
 
 let cachedBarberos = [];
 let selectedBarberId = null;
 let currentTab = 'horario'; // 'perfil' | 'horario' | 'bloqueos'
 let listFilter = 'activos'; // 'todos' | 'activos'
 let searchQuery = '';
-let weeklySchedule = [];
+let weeklySchedule = normalizeWeeklySchedule([]);
+let savedWeeklyScheduleSnapshot = normalizeWeeklySchedule([]);
 let scheduleBlocks = [];
 
 export async function loadBarberosData() {
@@ -31,9 +40,14 @@ export async function loadBarberosData() {
         barberosService.getHorarioSemanal(selectedBarberId).catch(() => ({ ok: false })),
         barberosService.getBloqueos(selectedBarberId).catch(() => ({ ok: false }))
       ]);
-      if (horRes?.ok) weeklySchedule = horRes.data || [];
+      const normalized = normalizeWeeklySchedule(horRes?.ok ? horRes.data : []);
+      weeklySchedule = normalized;
+      savedWeeklyScheduleSnapshot = normalized.map((d) => ({ ...d }));
       if (blqRes?.ok) scheduleBlocks = blqRes.data || [];
     } catch (_) {}
+  } else {
+    weeklySchedule = normalizeWeeklySchedule([]);
+    savedWeeklyScheduleSnapshot = weeklySchedule.map((d) => ({ ...d }));
   }
 }
 
@@ -72,24 +86,18 @@ function renderBarberListItems(filteredBarbers) {
         }"
       >
         <div class="flex items-center gap-3">
-          <div class="relative shrink-0">
-            <img
-              src="${barb.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80&fm=webp'}"
-              alt="${barb.nombre}"
-              width="44"
-              height="44"
-              loading="lazy"
-              decoding="async"
-              class="w-11 h-11 rounded-full object-cover border border-[#8C8272] ${isActivo ? '' : 'grayscale'}"
-            />
-            <span
-              class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${isActivo ? 'bg-[#235D3A]' : 'bg-[#8C8272]'} border-2 border-white"
-              title="${isActivo ? 'En turno activo' : 'Inactivo'}"
-            ></span>
-          </div>
+          ${renderUserAvatar({
+            src: barb.foto,
+            name: barb.nombre,
+            sizeClass: 'w-11 h-11',
+            textClass: 'text-sm',
+            extraImgClass: isActivo ? '' : 'grayscale',
+            statusDotClass: isActivo ? 'bg-[#235D3A]' : 'bg-[#8C8272]',
+            statusTitle: isActivo ? 'En turno activo' : 'Inactivo'
+          })}
           <div class="flex flex-col min-w-0">
             <span class="font-sans font-semibold text-xs text-[#1C1C1C] truncate">${barb.nombre}</span>
-            <span class="text-[11px] text-[#4F4A42] truncate">${barb.sillon || 'Sillón'} · ${barb.especialidad?.split('·')[0] || 'Barbero'}</span>
+            <span class="text-xs text-[#57534E] truncate">${barb.sillon || 'Sillón'} · ${barb.especialidad?.split('·')[0] || 'Barbero'}</span>
           </div>
         </div>
 
@@ -133,21 +141,18 @@ export function renderBarberosPage() {
           </div>
 
           <div class="flex items-center gap-2.5 shrink-0">
-            <a
-              href="#comisiones"
-              class="min-h-[44px] inline-flex items-center justify-center gap-2 px-4 rounded-lg bg-transparent text-[#1F3A5F] border-2 border-[#1F3A5F] font-sans font-semibold text-xs hover:bg-[#E4ECF5] transition-colors"
-            >
-              <span class="material-symbols-outlined text-[18px]">percent</span>
-              <span>Liquidación de Comisiones</span>
-            </a>
-            <button
-              type="button"
-              id="btn-open-nuevo-barbero"
-              class="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-sans font-semibold text-xs shadow-sm active:scale-95 transition-all"
-            >
-              <span class="material-symbols-outlined text-[20px]">person_add</span>
-              <span>+ Nuevo Barbero</span>
-            </button>
+            ${renderActionButton({
+              href: '#comisiones',
+              variant: 'outline',
+              icon: 'percent',
+              label: 'Liquidación de Comisiones'
+            })}
+            ${renderActionButton({
+              id: 'btn-open-nuevo-barbero',
+              variant: 'primary',
+              icon: 'person_add',
+              label: 'Nuevo Barbero'
+            })}
           </div>
         </div>
       </section>
@@ -197,20 +202,16 @@ export function renderBarberosPage() {
           <!-- CABECERA DEL BARBERO SELECCIONADO -->
           <header class="flex flex-col lg:flex-row lg:items-start justify-between gap-4 pb-5 border-b border-[#D5CBB8]">
             <div class="flex items-start gap-4">
-              <div class="relative shrink-0">
-                <img
-                  src="${selectedBarber.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80&fm=webp'}"
-                  alt="${selectedBarber.nombre}"
-                  width="64"
-                  height="64"
-                  decoding="async"
-                  class="w-16 h-16 rounded-full object-cover border-2 border-[#D5CBB8] ${selectedBarber.activo !== false ? '' : 'grayscale'}"
-                />
-                <span
-                  class="absolute bottom-0 right-0 w-4 h-4 rounded-full ${selectedBarber.activo !== false ? 'bg-[#235D3A]' : 'bg-[#8C8272]'} border-2 border-white"
-                  title="${selectedBarber.activo !== false ? 'En turno activo' : 'Inactivo'}"
-                ></span>
-              </div>
+              ${renderUserAvatar({
+                src: selectedBarber.foto,
+                name: selectedBarber.nombre,
+                sizeClass: 'w-16 h-16',
+                textClass: 'text-lg',
+                borderClass: 'border-2 border-[#D5CBB8]',
+                extraImgClass: selectedBarber.activo !== false ? '' : 'grayscale',
+                statusDotClass: selectedBarber.activo !== false ? 'bg-[#235D3A]' : 'bg-[#8C8272]',
+                statusTitle: selectedBarber.activo !== false ? 'En turno activo' : 'Inactivo'
+              })}
               <div class="flex flex-col">
                 <div class="flex flex-wrap items-center gap-2">
                   <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C] tracking-tight">
@@ -233,24 +234,24 @@ export function renderBarberosPage() {
               </div>
             </div>
 
-            <!-- Acción de Activación / Desactivación Lógica -->
+            <!-- Acción de Activación / Desactivación Segura -->
             <div class="flex flex-col items-start lg:items-end gap-1 shrink-0">
               <button
                 type="button"
                 id="btn-toggle-barber-status"
                 class="min-h-[44px] inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-semibold transition-all border ${
                   selectedBarber.activo !== false
-                    ? 'bg-[#FCE8E6] text-[#B3261E] border-[#B3261E]/40 hover:bg-[#B3261E] hover:text-white'
+                    ? 'bg-[#FCE8E6] text-[#B3261E] border-[#F5B8B4] hover:bg-[#B3261E] hover:text-white'
                     : 'bg-[#E3EFE7] text-[#235D3A] border-[#235D3A]/40 hover:bg-[#235D3A] hover:text-white'
                 }"
-                title="Borrado lógico · No se borra historial contable ni facturación"
+                title="Oculta al barbero de la agenda sin perder su historial de caja"
               >
-                <span class="material-symbols-outlined text-[18px]">
+                <span class="material-symbols-outlined text-[18px]" aria-hidden="true">
                   ${selectedBarber.activo !== false ? 'person_off' : 'person_check'}
                 </span>
                 <span>${selectedBarber.activo !== false ? 'Desactivar Barbero' : 'Activar Barbero'}</span>
               </button>
-              <span class="text-[10px] text-[#6B645A] italic">Borrado lógico · Conserva historial contable</span>
+              <span class="text-xs text-[#57534E]">Oculta al barbero de la agenda sin perder su historial de caja.</span>
             </div>
           </header>
 
@@ -678,8 +679,8 @@ function renderPerfilTab(barber) {
   return `
     <div class="flex flex-col gap-5 mt-5">
       <div class="p-3.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border-l-4 border-[#1F3A5F] text-xs">
-        <p class="font-semibold">Regla de Negocio RN-12 (Instantáneas de Comisión):</p>
-        <p class="mt-0.5">La comisión configurada en esta ficha aplicará exclusivamente a las nuevas citas y cobros futuros. Los cortes ya registrados en caja conservan su porcentaje histórico inalterable.</p>
+        <p class="font-semibold">Regla sobre comisiones:</p>
+        <p class="mt-0.5">El porcentaje configurado aplicará únicamente a nuevas citas y cobros futuros. Los cortes ya registrados conservan el porcentaje aplicado en su momento.</p>
       </div>
 
       <form id="form-editar-barbero" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
@@ -858,44 +859,52 @@ function renderPerfilTab(barber) {
 }
 
 function renderHorarioTab() {
-  const schedule = weeklySchedule.length > 0 ? weeklySchedule : [
-    { dia: 'Lunes', activo: true, t1Inicio: '09:00 AM', t1Fin: '01:00 PM', t2Inicio: '02:00 PM', t2Fin: '07:00 PM', horas: 9, bloques: 18 },
-    { dia: 'Martes', activo: true, t1Inicio: '09:00 AM', t1Fin: '01:00 PM', t2Inicio: '02:00 PM', t2Fin: '07:00 PM', horas: 9, bloques: 18 },
-    { dia: 'Miércoles', activo: true, t1Inicio: '09:00 AM', t1Fin: '01:00 PM', t2Inicio: '02:00 PM', t2Fin: '07:00 PM', horas: 9, bloques: 18 },
-    { dia: 'Jueves', activo: true, t1Inicio: '09:00 AM', t1Fin: '01:00 PM', t2Inicio: '02:00 PM', t2Fin: '07:00 PM', horas: 9, bloques: 18 },
-    { dia: 'Viernes', activo: true, t1Inicio: '08:30 AM', t1Fin: '01:30 PM', t2Inicio: '02:30 PM', t2Fin: '07:30 PM', horas: 10, bloques: 20 },
-    { dia: 'Sábado', activo: true, t1Inicio: '08:30 AM', t1Fin: '01:30 PM', t2Inicio: '02:30 PM', t2Fin: '07:30 PM', horas: 10, bloques: 20 },
-    { dia: 'Domingo', activo: false, t1Inicio: '', t1Fin: '', t2Inicio: '', t2Fin: '', horas: 0, bloques: 0, esDescanso: true }
-  ];
+  const schedule = normalizeWeeklySchedule(weeklySchedule);
+  weeklySchedule = schedule;
+  const timeOptions = getHalfHourTimeOptions();
+
+  const renderTimeSelect = (dayIdx, field, currentVal, disabled = false) => `
+    <select
+      data-day-idx="${dayIdx}"
+      data-field="${field}"
+      ${disabled ? 'disabled' : ''}
+      class="schedule-time-select h-9 px-2 rounded border border-[#8C8272] bg-white font-mono text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+    >
+      ${timeOptions.map((opt) => `
+        <option value="${opt.value}" ${opt.value === currentVal ? 'selected' : ''}>${opt.label}</option>
+      `).join('')}
+    </select>
+  `;
 
   return `
     <div class="flex flex-col gap-4 mt-5">
-      <!-- Banner de regla de negocio -->
+      <!-- Banner de regla operativa -->
       <div class="flex items-start gap-3 p-3.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border-l-4 border-[#1F3A5F]">
-        <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5">info</span>
+        <span class="material-symbols-outlined text-[20px] shrink-0 mt-0.5" aria-hidden="true">info</span>
         <p class="text-xs leading-relaxed">
-          <strong class="font-semibold">Regla del sistema:</strong> Las franjas de disponibilidad se programan estrictamente en bloques de 30 minutos (minutos :00 y :30) para sincronizar con la agenda y reservas online.
+          <strong class="font-semibold">Horario en bloques de 30 minutos:</strong> Define los días laborales y franjas de atención (minutos :00 y :30) disponibles para reservas y agenda.
         </p>
       </div>
 
       <!-- Grilla de Días Semanales -->
-      <div class="flex flex-col gap-2.5">
+      <div class="flex flex-col gap-2.5" id="weekly-schedule-list">
         ${schedule.map((item, idx) => {
           return `
             <div class="flex flex-col xl:flex-row xl:items-center justify-between p-3.5 rounded-lg border border-[#D5CBB8] transition-colors gap-3 ${
-              item.activo ? 'bg-white hover:bg-[#FAF3E5]' : 'bg-[#E8DFCE]/40 opacity-75'
+              item.activo ? 'bg-white hover:bg-[#FAF3E5]' : 'bg-[#E8DFCE]/40'
             }">
               <!-- Nombre y Toggle -->
-              <div class="flex items-center gap-4 w-44 shrink-0">
-                <span class="font-sans font-semibold text-xs text-[#1C1C1C] w-20">${item.dia}</span>
-                <label class="relative inline-flex items-center cursor-pointer">
+              <div class="flex items-center gap-4 w-48 shrink-0">
+                <span class="font-sans font-semibold text-sm text-[#1C1C1C] w-24">${item.dia}</span>
+                <label class="relative inline-flex items-center cursor-pointer min-h-[36px]">
                   <input
                     type="checkbox"
                     data-day-idx="${idx}"
+                    aria-label="Activar jornada laboral de ${item.dia}"
                     class="sr-only peer schedule-day-toggle"
                     ${item.activo ? 'checked' : ''}
                   />
-                  <div class="w-9 h-5 bg-[#8C8272] peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1F3A5F]"></div>
+                  <div class="w-10 h-5 bg-[#8C8272] peer-focus:outline-none peer-focus-visible:ring-2 peer-focus-visible:ring-[#1F3A5F] rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[10px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-[#1F3A5F]"></div>
                 </label>
               </div>
 
@@ -904,43 +913,37 @@ function renderHorarioTab() {
                 <div class="flex flex-wrap items-center gap-3 flex-1 text-xs">
                   <!-- Turno 1 -->
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] uppercase font-bold text-[#6B645A]">T1</span>
-                    <input
-                      type="text"
-                      value="${item.t1Inicio || '09:00 AM'}"
-                      class="h-8 px-2 w-24 rounded border border-[#8C8272] font-mono text-xs text-center"
-                    />
-                    <span class="text-[#6B645A]">a</span>
-                    <input
-                      type="text"
-                      value="${item.t1Fin || '01:00 PM'}"
-                      class="h-8 px-2 w-24 rounded border border-[#8C8272] font-mono text-xs text-center"
-                    />
+                    <span class="text-xs uppercase font-bold text-[#57534E]">T1</span>
+                    ${renderTimeSelect(idx, 't1Inicio', item.t1Inicio || '09:00')}
+                    <span class="text-[#57534E]">a</span>
+                    ${renderTimeSelect(idx, 't1Fin', item.t1Fin || '13:00')}
                   </div>
 
                   <span class="text-[#D5CBB8] hidden md:inline">|</span>
 
-                  <!-- Turno 2 -->
+                  <!-- Turno 2 (Opcional) -->
                   <div class="flex items-center gap-1.5">
-                    <span class="text-[10px] uppercase font-bold text-[#6B645A]">T2</span>
-                    <input
-                      type="text"
-                      value="${item.t2Inicio || '02:00 PM'}"
-                      class="h-8 px-2 w-24 rounded border border-[#8C8272] font-mono text-xs text-center"
-                    />
-                    <span class="text-[#6B645A]">a</span>
-                    <input
-                      type="text"
-                      value="${item.t2Fin || '07:00 PM'}"
-                      class="h-8 px-2 w-24 rounded border border-[#8C8272] font-mono text-xs text-center"
-                    />
-                    <span class="text-[11px] text-[#6B645A] ml-1">(${item.horas || 9} hrs · ${item.bloques || 18} blq)</span>
+                    <label class="inline-flex items-center gap-1 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        data-day-idx="${idx}"
+                        class="schedule-t2-toggle w-4 h-4 text-[#1F3A5F] rounded"
+                        ${item.hasT2 ? 'checked' : ''}
+                      />
+                      <span class="text-xs uppercase font-bold text-[#57534E]">T2</span>
+                    </label>
+                    ${item.hasT2 ? `
+                      ${renderTimeSelect(idx, 't2Inicio', item.t2Inicio || '14:00')}
+                      <span class="text-[#57534E]">a</span>
+                      ${renderTimeSelect(idx, 't2Fin', item.t2Fin || '19:00')}
+                    ` : `<span class="text-xs text-[#57534E]">Jornada continua (sin tarde)</span>`}
+                    <span class="text-xs text-[#57534E] ml-1 font-mono">(${item.horas} hrs · ${item.bloques} blq)</span>
                   </div>
                 </div>
               ` : `
-                <div class="flex items-center gap-2 flex-1 text-xs text-[#6B645A] italic">
-                  <span class="material-symbols-outlined text-[18px]">bedtime</span>
-                  <span>Día de descanso general (Sin atención en sede)</span>
+                <div class="flex items-center gap-2 flex-1 text-xs text-[#57534E]">
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">bedtime</span>
+                  <span>Día de descanso (sin atención en sede)</span>
                 </div>
               `}
             </div>
@@ -950,8 +953,8 @@ function renderHorarioTab() {
 
       <!-- Footer de Acciones Horario -->
       <footer class="mt-4 pt-4 border-t border-[#D5CBB8] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <span class="text-xs text-[#6B645A]">
-          Última actualización por Carlos Mendoza · Hoy a las 11:20 AM
+        <span class="text-xs text-[#57534E]">
+          Los cambios aplican a la disponibilidad pública una vez guardados.
         </span>
         <div class="flex items-center gap-2.5">
           <button
@@ -966,7 +969,7 @@ function renderHorarioTab() {
             id="btn-guardar-horario"
             class="min-h-[44px] inline-flex items-center gap-2 px-5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold shadow-xs transition-all"
           >
-            <span class="material-symbols-outlined text-[18px]">save</span>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
             <span>Guardar Horario Semanal</span>
           </button>
         </div>
@@ -982,14 +985,12 @@ function renderBloqueosTab() {
         <div>
           <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Excepciones y Bloqueos de Agenda</h3>
         </div>
-        <button
-          type="button"
-          id="btn-open-nuevo-bloqueo"
-          class="min-h-[44px] inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-transparent text-[#1F3A5F] border border-[#1F3A5F] hover:bg-[#E4ECF5] text-xs font-semibold transition-colors"
-        >
-          <span class="material-symbols-outlined text-[16px]">lock_clock</span>
-          <span>+ Agregar Bloqueo de Franja</span>
-        </button>
+        ${renderActionButton({
+          id: 'btn-open-nuevo-bloqueo',
+          variant: 'secondary',
+          icon: 'lock_clock',
+          label: 'Agregar Bloqueo de Franja'
+        })}
       </div>
 
       <div class="flex flex-col gap-2.5">
@@ -1311,7 +1312,7 @@ export function attachBarberosListeners(onDataChange) {
               };
             }
           } else {
-            if (confirm(`¿Desea desactivar a ${b.nombre}? (Borrado lógico: conservará todo su historial contable y citas pasadas)`)) {
+            if (confirm(`¿Desea desactivar a ${b.nombre}? Esta acción lo ocultará de la agenda pública conservando todo su historial de caja y citas.`)) {
               await barberosService.cambiarEstadoBarbero(selectedBarberId, false);
               await loadBarberosData();
               if (typeof onDataChange === 'function') onDataChange();
@@ -1326,7 +1327,57 @@ export function attachBarberosListeners(onDataChange) {
     });
   }
 
-  // 6. Guardar Horario Semanal
+  // 6. Edición interactiva y guardado de Horario Semanal
+  document.querySelectorAll('.schedule-day-toggle').forEach((chk) => {
+    chk.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-day-idx'), 10);
+      if (!Number.isNaN(idx) && weeklySchedule[idx]) {
+        weeklySchedule[idx].activo = e.target.checked;
+        if (e.target.checked && !weeklySchedule[idx].t1Inicio) {
+          weeklySchedule[idx].t1Inicio = '09:00';
+          weeklySchedule[idx].t1Fin = '13:00';
+        }
+        weeklySchedule[idx] = { ...weeklySchedule[idx], ...computeDayMetrics(weeklySchedule[idx]) };
+        if (typeof onDataChange === 'function') onDataChange();
+      }
+    });
+  });
+
+  document.querySelectorAll('.schedule-t2-toggle').forEach((chk) => {
+    chk.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-day-idx'), 10);
+      if (!Number.isNaN(idx) && weeklySchedule[idx]) {
+        weeklySchedule[idx].hasT2 = e.target.checked;
+        if (e.target.checked) {
+          weeklySchedule[idx].t2Inicio = weeklySchedule[idx].t2Inicio || '14:00';
+          weeklySchedule[idx].t2Fin = weeklySchedule[idx].t2Fin || '19:00';
+        }
+        weeklySchedule[idx] = { ...weeklySchedule[idx], ...computeDayMetrics(weeklySchedule[idx]) };
+        if (typeof onDataChange === 'function') onDataChange();
+      }
+    });
+  });
+
+  document.querySelectorAll('.schedule-time-select').forEach((sel) => {
+    sel.addEventListener('change', (e) => {
+      const idx = parseInt(e.target.getAttribute('data-day-idx'), 10);
+      const field = e.target.getAttribute('data-field');
+      if (!Number.isNaN(idx) && field && weeklySchedule[idx]) {
+        weeklySchedule[idx][field] = e.target.value;
+        weeklySchedule[idx] = { ...weeklySchedule[idx], ...computeDayMetrics(weeklySchedule[idx]) };
+        if (typeof onDataChange === 'function') onDataChange();
+      }
+    });
+  });
+
+  const revertHorarioBtn = document.getElementById('btn-revertir-horario');
+  if (revertHorarioBtn) {
+    revertHorarioBtn.addEventListener('click', () => {
+      weeklySchedule = savedWeeklyScheduleSnapshot.map((d) => ({ ...d }));
+      if (typeof onDataChange === 'function') onDataChange();
+    });
+  }
+
   const saveHorarioBtn = document.getElementById('btn-guardar-horario');
   if (saveHorarioBtn) {
     saveHorarioBtn.addEventListener('click', async () => {
@@ -1334,14 +1385,16 @@ export function attachBarberosListeners(onDataChange) {
       saveHorarioBtn.textContent = 'Guardando...';
 
       try {
-        await barberosService.guardarHorarioSemanal(selectedBarberId, weeklySchedule);
+        const serialized = serializeWeeklySchedule(weeklySchedule);
+        await barberosService.guardarHorarioSemanal(selectedBarberId, serialized);
+        savedWeeklyScheduleSnapshot = weeklySchedule.map((d) => ({ ...d }));
         alert('Horario semanal actualizado correctamente en bloques de 30 minutos.');
       } catch (err) {
         alert('Error al guardar horario: ' + err.message);
       } finally {
         saveHorarioBtn.disabled = false;
         saveHorarioBtn.innerHTML = `
-          <span class="material-symbols-outlined text-[18px]">save</span>
+          <span class="material-symbols-outlined text-[18px]" aria-hidden="true">save</span>
           <span>Guardar Horario Semanal</span>
         `;
       }

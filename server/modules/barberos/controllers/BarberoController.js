@@ -5,6 +5,7 @@
 import { BarberoService } from '../services/BarberoService.js';
 import { sendSuccess } from '../../../shared/utils/response.js';
 import { ForbiddenError } from '../../../shared/errors/domainErrors.js';
+import { normalizeBogotaDateRange } from '../../../shared/utils/dateRange.js';
 
 export class BarberoController {
   constructor(barberoService = null) {
@@ -159,7 +160,8 @@ export class BarberoController {
       if (req.user.rol === 'barbero' && req.user.barberoId !== barberoId) {
         throw new ForbiddenError('Solo puede configurar su propio horario.');
       }
-      const resultado = await this.barberoService.configurarHorarios(barberoId, req.body.horarios);
+      const horarios = req.body.horarios || req.body.franjas || [];
+      const resultado = await this.barberoService.configurarHorarios(barberoId, horarios);
       return sendSuccess(res, resultado, 200);
     } catch (error) {
       next(error);
@@ -209,7 +211,8 @@ export class BarberoController {
   getLiquidacion = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const { fechaInicio, fechaFin, formato } = req.query;
+      const { formato } = req.query;
+      const { fechaInicio, fechaFin } = normalizeBogotaDateRange(req.query.fechaInicio, req.query.fechaFin);
       let barberoId = req.query.barberoId || null;
 
       // Restricción RBAC: Barbero solo puede consultar su propia liquidación ('P')

@@ -38,8 +38,19 @@ export function getTodayBogota(date = new Date()) {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(date);
 }
 
+export const DAYS_OF_WEEK = Object.freeze([
+  'Lunes',
+  'Martes',
+  'Miércoles',
+  'Jueves',
+  'Viernes',
+  'Sábado',
+  'Domingo'
+]);
+
 /**
- * Formatea una fecha o string ISO a formato legible en zona horaria America/Bogota (UTC-5).
+ * Formatea una fecha o string ISO a formato legible en zona horaria America/Bogota (UTC-5),
+ * capitalizando únicamente la primera letra para cumplir con la ortografía del español.
  * @param {string|Date} dateInput
  * @param {Intl.DateTimeFormatOptions} options
  * @returns {string}
@@ -55,7 +66,43 @@ export function formatDateBogota(dateInput, options = {}) {
     year: 'numeric',
     ...options
   };
-  return new Intl.DateTimeFormat('es-CO', defaultOptions).format(date);
+  const formatted = new Intl.DateTimeFormat('es-CO', defaultOptions).format(date);
+  return formatted ? formatted.charAt(0).toUpperCase() + formatted.slice(1) : '';
+}
+
+/**
+ * Formatea un rango de fechas YYYY-MM-DD en español sin capitalizar preposiciones ('de').
+ * @param {string} startStr
+ * @param {string} endStr
+ * @returns {string}
+ */
+export function formatDateRangeEsCO(startStr, endStr) {
+  if (!startStr) return '';
+  const start = new Date(`${startStr}T12:00:00`);
+  if (!endStr || startStr === endStr) {
+    return `Hoy, ${new Intl.DateTimeFormat('es-CO', {
+      timeZone: 'America/Bogota',
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    }).format(start)}`;
+  }
+  const end = new Date(`${endStr}T12:00:00`);
+  const s = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'short' }).format(start);
+  const e = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: 'numeric', month: 'short', year: 'numeric' }).format(end);
+  return `${s} – ${e}`;
+}
+
+/**
+ * Pluralización gramatical en español sin uso de "(s)".
+ * @param {number} count
+ * @param {string} singular
+ * @param {string} plural
+ * @returns {string}
+ */
+export function formatPlural(count, singular, plural) {
+  const n = Number(count) || 0;
+  return `${n} ${n === 1 ? singular : plural}`;
 }
 
 /**

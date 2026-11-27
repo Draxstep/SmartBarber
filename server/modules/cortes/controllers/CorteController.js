@@ -4,6 +4,7 @@
  */
 import { CorteService } from '../services/CorteService.js';
 import { sendSuccess } from '../../../shared/utils/response.js';
+import { normalizeBogotaDateRange } from '../../../shared/utils/dateRange.js';
 
 export class CorteController {
   constructor(corteService = null) {
@@ -35,22 +36,7 @@ export class CorteController {
   getHistorial = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
-      
-      const rawInicio = req.query.fechaInicio?.trim();
-      const rawFin = req.query.fechaFin?.trim();
-
-      const fechaInicio = !rawInicio
-        ? `${today}T00:00:00.000-05:00`
-        : /^\d{4}-\d{2}-\d{2}$/.test(rawInicio)
-          ? `${rawInicio}T00:00:00.000-05:00`
-          : rawInicio;
-
-      const fechaFin = !rawFin
-        ? `${today}T23:59:59.999-05:00`
-        : /^\d{4}-\d{2}-\d{2}$/.test(rawFin)
-          ? `${rawFin}T23:59:59.999-05:00`
-          : rawFin;
+      const { fechaInicio, fechaFin } = normalizeBogotaDateRange(req.query.fechaInicio, req.query.fechaFin);
 
       const barberoId = req.query.barberoId || null;
       const estado = req.query.estado || null;
@@ -68,22 +54,7 @@ export class CorteController {
   getResumenIngresos = async (req, res, next) => {
     try {
       const sedeId = req.user.sedeId;
-      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date());
-
-      const rawInicio = req.query.fechaInicio?.trim();
-      const rawFin = req.query.fechaFin?.trim();
-
-      const fechaInicio = !rawInicio
-        ? `${today}T00:00:00.000-05:00`
-        : /^\d{4}-\d{2}-\d{2}$/.test(rawInicio)
-          ? `${rawInicio}T00:00:00.000-05:00`
-          : rawInicio;
-
-      const fechaFin = !rawFin
-        ? `${today}T23:59:59.999-05:00`
-        : /^\d{4}-\d{2}-\d{2}$/.test(rawFin)
-          ? `${rawFin}T23:59:59.999-05:00`
-          : rawFin;
+      const { fechaInicio, fechaFin } = normalizeBogotaDateRange(req.query.fechaInicio, req.query.fechaFin);
 
       const barberoId = req.query.barberoId || null;
 

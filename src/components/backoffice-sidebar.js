@@ -7,6 +7,7 @@
 
 import { Capabilities, hasCapability, normalizeRole } from '../../shared/contracts/permissions.js';
 import { RolUsuario } from '../../shared/contracts/enums.js';
+import { renderUserAvatar } from './user-avatar.js';
 
 export const ALL_NAV_ITEMS = [
   { id: 'dashboard', label: 'Dashboard Ejecutivo', icon: 'dashboard', path: '#dashboard', capability: Capabilities.DASHBOARD_VIEW },
@@ -116,24 +117,27 @@ export function renderBackofficeSidebar({
 
       <!-- Perfil de usuario y Logout -->
       <div class="p-3 border-t border-white/10 bg-[#161616]">
-        <div class="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-[#2A2A2A]">
+        <div class="flex items-center justify-between gap-2 p-2 rounded-lg bg-[#2A2A2A]">
           <div class="flex items-center gap-2.5 min-w-0">
-            <div class="w-8 h-8 rounded-full bg-[#1F3A5F] flex items-center justify-center text-[#F2EBDD] shrink-0 font-semibold text-xs">
-              <span class="material-symbols-outlined text-[18px]">person</span>
-            </div>
+            ${renderUserAvatar({
+              name: userName,
+              sizeClass: 'w-8 h-8',
+              textClass: 'text-xs',
+              borderClass: 'border border-white/20'
+            })}
             <div class="flex flex-col min-w-0">
               <span class="font-sans text-xs text-[#F2EBDD] font-semibold truncate leading-tight">${userName}</span>
-              <span class="font-sans text-[10px] text-[#BDB4A5] truncate leading-tight">${userDisplayRole}</span>
+              <span class="font-sans text-[11px] text-[#BDB4A5] truncate leading-tight">${userDisplayRole}</span>
             </div>
           </div>
           <button
             type="button"
             id="btn-sidebar-logout"
             aria-label="Cerrar sesión"
-            class="p-1.5 rounded-md text-[#BDB4A5] hover:text-[#F2EBDD] hover:bg-white/10 transition-colors cursor-pointer"
+            class="touch-action min-w-[36px] min-h-[36px] flex items-center justify-center rounded-md text-[#BDB4A5] hover:text-[#F2EBDD] hover:bg-white/10 transition-colors cursor-pointer"
             title="Cerrar sesión"
           >
-            <span class="material-symbols-outlined text-[18px]">logout</span>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">logout</span>
           </button>
         </div>
       </div>

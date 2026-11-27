@@ -7,6 +7,8 @@
 import { barberosService, authService, cameraService } from '../../services/index.js';
 import { suscribirAPush, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones, soportaNotificacionesPush } from '../../pwa/notificaciones.js';
 import { Capabilities, can, isBarberoRole } from '../../utils/access-control.js';
+import { renderPasswordField, attachPasswordToggles } from '../../components/password-field.js';
+import { renderUserAvatar } from '../../components/user-avatar.js';
 
 let cachedProfile = null;
 let profileSuccessMsg = '';
@@ -49,7 +51,7 @@ export function renderPerfilPage() {
   const nombrePublico = b.nombrePublico || nombreCompleto;
   const correo = b.correo || user.correo || '';
   const telefono = b.telefono || '';
-  const foto = b.fotoUrl || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=160&auto=format&fit=crop&q=80';
+  const foto = b.fotoUrl || '';
   const biografia = b.biografiaBreve || '';
   const comision = b.porcentajeComision || 50;
   const sillon = b.sillon || 'Sillón 01';
@@ -66,13 +68,13 @@ export function renderPerfilPage() {
   };
 
   return `
-    <div class="flex flex-col gap-6 w-full max-w-4xl mx-auto animate-fadeIn">
+    <div class="flex flex-col gap-6 w-full max-w-[1200px] animate-fadeIn">
       <!-- HEADER -->
       <section class="flex flex-col gap-1">
         <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
           Mi Perfil & Ajustes Personales
         </h1>
-        <p class="text-xs text-[#6B645A]">
+        <p class="text-xs text-[#57534E]">
           ${canManageBarberProfile
             ? 'Gestiona tu información pública de atención, consulta tu esquema de comisión asignado y tus horarios laborales.'
             : 'Administra tus credenciales de seguridad y las preferencias de notificaciones de tu cuenta administrativa.'}
@@ -81,46 +83,38 @@ export function renderPerfilPage() {
 
       <!-- TARJETA PRINCIPAL DE IDENTIDAD -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-6 shadow-xs flex flex-col md:flex-row items-center md:items-start gap-6">
-        <div class="relative shrink-0">
-          ${canManageBarberProfile ? `
-            <img
-              id="profile-avatar-preview"
-              src="${foto}"
-              alt="${nombreCompleto}"
-              class="w-24 h-24 rounded-full object-cover border-2 border-[#D5CBB8] shadow-sm"
-            />
-          ` : `
-            <div class="w-20 h-20 rounded-full bg-[#1F3A5F] text-white flex items-center justify-center shadow-sm border-2 border-[#D5CBB8]">
-              <span class="material-symbols-outlined text-[36px]">admin_panel_settings</span>
-            </div>
-          `}
-          <span
-            class="absolute bottom-1 right-1 w-4 h-4 rounded-full ${estado === 'activo' ? 'bg-[#235D3A]' : 'bg-[#6B645A]'} border-2 border-white"
-            title="${estado === 'activo' ? 'Cuenta Activa' : 'Inactivo'}"
-          ></span>
-        </div>
+        ${renderUserAvatar({
+          src: canManageBarberProfile ? foto : null,
+          name: nombreCompleto,
+          sizeClass: 'w-20 h-20',
+          textClass: 'text-2xl',
+          borderClass: 'border-2 border-[#D5CBB8] shadow-sm',
+          imgId: 'profile-avatar-preview',
+          statusDotClass: estado === 'activo' ? 'bg-[#235D3A]' : 'bg-[#57534E]',
+          statusTitle: estado === 'activo' ? 'Cuenta Activa' : 'Inactivo'
+        })}
 
         <div class="flex-1 flex flex-col items-center md:items-start text-center md:text-left gap-1.5 min-w-0">
           <div class="flex flex-wrap items-center justify-center md:justify-start gap-2">
             <h2 class="font-serif text-xl sm:text-2xl font-bold text-[#1C1C1C]">${nombreCompleto}</h2>
-            <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isBarbero ? 'bg-[#8B1E1E] text-white' : 'bg-[#1F3A5F] text-white'}">
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold ${isBarbero ? 'bg-[#8A5300] text-white' : 'bg-[#1F3A5F] text-white'}">
               ${isBarbero ? 'Barbero' : 'Administrador'}
             </span>
             ${canManageBarberProfile ? `
-              <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-[11px] font-semibold">
+              <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-xs font-semibold">
                 ${sillon}
               </span>
             ` : ''}
           </div>
 
-          <p class="text-xs font-mono text-[#6B645A]">${correo}</p>
+          <p class="text-xs font-mono text-[#57534E]">${correo}</p>
 
           ${canManageBarberProfile ? `
-            <!-- ESQUEMA DE COMISIÓN INMUTABLE POR EL BARBERO (RN-12) -->
+            <!-- ESQUEMA DE COMISIÓN ASIGNADO -->
             <div class="mt-2 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white border border-[#D5CBB8] text-xs shadow-2xs">
-              <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]">percent</span>
+              <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]" aria-hidden="true">percent</span>
               <span>Esquema de Comisión Asignado: <strong class="font-mono text-sm text-[#1F3A5F] font-bold">${comision}%</strong></span>
-              <span class="text-[10px] text-[#6B645A] italic">(Fijado por administración · RN-12)</span>
+              <span class="text-xs text-[#57534E] italic">(Fijado por administración)</span>
             </div>
           ` : ''}
         </div>
@@ -320,41 +314,32 @@ export function renderPerfilPage() {
           ` : ''}
 
           <form id="form-perfil-password" class="flex flex-col gap-3 text-xs">
-            <div class="flex flex-col gap-1">
-              <label class="font-semibold text-[#1C1C1C]" for="input-pass-actual">Contraseña Actual <span class="text-[#8B1E1E]">*</span></label>
-              <input
-                type="password"
-                id="input-pass-actual"
-                required
-                class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
-              />
-            </div>
+            ${renderPasswordField({
+              id: 'input-pass-actual',
+              label: 'Contraseña Actual',
+              required: true,
+              autocomplete: 'current-password'
+            })}
 
-            <div class="flex flex-col gap-1">
-              <label class="font-semibold text-[#1C1C1C]" for="input-pass-nueva">Nueva Contraseña <span class="text-[#8B1E1E]">*</span></label>
-              <input
-                type="password"
-                id="input-pass-nueva"
-                required
-                minlength="8"
-                placeholder="Mínimo 8 caracteres"
-                class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
-              />
-            </div>
+            ${renderPasswordField({
+              id: 'input-pass-nueva',
+              label: 'Nueva Contraseña',
+              required: true,
+              minlength: 8,
+              placeholder: 'Mínimo 8 caracteres',
+              autocomplete: 'new-password'
+            })}
 
-            <div class="flex flex-col gap-1">
-              <label class="font-semibold text-[#1C1C1C]" for="input-pass-confirm">Confirmar Nueva Contraseña <span class="text-[#8B1E1E]">*</span></label>
-              <input
-                type="password"
-                id="input-pass-confirm"
-                required
-                minlength="8"
-                class="h-10 px-3 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
-              />
-            </div>
+            ${renderPasswordField({
+              id: 'input-pass-confirm',
+              label: 'Confirmar Nueva Contraseña',
+              required: true,
+              minlength: 8,
+              autocomplete: 'new-password'
+            })}
 
-            <div class="p-3 rounded-lg bg-[#F2EBDD] border border-[#D5CBB8] text-[11px] text-[#4F4A42] flex flex-col gap-1">
-              <span class="font-semibold text-[#1C1C1C]">Requisitos de seguridad (RNF-09 / RNF-10):</span>
+            <div class="p-3 rounded-lg bg-[#F2EBDD] border border-[#D5CBB8] text-xs text-[#4F4A42] flex flex-col gap-1">
+              <span class="font-semibold text-[#1C1C1C]">Requisitos de seguridad:</span>
               <span>• Mínimo 8 caracteres.</span>
               <span>• Al cambiarla, se cerrarán otras sesiones activas en otros navegadores.</span>
             </div>
@@ -363,7 +348,7 @@ export function renderPerfilPage() {
               <button
                 type="submit"
                 id="btn-cambiar-password"
-                class="min-h-[44px] px-5 py-2 rounded-lg bg-[#8B1E1E] hover:bg-[#6E1616] text-white font-semibold text-xs transition-colors shadow-xs"
+                class="min-h-[44px] px-5 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs transition-colors shadow-xs cursor-pointer"
               >
                 Actualizar Contraseña
               </button>
@@ -372,23 +357,23 @@ export function renderPerfilPage() {
         </section>
       </div>
 
-      <!-- SECCIÓN: ALERTAS Y NOTIFICACIONES PUSH (WEB PUSH API VAPID) -->
+      <!-- SECCIÓN: ALERTAS Y NOTIFICACIONES EN ESTE DISPOSITIVO -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-3">
         <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#D5CBB8]">
           <div class="flex items-center gap-2">
-            <span class="material-symbols-outlined text-[20px] text-[#1F3A5F]">notifications_active</span>
-            <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Notificaciones Web Push (VAPID RFC 8292)</h3>
+            <span class="material-symbols-outlined text-[20px] text-[#1F3A5F]" aria-hidden="true">notifications_active</span>
+            <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Notificaciones en este dispositivo</h3>
           </div>
-          <span id="perfil-push-badge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[#E8DFCE] text-[#4F4A42]">
+          <span id="perfil-push-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#E8DFCE] text-[#4F4A42]">
             Consultando estado...
           </span>
         </div>
 
         <p class="text-xs text-[#4F4A42] leading-relaxed">
           ${canReceiveInvPush
-            ? 'Recibe avisos inmediatos en este equipo ante nuevas citas reservadas por clientes y alertas críticas de inventario.'
+            ? 'Recibe avisos inmediatos en este equipo ante nuevas citas reservadas por clientes y alertas de inventario bajo.'
             : 'Recibe avisos inmediatos en este equipo ante nuevas citas asignadas a tu agenda.'}
-          La suscripción se realiza de forma segura mediante claves criptográficas VAPID sin intermediarios externos.
+          Las alertas se envían de forma directa y segura a este navegador.
         </p>
 
         <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-[#D5CBB8]">
@@ -455,6 +440,7 @@ export function renderPerfilPage() {
 
 export function attachPerfilListeners(refresh) {
   let perfilPhotoBase64 = null;
+  attachPasswordToggles();
 
   // 0. Controles de Cámara y Archivo en Mi Perfil
   const btnUsarCamara = document.getElementById('btn-perfil-usar-camara');

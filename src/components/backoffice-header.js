@@ -35,8 +35,8 @@ export function renderBackofficeHeader({
         </button>
 
         <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] shadow-2xs">
-          <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]">store</span>
-          <span class="font-sans text-xs font-semibold text-[#1C1C1C] truncate max-w-[150px] sm:max-w-[220px]">${sedeName}</span>
+          <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]" aria-hidden="true">store</span>
+          <span id="header-sede-name" class="font-sans text-xs font-semibold text-[#1C1C1C] truncate max-w-[150px] sm:max-w-[220px]">${sedeName}</span>
           <span class="inline-block w-2 h-2 rounded-full bg-[#235D3A]" title="Sede operativa"></span>
         </div>
 
@@ -68,35 +68,17 @@ export function renderBackofficeHeader({
           <span>${roleBadgeText}</span>
         </div>
 
-        <!-- Botón Activar Alertas Push VAPID (En contexto de clic) -->
+        <!-- Botón Activar Notificaciones del Sistema -->
         <button
           id="btn-activate-push"
           type="button"
-          class="p-2 rounded-md text-[#4F4A42] hover:bg-[#E8DFCE] hover:text-[#1C1C1C] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center relative"
-          aria-label="Notificaciones Push del Sistema"
-          title="Consultar o activar alertas Push"
+          class="touch-action p-2 rounded-md text-[#4F4A42] hover:bg-[#E8DFCE] hover:text-[#1C1C1C] transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center relative cursor-pointer"
+          aria-label="Notificaciones del sistema"
+          title="Consultar o activar alertas en este dispositivo"
         >
           <span id="btn-push-icon" class="material-symbols-outlined text-[20px]">notifications</span>
           <span id="push-status-dot" class="hidden absolute top-2 right-2 w-2 h-2 rounded-full bg-[#235D3A]"></span>
         </button>
-
-        <!-- Divider -->
-        <div class="h-6 w-px bg-[#D5CBB8]"></div>
-
-        <!-- Perfil Usuario Rápido -->
-        <div class="flex items-center gap-2">
-          <div class="w-8 h-8 rounded-full bg-[#1F3A5F] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-            ${userInitials}
-          </div>
-          <div class="hidden md:flex flex-col text-left">
-            <span class="font-sans text-xs font-semibold text-[#1C1C1C] leading-tight truncate max-w-[130px]">
-              ${userName}
-            </span>
-            <span class="font-sans text-[10px] text-[#6B645A] leading-tight">
-              ${userRole}
-            </span>
-          </div>
-        </div>
       </div>
     </header>
   `;

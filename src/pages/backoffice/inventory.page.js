@@ -8,9 +8,10 @@
 
 import { backofficeStore } from './backoffice-state.js';
 import { inventarioService } from '../../services/index.js';
-import { formatCOP } from '../../utils/formatters.js';
+import { formatCOP, formatPlural } from '../../utils/formatters.js';
 import { renderStatusBadge } from '../../components/status-badge.js';
 import { renderKpiCard } from '../../components/kpi-card.js';
+import { renderActionButton } from '../../components/action-button.js';
 import { openDialog } from '../../components/ui-dialog.js';
 import { Capabilities, can, getCurrentUserSafe } from '../../utils/access-control.js';
 
@@ -52,107 +53,107 @@ function renderInventoryRows(products, isBarbero) {
     }
 
     return `
-      <tr class="hover:bg-[#FAF3E5] transition-colors ${isArchived ? 'bg-[#FAF7F2]/60 opacity-80' : 'bg-white'}">
-        <td class="py-3 px-4 font-mono font-bold text-xs ${isArchived ? 'text-[#8C8272]' : 'text-[#1F3A5F]'}">
+      <tr class="hover:bg-[#FAF3E5] transition-colors ${isArchived ? 'bg-[#FAF7F2]/60 opacity-85' : 'bg-white'}">
+        <td class="py-3 px-4 font-mono font-bold text-xs ${isArchived ? 'text-[#57534E]' : 'text-[#1F3A5F]'}" data-label="SKU / Ref">
           ${p.sku}
         </td>
-        <td class="py-3 px-4">
+        <td class="py-3 px-4" data-label="Producto">
           <div class="font-sans font-bold text-xs text-[#1C1C1C]">${p.nombre}</div>
           ${canViewCost ? `
-            <div class="text-[10px] text-[#6B645A] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
+            <div class="text-xs text-[#57534E] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
           ` : ''}
         </td>
-        <td class="py-3 px-4 text-[#4F4A42]">
-          <span class="bg-[#E8DFCE]/50 px-2 py-0.5 rounded text-[11px] font-medium border border-[#D5CBB8]/40">
+        <td class="py-3 px-4 text-[#4F4A42]" data-label="Categoría">
+          <span class="bg-[#E8DFCE]/50 px-2 py-0.5 rounded text-xs font-medium border border-[#D5CBB8]/40">
             ${p.categoria}
           </span>
         </td>
-        <td class="py-3 px-4 text-center font-mono font-bold text-sm ${isArchived ? 'text-[#8C8272]' : stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
+        <td class="py-3 px-4 text-center font-mono font-bold text-sm ${isArchived ? 'text-[#57534E]' : stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}" data-label="Stock">
           ${stock}
         </td>
         ${canManageProducts ? `
-          <td class="py-3 px-4 text-center font-mono text-xs text-[#6B645A]">
+          <td class="py-3 px-4 text-center font-mono text-xs text-[#57534E]" data-label="Mínimo">
             ${min}
           </td>
         ` : ''}
-        <td class="py-3 px-4 text-right font-mono font-bold text-xs text-[#1C1C1C] tabular-nums">
+        <td class="py-3 px-4 text-right font-mono font-bold text-xs text-[#1C1C1C] tabular-nums" data-label="Precio Venta">
           ${formatCOP(p.precioVenta)}
         </td>
-        <td class="py-3 px-4 text-center">
+        <td class="py-3 px-4 text-center" data-label="Estado">
           ${statusBadge}
         </td>
-        <td class="py-3 px-4 text-right">
+        <td class="py-3 px-4 text-right" data-label="Acciones">
           ${!canManageProducts ? `
             ${stock > 0 ? `
               <button
                 type="button"
                 data-quick-sell="${p.sku}"
-                class="min-h-[36px] px-3 py-1 rounded-md bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs"
+                class="touch-action min-h-[36px] px-3 py-1 rounded-md bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs cursor-pointer"
                 title="Vender ${p.nombre}"
               >
-                <span class="material-symbols-outlined text-[15px]">point_of_sale</span>
+                <span class="material-symbols-outlined text-[15px]" aria-hidden="true">point_of_sale</span>
                 <span>Vender</span>
               </button>
             ` : `
-              <span class="text-[11px] text-[#B3261E] font-medium font-sans">Agotado</span>
+              <span class="text-xs text-[#B3261E] font-medium font-sans">Agotado</span>
             `}
           ` : `
-            <div class="inline-flex items-center justify-end gap-1">
+            <div class="inline-flex items-center justify-end gap-2">
               ${isArchived ? `
                 <button
                   type="button"
                   data-reactivate-product="${p.productoId || p.id}"
-                  class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                  class="touch-action min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#235D3A] hover:bg-[#E3EFE7] border border-transparent hover:border-[#235D3A]/20 transition-colors cursor-pointer"
                   title="Reactivar producto"
                   aria-label="Reactivar producto ${p.nombre}"
                 >
-                  <span class="material-symbols-outlined text-[18px]">unarchive</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">unarchive</span>
                 </button>
                 <button
                   type="button"
                   data-edit-product="${p.productoId || p.id}"
-                  class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
+                  class="touch-action min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#1F3A5F] hover:bg-[#E4ECF5] border border-transparent hover:border-[#1F3A5F]/20 transition-colors cursor-pointer"
                   title="Editar producto"
                   aria-label="Editar producto ${p.nombre}"
                 >
-                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
                 </button>
               ` : `
                 <button
                   type="button"
                   data-quick-entry="${p.sku}"
-                  class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                  class="touch-action min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#235D3A] hover:bg-[#E3EFE7] border border-transparent hover:border-[#235D3A]/20 transition-colors cursor-pointer"
                   title="Entrada de reposición"
                   aria-label="Entrada de reposición para ${p.nombre}"
                 >
-                  <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">add_circle</span>
                 </button>
                 <button
                   type="button"
                   data-quick-exit="${p.sku}"
-                  class="p-1.5 rounded-md text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
-                  title="Descontar stock / Venta"
-                  aria-label="Descontar stock para ${p.nombre}"
+                  class="touch-action min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#B3261E] hover:bg-[#FCE8E6] border border-transparent hover:border-[#B3261E]/20 transition-colors cursor-pointer"
+                  title="Salida o venta de stock"
+                  aria-label="Registrar salida de stock para ${p.nombre}"
                 >
-                  <span class="material-symbols-outlined text-[18px]">remove_circle</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">remove_circle</span>
                 </button>
                 <button
                   type="button"
                   data-edit-product="${p.productoId || p.id}"
-                  class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
+                  class="touch-action min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#1F3A5F] hover:bg-[#E4ECF5] border border-transparent hover:border-[#1F3A5F]/20 transition-colors cursor-pointer"
                   title="Editar ficha del producto"
                   aria-label="Editar ficha de ${p.nombre}"
                 >
-                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">edit</span>
                 </button>
                 <button
                   type="button"
                   data-deactivate-product="${p.productoId || p.id}"
-                  class="p-1.5 rounded-md text-[#8C8272] hover:text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
-                  title="Archivar producto (Desactivar)"
+                  class="touch-action min-w-[36px] min-h-[36px] inline-flex items-center justify-center rounded-lg text-[#57534E] hover:text-[#B3261E] hover:bg-[#FCE8E6] border border-transparent hover:border-[#B3261E]/20 transition-colors cursor-pointer"
+                  title="Archivar producto"
                   aria-label="Archivar producto ${p.nombre}"
                 >
-                  <span class="material-symbols-outlined text-[18px]">archive</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">archive</span>
                 </button>
               `}
             </div>
@@ -232,66 +233,72 @@ export function renderInventoryPage(options = {}) {
             ` : ''}
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2.5">
             ${!canManageProducts ? `
-              <!-- Acciones operativas de venta y consumo (Barbero - CU-018) -->
-              <button
-                id="btn-inv-consumo"
-                type="button"
-                class="min-h-[44px] px-3.5 py-2 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#1F3A5F] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
-                title="Registrar insumo utilizado en atención de cabina"
-              >
-                <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]">content_cut</span>
-                <span>- Consumo Sillón</span>
-              </button>
+              <!-- Acciones operativas de venta y consumo (Barbero) -->
+              ${renderActionButton({
+                id: 'btn-inv-consumo',
+                variant: 'outline',
+                icon: 'content_cut',
+                label: 'Consumo en Sillón',
+                title: 'Registrar insumo utilizado en atención de cabina'
+              })}
 
-              <button
-                id="btn-inv-salida"
-                type="button"
-                class="min-h-[44px] px-4 py-2 rounded-lg bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-2 active:scale-[0.98]"
-                title="Registrar venta de cera, gel o producto a cliente"
-              >
-                <span class="material-symbols-outlined text-[20px]">point_of_sale</span>
-                <span>+ Vender Producto</span>
-              </button>
+              ${renderActionButton({
+                id: 'btn-inv-salida',
+                variant: 'primary',
+                icon: 'point_of_sale',
+                label: 'Vender Producto',
+                title: 'Registrar venta de cera, gel o producto a cliente'
+              })}
             ` : `
-              <!-- Acciones administrativas completas (CU-016 a CU-019) -->
-              ${canViewKardex ? `
+              <!-- Acciones administrativas consolidadas (máximo 2 controles en cabecera) -->
+              <div class="relative">
                 <button
-                  id="btn-inv-kardex"
+                  id="btn-inv-movimientos-toggle"
                   type="button"
-                  class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border border-[#1F3A5F]/20 font-semibold text-xs hover:bg-[#d5e3ff] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-xs"
+                  aria-expanded="false"
+                  aria-haspopup="menu"
+                  class="min-h-[44px] px-4 py-2 rounded-lg bg-[#FAF7F2] border border-[#8C8272] text-[#1C1C1C] font-semibold text-xs hover:bg-[#FAF3E5] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-                  <span>Historial Kardex</span>
+                  <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]" aria-hidden="true">swap_vert</span>
+                  <span>Registrar Movimiento</span>
+                  <span class="material-symbols-outlined text-[16px]" aria-hidden="true">expand_more</span>
                 </button>
-              ` : ''}
-              ${can(Capabilities.INVENTORY_ENTRY_CREATE, user) ? `
-                <button
-                  id="btn-inv-entrada"
-                  type="button"
-                  class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#235D3A] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
+                <div
+                  id="inv-movimientos-menu"
+                  role="menu"
+                  class="hidden absolute right-0 mt-1.5 w-52 bg-white border border-[#D5CBB8] rounded-xl shadow-lg py-1.5 z-30"
                 >
-                  <span class="material-symbols-outlined text-[18px] text-[#235D3A]">arrow_downward</span>
-                  <span>+ Entrada Stock</span>
-                </button>
-              ` : ''}
-              <button
-                id="btn-inv-salida"
-                type="button"
-                class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#8B1E1E] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
-              >
-                <span class="material-symbols-outlined text-[18px] text-[#8B1E1E]">arrow_upward</span>
-                <span>- Salida / Venta</span>
-              </button>
-              <button
-                id="btn-inv-nuevo"
-                type="button"
-                class="min-h-[40px] px-4 py-1.5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold text-xs shadow-sm transition-all flex items-center gap-1.5 active:scale-[0.98]"
-              >
-                <span class="material-symbols-outlined text-[18px]">add</span>
-                <span>+ Nuevo Producto</span>
-              </button>
+                  ${can(Capabilities.INVENTORY_ENTRY_CREATE, user) ? `
+                    <button
+                      id="btn-inv-entrada"
+                      type="button"
+                      role="menuitem"
+                      class="w-full min-h-[40px] px-3.5 py-2 text-left text-xs font-semibold text-[#1C1C1C] hover:bg-[#FAF3E5] flex items-center gap-2 cursor-pointer"
+                    >
+                      <span class="material-symbols-outlined text-[18px] text-[#235D3A]" aria-hidden="true">arrow_downward</span>
+                      <span>Entrada de Stock</span>
+                    </button>
+                  ` : ''}
+                  <button
+                    id="btn-inv-salida"
+                    type="button"
+                    role="menuitem"
+                    class="w-full min-h-[40px] px-3.5 py-2 text-left text-xs font-semibold text-[#1C1C1C] hover:bg-[#FAF3E5] flex items-center gap-2 cursor-pointer"
+                  >
+                    <span class="material-symbols-outlined text-[18px] text-[#B3261E]" aria-hidden="true">arrow_upward</span>
+                    <span>Salida / Venta POS</span>
+                  </button>
+                </div>
+              </div>
+
+              ${renderActionButton({
+                id: 'btn-inv-nuevo',
+                variant: 'primary',
+                icon: 'add',
+                label: 'Nuevo Producto'
+              })}
             `}
           </div>
         </div>
@@ -422,23 +429,33 @@ export function renderInventoryPage(options = {}) {
               Archivados (${archivedCount})
             </button>
           ` : ''}
+          ${canViewKardex ? `
+            <button
+              id="btn-inv-kardex"
+              type="button"
+              class="ml-auto touch-action min-h-[36px] px-3 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border border-[#1F3A5F]/20 font-semibold text-xs hover:bg-[#d5e3ff] transition-colors inline-flex items-center gap-1.5 cursor-pointer"
+            >
+              <span class="material-symbols-outlined text-[16px]" aria-hidden="true">receipt_long</span>
+              <span>Historial Kardex</span>
+            </button>
+          ` : ''}
         </div>
       </section>
 
       <!-- TABLA DE PRODUCTOS -->
       <section aria-label="Listado de productos" class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="responsive-table w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
+              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-xs uppercase tracking-wider">
                 <th class="py-3 px-4 font-semibold">SKU / Ref</th>
                 <th class="py-3 px-4 font-semibold min-w-[220px]">Producto</th>
                 <th class="py-3 px-4 font-semibold">Categoría</th>
                 <th class="py-3 px-4 font-semibold text-center">Stock Disponible</th>
                 ${canManageProducts ? `<th class="py-3 px-4 font-semibold text-center">Mínimo</th>` : ''}
-                <th class="py-3 px-4 font-semibold text-right">Precio Venta (COP)</th>
+                <th class="py-3 px-4 font-semibold text-right">Precio Venta</th>
                 <th class="py-3 px-4 font-semibold text-center">Estado</th>
-                <th class="py-3 px-4 font-semibold text-right min-w-[140px]">Acciones</th>
+                <th class="py-3 px-4 font-semibold text-right min-w-[160px]">Acciones</th>
               </tr>
             </thead>
             <tbody id="inv-table-body" class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
@@ -447,9 +464,9 @@ export function renderInventoryPage(options = {}) {
           </table>
         </div>
 
-        <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between text-xs text-[#4F4A42]">
+        <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between flex-wrap gap-2 text-xs text-[#4F4A42]">
           <span id="inv-footer-summary">Mostrando <strong>${products.length}</strong> de <strong>${currentFilter === 'archivado' ? archivedProducts.length : activeProducts.length}</strong> referencias ${currentFilter === 'archivado' ? 'archivadas' : 'activas'}</span>
-          ${canViewCost ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total activa: ${formatCOP(totalValueCOP)}</span>` : ''}
+          ${canViewCost ? `<span class="font-mono text-xs text-[#57534E]">Valoración total activa: ${formatCOP(totalValueCOP)}</span>` : ''}
         </div>
       </section>
     </div>
@@ -473,15 +490,15 @@ export function renderInventoryPage(options = {}) {
                 <h2 class="font-serif text-xl font-bold text-[#1C1C1C]">Historial de Movimientos (Kardex)</h2>
               </div>
             </div>
-            <button type="button" id="btn-close-kardex-modal" class="text-[#6B645A] hover:text-[#1C1C1C] p-1">
-              <span class="material-symbols-outlined text-[22px]">close</span>
+            <button type="button" id="btn-close-kardex-modal" aria-label="Cerrar historial Kardex" class="touch-action w-11 h-11 rounded-full flex items-center justify-center text-[#57534E] hover:text-[#1C1C1C] hover:bg-[#E8DFCE]/60 transition-colors cursor-pointer">
+              <span class="material-symbols-outlined text-[22px]" aria-hidden="true">close</span>
             </button>
           </div>
 
           <!-- Tabla de Movimientos Kardex -->
           <div class="overflow-x-auto bg-white border border-[#D5CBB8] rounded-lg max-h-80 overflow-y-auto">
-            <table class="w-full text-left border-collapse text-xs">
-              <thead class="sticky top-0 bg-[#E8DFCE] text-[#4F4A42] text-[11px] uppercase tracking-wider font-semibold">
+            <table class="responsive-table w-full text-left border-collapse text-xs">
+              <thead class="sticky top-0 bg-[#E8DFCE] text-[#4F4A42] text-xs uppercase tracking-wider font-semibold">
                 <tr>
                   <th class="py-2.5 px-3">ID / Fecha</th>
                   <th class="py-2.5 px-3">Producto / SKU</th>
@@ -495,45 +512,45 @@ export function renderInventoryPage(options = {}) {
               <tbody class="divide-y divide-[#D5CBB8]/50 text-xs">
                 ${cachedKardexMovements.length === 0 ? `
                   <tr>
-                    <td colspan="7" class="py-8 text-center text-[#6B645A]">
+                    <td colspan="7" class="py-8 text-center text-[#57534E]">
                       No hay movimientos registrados en el Kardex.
                     </td>
                   </tr>
                 ` : cachedKardexMovements.map(k => `
                   <tr class="hover:bg-[#FAF3E5] transition-colors">
-                    <td class="py-2.5 px-3">
+                    <td class="py-2.5 px-3" data-label="ID / Fecha">
                       <span class="font-mono font-bold text-[#1F3A5F]">${k.id}</span>
-                      <span class="block text-[10px] text-[#6B645A]">${k.fechaFormato || ''}</span>
+                      <span class="block text-xs text-[#57534E]">${k.fechaFormato || ''}</span>
                     </td>
-                    <td class="py-2.5 px-3">
+                    <td class="py-2.5 px-3" data-label="Producto">
                       <span class="font-semibold text-[#1C1C1C]">${k.productoNombre}</span>
-                      <span class="block text-[10px] font-mono text-[#6B645A]">${k.sku}</span>
+                      <span class="block text-xs font-mono text-[#57534E]">${k.sku}</span>
                     </td>
-                    <td class="py-2.5 px-3">
+                    <td class="py-2.5 px-3" data-label="Movimiento">
                       ${k.tipo === 'entrada' ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold">
-                          <span class="material-symbols-outlined text-[13px]">arrow_circle_up</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">arrow_circle_up</span>
                           <span>${k.subtipoLabel || 'Entrada'}</span>
                         </span>
                       ` : `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold">
-                          <span class="material-symbols-outlined text-[13px]">arrow_circle_down</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">arrow_circle_down</span>
                           <span>${k.subtipoLabel || 'Salida'}</span>
                         </span>
                       `}
                     </td>
-                    <td class="py-2.5 px-3 text-center font-mono font-bold ${k.tipo === 'entrada' ? 'text-[#235D3A]' : 'text-[#B3261E]'}">
+                    <td class="py-2.5 px-3 text-center font-mono font-bold ${k.tipo === 'entrada' ? 'text-[#235D3A]' : 'text-[#B3261E]'}" data-label="Cantidad">
                       ${k.tipo === 'entrada' ? `+${k.cantidad}` : `-${k.cantidad}`}
                     </td>
-                    <td class="py-2.5 px-3 text-center font-mono">
-                      <span class="text-[#6B645A]">${k.stockPrevio}</span>
+                    <td class="py-2.5 px-3 text-center font-mono" data-label="Balance">
+                      <span class="text-[#57534E]">${k.stockPrevio}</span>
                       <span class="text-[#1C1C1C] mx-1">&rarr;</span>
                       <strong class="text-[#1C1C1C]">${k.stockNuevo}</strong>
                     </td>
-                    <td class="py-2.5 px-3 font-mono text-[11px] text-[#4F4A42]">
+                    <td class="py-2.5 px-3 font-mono text-xs text-[#4F4A42]" data-label="Referencia">
                       ${k.referencia || 'Operación directa'}
                     </td>
-                    <td class="py-2.5 px-3 text-[11px] text-[#6B645A]">
+                    <td class="py-2.5 px-3 text-xs text-[#57534E]" data-label="Responsable">
                       ${k.responsable || 'Carlos Mendoza'}
                     </td>
                   </tr>
@@ -695,8 +712,29 @@ export function attachInventoryListeners(onUpdate, userRole = 'administrador', u
     });
   }
 
-  // Acciones exclusivas del Administrador (cabecera y Kardex)
+  // Acciones exclusivas del Administrador (cabecera, menú movimientos y Kardex)
   if (!isBarbero) {
+    const btnMovToggle = document.getElementById('btn-inv-movimientos-toggle');
+    const movMenu = document.getElementById('inv-movimientos-menu');
+    if (btnMovToggle && movMenu) {
+      btnMovToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = movMenu.classList.contains('hidden');
+        movMenu.classList.toggle('hidden', !isHidden);
+        btnMovToggle.setAttribute('aria-expanded', String(isHidden));
+      });
+      document.addEventListener('click', (e) => {
+        if (!btnMovToggle.contains(e.target) && !movMenu.contains(e.target)) {
+          movMenu.classList.add('hidden');
+          btnMovToggle.setAttribute('aria-expanded', 'false');
+        }
+      }, { once: false });
+      movMenu.addEventListener('click', () => {
+        movMenu.classList.add('hidden');
+        btnMovToggle.setAttribute('aria-expanded', 'false');
+      });
+    }
+
     const btnEntrada = document.getElementById('btn-inv-entrada');
     if (btnEntrada) {
       btnEntrada.addEventListener('click', () => openStockEntryModal(onUpdate));
@@ -758,7 +796,7 @@ function openStockExitModal(onUpdate, defaultSku = '', defaultReason = 'venta_pu
   const initialProduct = products.find(p => p.sku === selectedInitialSku) || products[0];
 
   openDialog({
-    title: isBarbero ? 'Venta de Producto en Mostrador / Sillón' : 'Registrar Salida de Inventario (CU-018)',
+    title: isBarbero ? 'Venta de Producto en Mostrador / Sillón' : 'Registrar Salida de Inventario',
     contentHtml: `
       <form id="form-stock-exit" class="flex flex-col gap-4 text-xs">
         <div class="flex flex-col gap-1.5">
@@ -1201,21 +1239,21 @@ function confirmarDesactivarProducto(product, onUpdate) {
 
   openDialog({
     title: '¿Archivar Producto?',
-    subtitle: `Confirmación de baja lógica (RN-13) para ${product.nombre}`,
+    subtitle: `Confirmación de archivo para ${product.nombre}`,
     contentHtml: `
       <div class="flex flex-col gap-3 text-xs text-[#1C1C1C]">
         <p>
           ¿Estás seguro de archivar <strong>"${product.nombre}"</strong> (<span class="font-mono">${product.sku}</span>)?
         </p>
         <div class="p-3 bg-[#FAF7F2] border border-[#D5CBB8] rounded-lg text-[#4F4A42] flex flex-col gap-1.5">
-          <p class="flex items-center gap-1.5 font-semibold text-[#8B1E1E]">
-            <span class="material-symbols-outlined text-[16px]">warning</span>
+          <p class="flex items-center gap-1.5 font-semibold text-[#B3261E]">
+            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">warning</span>
             <span>Consecuencias del archivado:</span>
           </p>
-          <ul class="list-disc list-inside space-y-1 text-[11px] text-[#6B645A]">
+          <ul class="list-disc list-inside space-y-1 text-xs text-[#57534E]">
             <li>No aparecerá en el catálogo de venta en mostrador ni cabina.</li>
             <li>No generará alertas de stock bajo ni agotado en el panel.</li>
-            <li>Su historial de entradas y salidas permanecerá intacto en el Kardex (RN-13).</li>
+            <li>Su historial de entradas y salidas permanecerá intacto en el Kardex.</li>
           </ul>
         </div>
       </div>

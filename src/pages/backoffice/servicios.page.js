@@ -6,7 +6,9 @@
  */
 
 import { serviciosService } from '../../services/index.js';
-import { formatCOP } from '../../utils/formatters.js';
+import { formatCOP, formatPlural } from '../../utils/formatters.js';
+import { renderActionButton } from '../../components/action-button.js';
+import { renderInfoNote } from '../../components/info-note.js';
 
 let cachedServicios = [];
 let currentFilter = 'all'; // 'all' | 'activos' | 'inactivos'
@@ -40,14 +42,12 @@ export function renderServiciosPage() {
             </p>
           </div>
 
-          <button
-            type="button"
-            id="btn-open-nuevo-servicio"
-            class="min-h-[44px] inline-flex items-center justify-center gap-2 px-5 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-sans font-semibold text-xs shadow-sm active:scale-95 transition-all shrink-0"
-          >
-            <span class="material-symbols-outlined text-[18px]">add</span>
-            <span>+ Nuevo Servicio</span>
-          </button>
+          ${renderActionButton({
+            id: 'btn-open-nuevo-servicio',
+            variant: 'primary',
+            icon: 'add',
+            label: 'Nuevo Servicio'
+          })}
         </div>
       </section>
 
@@ -107,16 +107,17 @@ export function renderServiciosPage() {
           </button>
         </div>
 
-        <!-- Controles Derechos: Regla de Negocio & Selector de Orden -->
+        <!-- Controles Derechos: Nota informativa plana & Selector de Orden -->
         <div class="flex items-center flex-wrap gap-3">
-          <div class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] text-xs font-medium border border-[#1F3A5F]/20">
-            <span class="material-symbols-outlined text-[16px]">schedule</span>
-            <span>Duración sincronizada en bloques de 30 min</span>
-          </div>
+          ${renderInfoNote({
+            text: 'Duración sincronizada en bloques de 30 min',
+            icon: 'schedule',
+            extraClass: 'hidden sm:inline-flex'
+          })}
 
           <div class="relative inline-flex items-center">
             <div class="flex items-center gap-2 bg-white border border-[#8C8272] px-3 py-1.5 rounded-lg">
-              <span class="material-symbols-outlined text-[18px] text-[#6B645A]">swap_vert</span>
+              <span class="material-symbols-outlined text-[18px] text-[#57534E]" aria-hidden="true">swap_vert</span>
               <select id="sort-services-select" class="bg-transparent text-xs font-semibold text-[#1C1C1C] focus:outline-none cursor-pointer pr-2">
                 <option value="orden" ${currentSort === 'orden' ? 'selected' : ''}>Orden visual catálogo</option>
                 <option value="price-asc" ${currentSort === 'price-asc' ? 'selected' : ''}>Precio: Menor a Mayor</option>
@@ -131,16 +132,16 @@ export function renderServiciosPage() {
       <!-- TABLA PRINCIPAL DE SERVICIOS -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="responsive-table w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
-                <th class="py-3 px-4 font-semibold text-center w-14">#</th>
+              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-xs uppercase tracking-wider">
+                <th class="py-3 px-4 font-semibold text-center w-28">Orden</th>
                 <th class="py-3 px-4 font-semibold min-w-[260px]">Servicio y Descripción</th>
                 <th class="py-3 px-4 font-semibold min-w-[140px]">Precio Base</th>
                 <th class="py-3 px-4 font-semibold min-w-[170px]">Duración Operativa</th>
                 <th class="py-3 px-4 font-semibold min-w-[140px]">Visibilidad</th>
                 <th class="py-3 px-4 font-semibold min-w-[120px]">Estado</th>
-                <th class="py-3 px-4 font-semibold text-right min-w-[160px]">Acciones</th>
+                <th class="py-3 px-4 font-semibold text-right min-w-[180px]">Acciones</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/50 text-xs text-[#1C1C1C]">
@@ -148,81 +149,106 @@ export function renderServiciosPage() {
                 const isActivo = srv.activo !== false;
                 const isVisible = srv.visibleEnLanding !== false;
                 const bloques = srv.duracionBloques || Math.ceil((srv.duracionMinutos || 30) / 30);
+                const isFirst = idx === 0;
+                const isLast = idx === servicios.length - 1;
 
                 return `
                   <tr class="hover:bg-[#FAF3E5] transition-colors ${isActivo ? 'bg-white' : 'bg-[#FAF3E5]/60 opacity-75'}">
-                    <!-- Número / Orden -->
-                    <td class="py-3 px-4 text-center">
-                      <div class="flex items-center justify-center gap-1 text-[#6B645A]">
-                        <span class="material-symbols-outlined text-[16px]">drag_indicator</span>
-                        <span class="font-mono text-xs font-semibold">${srv.orden || idx + 1}</span>
+                    <!-- Orden con controles accesibles arriba/abajo (WCAG 2.2 SC 2.5.7) -->
+                    <td data-label="Orden" class="py-3 px-4 text-center">
+                      <div class="inline-flex items-center justify-center gap-1">
+                        <span class="font-mono text-xs font-semibold text-[#1C1C1C] w-5 text-center">${srv.orden || idx + 1}</span>
+                        ${currentSort === 'orden' ? `
+                          <button
+                            type="button"
+                            class="btn-move-service touch-action w-8 h-8 inline-flex items-center justify-center rounded border border-[#D5CBB8] bg-white hover:bg-[#E4ECF5] text-[#1F3A5F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            data-index="${idx}"
+                            data-direction="up"
+                            ${isFirst ? 'disabled' : ''}
+                            aria-label="Subir servicio ${srv.nombre}"
+                            title="Subir orden"
+                          >
+                            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_upward</span>
+                          </button>
+                          <button
+                            type="button"
+                            class="btn-move-service touch-action w-8 h-8 inline-flex items-center justify-center rounded border border-[#D5CBB8] bg-white hover:bg-[#E4ECF5] text-[#1F3A5F] disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                            data-index="${idx}"
+                            data-direction="down"
+                            ${isLast ? 'disabled' : ''}
+                            aria-label="Bajar servicio ${srv.nombre}"
+                            title="Bajar orden"
+                          >
+                            <span class="material-symbols-outlined text-[16px]" aria-hidden="true">arrow_downward</span>
+                          </button>
+                        ` : ''}
                       </div>
                     </td>
 
                     <!-- Servicio y Descripción -->
-                    <td class="py-3 px-4">
+                    <td data-label="Servicio" class="py-3 px-4">
                       <div class="flex flex-col">
-                        <span class="font-sans font-bold text-xs text-[#1C1C1C]">${srv.nombre}</span>
-                        <span class="text-[11px] text-[#4F4A42] mt-0.5 line-clamp-1">${srv.descripcion || 'Sin descripción'}</span>
+                        <span class="font-sans font-bold text-sm text-[#1C1C1C]">${srv.nombre}</span>
+                        <span class="text-xs text-[#57534E] mt-0.5 line-clamp-1">${srv.descripcion || 'Sin descripción'}</span>
                       </div>
                     </td>
 
                     <!-- Precio Base COP -->
-                    <td class="py-3 px-4 font-mono font-bold text-sm text-[#1C1C1C] tabular-nums">
+                    <td data-label="Precio Base" class="py-3 px-4 font-mono font-bold text-sm text-[#1C1C1C] tabular-nums">
                       ${formatCOP(srv.precio)}
                     </td>
 
                     <!-- Duración Operativa en Bloques -->
-                    <td class="py-3 px-4">
-                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#E8DFCE]/70 text-[#1C1C1C] font-mono text-[11px] border border-[#D5CBB8]">
-                        <span class="material-symbols-outlined text-[14px] text-[#6B645A]">timelapse</span>
-                        <span>${bloques} bloque${bloques > 1 ? 's' : ''} (${srv.duracionMinutos || 30} min)</span>
+                    <td data-label="Duración" class="py-3 px-4">
+                      <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#E8DFCE]/70 text-[#1C1C1C] font-mono text-xs border border-[#D5CBB8]">
+                        <span class="material-symbols-outlined text-[14px] text-[#57534E]" aria-hidden="true">timelapse</span>
+                        <span>${formatPlural(bloques, 'bloque', 'bloques')} (${srv.duracionMinutos || 30} min)</span>
                       </span>
                     </td>
 
                     <!-- Visibilidad Landing -->
-                    <td class="py-3 px-4">
+                    <td data-label="Visibilidad" class="py-3 px-4">
                       ${isVisible ? `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-[11px] font-semibold border border-[#1F3A5F]/20">
-                          <span class="material-symbols-outlined text-[13px]">visibility</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-xs font-semibold border border-[#1F3A5F]/20">
+                          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">visibility</span>
                           <span>Visible</span>
                         </span>
                       ` : `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8DFCE] text-[#6B645A] text-[11px] font-semibold">
-                          <span class="material-symbols-outlined text-[13px]">visibility_off</span>
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8DFCE] text-[#57534E] text-xs font-semibold">
+                          <span class="material-symbols-outlined text-[14px]" aria-hidden="true">visibility_off</span>
                           <span>Oculto</span>
                         </span>
                       `}
                     </td>
 
                     <!-- Estado Activo / Inactivo -->
-                    <td class="py-3 px-4">
+                    <td data-label="Estado" class="py-3 px-4">
                       ${isActivo ? `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] text-[11px] font-semibold border border-[#235D3A]/20">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] text-xs font-semibold border border-[#235D3A]/20">
                           <span class="w-1.5 h-1.5 rounded-full bg-[#235D3A]"></span>
                           <span>Activo</span>
                         </span>
                       ` : `
-                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8DFCE] text-[#6B645A] text-[11px] font-semibold">
+                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8DFCE] text-[#57534E] text-xs font-semibold">
                           <span class="w-1.5 h-1.5 rounded-full bg-[#8C8272]"></span>
                           <span>Inactivo</span>
                         </span>
                       `}
                     </td>
 
-                    <!-- Acciones -->
-                    <td class="py-3 px-4 text-right">
+                    <!-- Acciones (objetivos táctiles >= 36px/44px) -->
+                    <td data-label="Acciones" class="py-3 px-4 text-right">
                       <div class="inline-flex items-center justify-end gap-2">
                         <button
                           type="button"
-                          class="btn-edit-service px-2.5 py-1 text-[#1F3A5F] hover:bg-[#E4ECF5] rounded text-xs font-semibold transition-colors"
+                          class="btn-edit-service touch-action min-h-[36px] px-3 py-1.5 text-[#1F3A5F] hover:bg-[#E4ECF5] rounded-lg text-xs font-semibold transition-colors border border-[#1F3A5F]/20"
                           data-id="${srv.id}"
                         >
                           Editar
                         </button>
                         <button
                           type="button"
-                          class="btn-toggle-service-status px-2.5 py-1 ${isActivo ? 'text-[#B3261E] hover:bg-[#FCE8E6]' : 'text-[#235D3A] hover:bg-[#E3EFE7]'} rounded text-xs font-semibold transition-colors"
+                          class="btn-toggle-service-status touch-action min-h-[36px] px-3 py-1.5 ${isActivo ? 'text-[#B3261E] bg-[#FCE8E6]/60 hover:bg-[#FCE8E6] border border-[#F5B8B4]' : 'text-[#235D3A] bg-[#E3EFE7]/60 hover:bg-[#E3EFE7] border border-[#235D3A]/30'} rounded-lg text-xs font-semibold transition-colors"
                           data-id="${srv.id}"
                           data-activo="${isActivo}"
                         >
@@ -239,7 +265,7 @@ export function renderServiciosPage() {
 
         <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between text-xs text-[#4F4A42]">
           <span>Total servicios en catálogo: <strong>${servicios.length}</strong></span>
-          <span class="font-mono text-[11px] text-[#6B645A]">Regla: Incrementos de 30 min por bloque</span>
+          <span class="font-mono text-xs text-[#57534E]">Incrementos de 30 min por bloque</span>
         </div>
       </section>
     </div>
@@ -487,6 +513,38 @@ export function attachServiciosListeners(onDataChange) {
         await serviciosService.cambiarEstadoServicio(id, newStatus);
         await loadServiciosData();
         if (typeof onDataChange === 'function') onDataChange();
+      }
+    });
+  });
+
+  // 7. Reordenamiento accesible ↑ / ↓ sin arrastrar (WCAG 2.2 SC 2.5.7)
+  const moveBtns = document.querySelectorAll('.btn-move-service');
+  moveBtns.forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const idx = parseInt(btn.getAttribute('data-index'), 10);
+      const dir = btn.getAttribute('data-direction');
+      const swapIdx = dir === 'up' ? idx - 1 : idx + 1;
+      const currentSrv = cachedServicios[idx];
+      const targetSrv = cachedServicios[swapIdx];
+      if (!currentSrv || !targetSrv) return;
+
+      try {
+        btn.disabled = true;
+        const currentOrder = currentSrv.orden ?? (idx + 1);
+        const targetOrder = targetSrv.orden ?? (swapIdx + 1);
+        const newCurrentOrder = currentOrder === targetOrder ? (swapIdx + 1) : targetOrder;
+        const newTargetOrder = currentOrder === targetOrder ? (idx + 1) : currentOrder;
+
+        await Promise.all([
+          serviciosService.actualizarServicio(currentSrv.id, { ordenVisual: newCurrentOrder }),
+          serviciosService.actualizarServicio(targetSrv.id, { ordenVisual: newTargetOrder })
+        ]);
+        await loadServiciosData();
+        if (typeof onDataChange === 'function') onDataChange();
+      } catch (err) {
+        alert('No fue posible actualizar el orden: ' + err.message);
+      } finally {
+        btn.disabled = false;
       }
     });
   });

@@ -19,10 +19,10 @@
   --color-bg-input: #FFFFFF;
   --color-bg-dark-elevated: #2A2A2A;
 
-  /* Text & Borders */
+  /* Text & Borders (WCAG 2.2 AA >= 4.5:1) */
   --color-text-primary: #1C1C1C;
   --color-text-secondary: #4F4A42;
-  --color-text-muted: #6B645A;
+  --color-text-muted: #57534E;
   --color-text-on-dark: #F2EBDD;
   --color-text-on-dark-muted: #BDB4A5;
   --color-text-on-brand: #FFFFFF;
@@ -55,7 +55,7 @@
   --color-verdeBg: #E3EFE7;
   --color-textoClaroSec: #BDB4A5;
   --color-textoOscuroSec: #4F4A42;
-  --color-textoAtenuado: #6B645A;
+  --color-textoAtenuado: #57534E;
   --color-bordeBadge: #8C8272;
   --color-primary-container: #1F3A5F;
   --color-secondary: #8B1E1E;
@@ -101,10 +101,104 @@
   border-bottom: 1px solid #8B1E1E;
 }
 
-/* Touch targets >= 44x44px for WCAG 2.1 AA */
+/* Touch targets >= 44x44px en pantallas táctiles PWA (WCAG 2.2 SC 2.5.8) */
 .touch-target {
   min-width: 44px;
   min-height: 44px;
+}
+
+@media (pointer: coarse) {
+  .touch-action {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Patrón responsivo Table-to-Card para PWA móvil */
+@media (max-width: 768px) {
+  table.responsive-table thead {
+    display: none;
+  }
+
+  table.responsive-table,
+  table.responsive-table tbody,
+  table.responsive-table tr,
+  table.responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  table.responsive-table tr {
+    background: #FFFFFF;
+    border: 1px solid #D5CBB8;
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  table.responsive-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0 !important;
+    text-align: right !important;
+    border-bottom: 1px solid rgba(213, 203, 184, 0.35);
+  }
+
+  table.responsive-table td:last-child {
+    border-bottom: none;
+    padding-top: 0.6rem !important;
+  }
+
+  table.responsive-table td[colspan] {
+    display: block;
+    text-align: center !important;
+    border-bottom: none;
+  }
+
+  table.responsive-table td[data-label]::before {
+    content: attr(data-label);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #57534E;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-align: left;
+    flex-shrink: 0;
+  }
+}
+
+/* Viewport bidireccional y ejes sticky de Agenda Operativa */
+.agenda-grid-viewport {
+  max-height: calc(100dvh - 290px);
+  min-height: 460px;
+  overflow: auto;
+  position: relative;
+  border-radius: 0.5rem;
+}
+
+.agenda-sticky-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  background-color: #FAF7F2;
+}
+
+.agenda-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: #FAF7F2;
+}
+
+.agenda-sticky-time {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background-color: #FAF7F2;
 }
 
 /* Accessible focus ring */

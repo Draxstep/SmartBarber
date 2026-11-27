@@ -107,9 +107,9 @@ export const BACKOFFICE_ROUTES = {
     title: 'Configuración',
     capability: Capabilities.SETTINGS_MANAGE,
     loadModule: () => import('./configuracion.page.js'),
-    loader: async () => {},
+    loader: async (user, mod) => await mod.loadConfiguracionData(),
     render: (user, mod) => mod.renderConfiguracionPage(),
-    attachListeners: (refresh, user, mod) => mod.attachConfiguracionListeners()
+    attachListeners: (refresh, user, mod) => mod.attachConfiguracionListeners(refresh)
   },
   perfil: {
     id: 'perfil',
@@ -259,6 +259,8 @@ function renderWithLayout(activeRoute, user, contentHtml) {
 
   // App Shell persistente: evita destruir Sidebar, Header y <dialog> al navegar entre vistas
   if (mountedShellUserKey === userKey && mainContainer) {
+    const headerSedeEl = document.getElementById('header-sede-name');
+    if (headerSedeEl) headerSedeEl.textContent = sedeActivaNombre;
     mainContainer.innerHTML = contentHtml;
     actualizarSidebarActiva(activeRoute);
     return;
@@ -563,32 +565,32 @@ function attachBackofficeCommonListeners() {
       if (estado.activa) {
         // Modal de gestión interactiva cuando ya están activas
         openDialog({
-          title: 'Gestión de Notificaciones Push',
-          subtitle: 'Web Push API + VAPID (RFC 8292) en tiempo real',
+          title: 'Notificaciones en este dispositivo',
+          subtitle: 'Alertas en tiempo real del navegador',
           contentHtml: `
             <div class="flex flex-col gap-4 text-xs">
               <div class="flex items-center gap-2 p-3 rounded-lg bg-[#E3EFE7] text-[#235D3A] border border-[#235D3A]/20">
-                <span class="material-symbols-outlined text-[20px]">check_circle</span>
+                <span class="material-symbols-outlined text-[20px]" aria-hidden="true">check_circle</span>
                 <span class="font-semibold">Notificaciones activas y sincronizadas en este dispositivo</span>
               </div>
               <p class="text-[#4F4A42] leading-relaxed">
-                Este navegador está registrado con clave criptográfica VAPID para recibir alertas de ${pushScopeSummary}.
+                Este navegador está autorizado para recibir alertas directas de ${pushScopeSummary}.
               </p>
               <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#D5CBB8]">
                 <button
                   type="button"
                   id="btn-modal-test-push"
-                  class="min-h-[40px] px-4 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs"
+                  class="min-h-[40px] px-4 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white font-semibold flex items-center justify-center gap-2 transition-colors shadow-xs cursor-pointer"
                 >
-                  <span class="material-symbols-outlined text-[18px]">send</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">send</span>
                   <span>Enviar Notificación de Prueba</span>
                 </button>
                 <button
                   type="button"
                   id="btn-modal-desuscribir-push"
-                  class="min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FAF3E5] text-[#8B1E1E] font-semibold flex items-center justify-center gap-2 transition-colors"
+                  class="min-h-[40px] px-4 py-2 rounded-lg bg-white border border-[#8C8272] hover:bg-[#FCE8E6] text-[#B3261E] font-semibold flex items-center justify-center gap-2 transition-colors cursor-pointer"
                 >
-                  <span class="material-symbols-outlined text-[18px]">notifications_off</span>
+                  <span class="material-symbols-outlined text-[18px]" aria-hidden="true">notifications_off</span>
                   <span>Desactivar en este equipo</span>
                 </button>
               </div>
@@ -698,6 +700,11 @@ window.addEventListener('hashchange', renderBackoffice);
 onDataMutation(async (detail) => {
   if (detail.entity === 'inventario') {
     alertasCargadas = false;
+  }
+  if (detail.entity === 'sede') {
+    sedeCargada = false;
+    scheduleBackofficeRefresh();
+    return;
   }
   const user = authService.getCurrentUser();
   const currentRoute = getActiveRoute(user);

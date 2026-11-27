@@ -35,7 +35,7 @@ export const authService = {
         rol: usuario.rol, // 'administrador' | 'barbero'
         sedeId: usuario.sedeId,
         barberoId: usuario.barberoId || null,
-        nombreCompleto: usuario.barberoNombre || (usuario.rol === 'administrador' ? 'Carlos Mendoza (Admin)' : 'Barbero'),
+        nombreCompleto: usuario.barberoNombre || (usuario.rol === 'administrador' ? 'Carlos Mendoza' : 'Barbero'),
         ultimoAccesoEn: usuario.ultimoAccesoEn || new Date().toISOString()
       };
 

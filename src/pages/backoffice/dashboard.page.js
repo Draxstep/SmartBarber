@@ -5,7 +5,7 @@
  */
 
 import { cortesService } from '../../services/index.js';
-import { formatCOP } from '../../utils/formatters.js';
+import { formatCOP, formatDateBogota, formatPlural } from '../../utils/formatters.js';
 import { renderKpiCard } from '../../components/kpi-card.js';
 
 let cachedDashboard = null;
@@ -25,6 +25,9 @@ export function renderDashboardPage() {
   const d = cachedDashboard || {
     fecha: new Date().toISOString().slice(0, 10),
     ingresosHoyCop: 0,
+    ingresosServiciosCop: 0,
+    ingresosProductosCop: 0,
+    totalVentasProductos: 0,
     comisionesHoyCop: 0,
     margenNetoSedeCop: 0,
     cortesTotalHoy: 0,
@@ -33,12 +36,17 @@ export function renderDashboardPage() {
     rendimientoBarberos: []
   };
 
-  const fechaFormat = new Date(`${d.fecha}T12:00:00`).toLocaleDateString('es-CO', {
+  const fechaFormat = formatDateBogota(`${d.fecha}T12:00:00`, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric'
   });
+
+  const ingresosServ = Number(d.ingresosServiciosCop ?? d.ingresosHoyCop ?? 0);
+  const ingresosProd = Number(d.ingresosProductosCop ?? 0);
+  const ingresosCajaTotal = Number(d.ingresosHoyCop ?? (ingresosServ + ingresosProd));
+  const citasCompletadasLabel = d.citas.completadas === 1 ? '1 finalizada' : `${d.citas.completadas} finalizadas`;
 
   return `
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
@@ -46,7 +54,7 @@ export function renderDashboardPage() {
       <section class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div class="flex items-center gap-2">
-            <span class="font-sans text-[11px] uppercase tracking-widest text-[#6B645A] font-semibold">Panel de Control Ejecutivo</span>
+            <span class="font-sans text-xs uppercase tracking-widest text-[#57534E] font-semibold">Panel de Control Ejecutivo</span>
             <span class="text-[#8C8272] text-xs">•</span>
             <span class="font-sans text-xs text-[#235D3A] font-semibold flex items-center gap-1">
               <span class="w-2 h-2 rounded-full bg-[#235D3A] animate-pulse"></span> En Vivo
@@ -59,15 +67,15 @@ export function renderDashboardPage() {
 
         <div class="flex items-center gap-3">
           <div class="flex items-center gap-2 bg-[#FAF7F2] border border-[#D5CBB8] px-3.5 py-2 rounded-lg text-xs font-mono font-medium text-[#1C1C1C] shadow-2xs">
-            <span class="material-symbols-outlined text-[16px] text-[#6B645A]">calendar_today</span>
-            <span class="capitalize">${fechaFormat}</span>
+            <span class="material-symbols-outlined text-[16px] text-[#57534E]" aria-hidden="true">calendar_today</span>
+            <span>${fechaFormat}</span>
           </div>
           <button
             type="button"
             id="btn-refresh-dashboard"
-            class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] hover:bg-[#E8DFCE] text-[#1C1C1C] text-xs font-semibold flex items-center gap-1.5 transition-colors"
+            class="min-h-[44px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] hover:bg-[#E8DFCE] text-[#1C1C1C] text-xs font-semibold flex items-center gap-1.5 transition-colors"
           >
-            <span class="material-symbols-outlined text-[18px]">refresh</span>
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">refresh</span>
             <span>Actualizar</span>
           </button>
         </div>
@@ -76,9 +84,9 @@ export function renderDashboardPage() {
       <!-- TARJETAS DE KPIS PRINCIPALES (5 KPIS) -->
       <section aria-label="Indicadores ejecutivos" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         ${renderKpiCard({
-          label: 'Ingresos Brutos Hoy',
-          value: formatCOP(d.ingresosHoyCop),
-          caption: `${d.cortesTotalHoy} cobros activos en caja`,
+          label: 'Ingresos Caja Hoy',
+          value: formatCOP(ingresosCajaTotal),
+          caption: `Servicios: ${formatCOP(ingresosServ)} · Productos: ${formatCOP(ingresosProd)}`,
           icon: 'payments',
           iconBg: 'bg-[#E3EFE7]',
           iconColor: 'text-[#235D3A]'
@@ -87,7 +95,7 @@ export function renderDashboardPage() {
         ${renderKpiCard({
           label: 'Comisiones Hoy',
           value: formatCOP(d.comisionesHoyCop),
-          caption: 'Devengadas por el equipo (RN-12)',
+          caption: `Acumuladas sobre ${formatPlural(d.cortesTotalHoy, 'corte cobrado', 'cortes cobrados')}`,
           icon: 'percent',
           iconBg: 'bg-[#E4ECF5]',
           iconColor: 'text-[#1F3A5F]'
@@ -96,7 +104,7 @@ export function renderDashboardPage() {
         ${renderKpiCard({
           label: 'Margen Neto Sede',
           value: formatCOP(d.margenNetoSedeCop),
-          caption: 'Ingresos menos comisiones',
+          caption: 'Ingresos de caja menos comisiones',
           icon: 'savings',
           iconBg: 'bg-[#E3EFE7]',
           iconColor: 'text-[#235D3A]'
@@ -105,7 +113,7 @@ export function renderDashboardPage() {
         ${renderKpiCard({
           label: 'Citas del Día',
           value: d.citas.total,
-          caption: `${d.citas.completadas} finalizadas · ${d.citas.porAtender} por atender`,
+          caption: `${citasCompletadasLabel} · ${d.citas.porAtender} por atender`,
           icon: 'calendar_month',
           iconBg: 'bg-[#FAF7F2]',
           iconColor: 'text-[#1C1C1C]'
@@ -114,10 +122,12 @@ export function renderDashboardPage() {
         ${renderKpiCard({
           label: 'Alertas Inventario',
           value: d.alertasInventario.total,
-          caption: `${d.alertasInventario.bajo} bajo stock · ${d.alertasInventario.agotado} agotados`,
+          caption: `${d.alertasInventario.bajo} stock bajo · ${formatPlural(d.alertasInventario.agotado, 'agotado', 'agotados')}`,
           icon: 'warning',
           iconBg: d.alertasInventario.total > 0 ? 'bg-[#FCE8E6]' : 'bg-[#FAF7F2]',
-          iconColor: d.alertasInventario.total > 0 ? 'text-[#B3261E]' : 'text-[#6B645A]'
+          iconColor: d.alertasInventario.total > 0 ? 'text-[#B3261E]' : 'text-[#57534E]',
+          href: '#inventario',
+          actionLabel: 'Ver inventario'
         })}
       </section>
 
@@ -168,24 +178,6 @@ export function renderDashboardPage() {
               </div>
               <span class="font-mono text-sm font-bold text-[#B3261E]">${d.citas.canceladas}</span>
             </div>
-          </div>
-
-          <!-- ENLACES RÁPIDOS DE GESTIÓN -->
-          <div class="pt-2 border-t border-[#D5CBB8]/60 flex flex-col gap-2">
-            <a
-              href="#inventario"
-              class="flex items-center justify-between p-2.5 rounded-lg bg-[#F2EBDD] hover:bg-[#E8DFCE] text-xs text-[#1C1C1C] font-semibold transition-colors"
-            >
-              <div class="flex items-center gap-2">
-                <span class="material-symbols-outlined text-[18px] text-[#8B1E1E]">inventory_2</span>
-                <span>Gestionar Stock & Alertas</span>
-              </div>
-              ${d.alertasInventario.total > 0 ? `
-                <span class="px-2 py-0.5 rounded-full bg-[#E07A7A] text-[#1C1C1C] font-mono text-[10px] font-bold">
-                  ${d.alertasInventario.total}
-                </span>
-              ` : ''}
-            </a>
           </div>
         </section>
 

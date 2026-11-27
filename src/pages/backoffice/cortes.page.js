@@ -8,7 +8,8 @@
 
 import { cajaFinancialService } from '../../services/caja-financial.service.js';
 import { cortesService, authService } from '../../services/index.js';
-import { formatCOP, formatDateBogota } from '../../utils/formatters.js';
+import { formatCOP, formatDateBogota, formatPlural } from '../../utils/formatters.js';
+import { renderActionButton } from '../../components/action-button.js';
 import { emitDataMutation } from '../../utils/event-bus.js';
 import { Capabilities, can, whenCan } from '../../utils/access-control.js';
 
@@ -60,11 +61,11 @@ export function renderCortesPage() {
       totalOperaciones: 0
     },
     desgloseMetodosPago: {
-      efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-primary' },
-      nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]' },
-      daviplata: { total: 0, count: 0, label: 'Daviplata', icon: 'account_balance_wallet', color: 'bg-[#E07A7A]' },
-      datafono: { total: 0, count: 0, label: 'Datáfono', icon: 'credit_card', color: 'bg-[#1F3A5F]' },
-      transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#235D3A]' }
+      efectivo: { total: 0, count: 0, label: 'Efectivo', icon: 'payments', color: 'bg-[#235D3A]', hex: '#235D3A' },
+      nequi: { total: 0, count: 0, label: 'Nequi', icon: 'phone_iphone', color: 'bg-[#7BA3D4]', hex: '#7BA3D4' },
+      daviplata: { total: 0, count: 0, label: 'Daviplata', icon: 'account_balance_wallet', color: 'bg-[#E07A7A]', hex: '#E07A7A' },
+      datafono: { total: 0, count: 0, label: 'Datáfono', icon: 'credit_card', color: 'bg-[#1F3A5F]', hex: '#1F3A5F' },
+      transferencia: { total: 0, count: 0, label: 'Transferencia', icon: 'account_balance', color: 'bg-[#8A5300]', hex: '#8A5300' }
     },
     transacciones: [],
     cortes: [],
@@ -110,14 +111,12 @@ export function renderCortesPage() {
               <span>Exportar Cierre (CSV)</span>
             </button>
           `, '', user)}
-          <button
-            type="button"
-            id="btn-open-walkin-drawer"
-            class="min-h-[44px] inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-[#8B1E1E] text-white hover:bg-[#6E1616] font-sans font-semibold text-xs transition-all shadow-sm active:scale-95"
-          >
-            <span class="material-symbols-outlined text-[18px]">add</span>
-            <span>+ Registrar Corte (Walk-in)</span>
-          </button>
+          ${renderActionButton({
+            id: 'btn-open-walkin-drawer',
+            variant: 'primary',
+            icon: 'add',
+            label: 'Registrar Corte (Walk-in)'
+          })}
         </div>
       </section>
 
@@ -128,31 +127,30 @@ export function renderCortesPage() {
           <div class="lg:col-span-5 flex flex-col justify-between pr-0 lg:pr-6 bg-[#FAF3E5] p-4 sm:p-5 rounded-lg border border-[#D5CBB8]/60">
             <div>
               <div class="flex items-center justify-between">
-                <span class="font-sans text-[11px] uppercase tracking-wider text-[#6B645A] font-semibold">${isBarbero ? 'Mis Ingresos Cobrados (Hoy)' : 'Total Ingresos Brutos Caja (Hoy)'}</span>
-                <span class="material-symbols-outlined text-[18px] text-[#235D3A]">verified</span>
+                <span class="font-sans text-xs uppercase tracking-wider text-[#57534E] font-semibold">${isBarbero ? 'Mis Ingresos Cobrados (Hoy)' : 'Total Ingresos Brutos Caja (Hoy)'}</span>
+                <span class="material-symbols-outlined text-[18px] text-[#235D3A]" aria-hidden="true">verified</span>
               </div>
               <div class="flex items-baseline gap-2 mt-1">
                 <span class="font-serif text-3xl sm:text-4xl font-bold text-[#1C1C1C] tabular-nums tracking-tight">
                   ${formatCOP(totalIngresos)}
                 </span>
-                <span class="font-mono text-xs text-[#4F4A42] font-semibold">COP</span>
               </div>
             </div>
 
             <div class="mt-4 pt-3 border-t border-[#D5CBB8]/80 flex flex-col gap-1.5 text-xs text-[#4F4A42]">
               <div class="flex items-center gap-1.5">
-                <span class="material-symbols-outlined text-[16px] text-[#1F3A5F]">info</span>
-                <span><strong>${fs.totales.totalOperaciones} operaciones</strong> (${fs.totales.totalCitas} Citas · ${fs.totales.totalWalkIns} Walk-in ${canViewPosSales ? `· ${fs.totales.totalVentasProductos} Productos` : ''})</span>
+                <span class="material-symbols-outlined text-[16px] text-[#1F3A5F]" aria-hidden="true">info</span>
+                <span><strong>${formatPlural(fs.totales.totalOperaciones, 'operación', 'operaciones')}</strong> (${fs.totales.totalCitas} Citas · ${fs.totales.totalWalkIns} Walk-in${canViewPosSales ? ` · ${fs.totales.totalVentasProductos} Productos` : ''})</span>
               </div>
-              <div class="flex items-center justify-between text-[11px] text-[#6B645A]">
+              <div class="flex items-center justify-between text-xs text-[#57534E]">
                 <span>${isBarbero ? `Mi Comisión Ganada: <strong class="font-mono text-[#1F3A5F]">${formatCOP(fs.totales.totalComisionesCop)}</strong>` : `Comisiones: <strong class="font-mono text-[#1F3A5F]">${formatCOP(fs.totales.totalComisionesCop)}</strong> · Margen Sede: <strong class="font-mono text-[#235D3A]">${formatCOP(fs.totales.margenSedeCop)}</strong>`}</span>
               </div>
-              <div class="flex items-center gap-1.5 text-[11px] text-[#6B645A]">
-                <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#8A5300]"></span>
-                <span>${anulados.length} anulada(s) excluida(s) del arqueo (${formatCOP(fs.totales.totalAnuladosExcluidosCop)})</span>
+              <div class="flex items-center gap-1.5 text-xs text-[#57534E]">
+                <span class="inline-block w-1.5 h-1.5 rounded-full bg-[#8A5300]" aria-hidden="true"></span>
+                <span>${formatPlural(anulados.length, 'anulada excluida', 'anuladas excluidas')} del arqueo (${formatCOP(fs.totales.totalAnuladosExcluidosCop)})</span>
               </div>
-              <div class="flex items-center gap-1.5 text-[#235D3A] font-semibold text-[11px] mt-1">
-                <span class="material-symbols-outlined text-[15px]">check_circle</span>
+              <div class="flex items-center gap-1.5 text-[#235D3A] font-semibold text-xs mt-1">
+                <span class="material-symbols-outlined text-[15px]" aria-hidden="true">check_circle</span>
                 <span>${canViewAllCash ? 'Caja cuadrada con comprobantes digitales y arqueo de efectivo' : 'Resumen calculado sobre tus servicios cobrados hoy'}</span>
               </div>
             </div>
@@ -160,11 +158,11 @@ export function renderCortesPage() {
 
           <!-- Bloque Derecho: Desglose por Método de Pago (60%) -->
           <div class="lg:col-span-7 flex flex-col justify-between pl-0 lg:pl-2 gap-3">
-            <div class="flex items-center justify-between">
-              <span class="font-sans text-[11px] uppercase tracking-wider text-[#6B645A] font-semibold">
-                Desglose Exacto por Método de Pago (Suma 100% = ${formatCOP(totalIngresos)} COP)
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <span class="font-sans text-xs uppercase tracking-wider text-[#57534E] font-semibold">
+                Desglose por Método de Pago (100% = ${formatCOP(totalIngresos)})
               </span>
-              <span class="font-mono text-[11px] text-[#6B645A]">${canViewAllCash ? 'Arqueo Consolidado Sede' : 'Mis Métodos de Cobro'}</span>
+              <span class="font-mono text-xs text-[#57534E]">${canViewAllCash ? 'Arqueo Consolidado Sede' : 'Mis Métodos de Cobro'}</span>
             </div>
 
             <!-- Mini Cards Grid de los 5 Métodos -->
@@ -172,17 +170,21 @@ export function renderCortesPage() {
               ${Object.keys(breakdown).map(k => {
                 const item = breakdown[k];
                 const pct = totalIngresos > 0 ? ((item.total / totalIngresos) * 100).toFixed(1) : 0;
+                const dotHex = item.hex || '#1F3A5F';
                 return `
                   <div class="bg-[#E8DFCE]/40 border border-[#D5CBB8] p-3 rounded-lg flex flex-col justify-between">
-                    <div class="flex items-center justify-between text-[#4F4A42] mb-1">
-                      <span class="font-sans text-[11px] font-semibold">${item.label}</span>
-                      <span class="material-symbols-outlined text-[16px]">${item.icon}</span>
+                    <div class="flex items-center justify-between text-[#4F4A42] mb-1 gap-1.5">
+                      <span class="inline-flex items-center gap-1.5 font-sans text-xs font-semibold truncate">
+                        <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${dotHex};" aria-hidden="true"></span>
+                        <span class="truncate">${item.label}</span>
+                      </span>
+                      <span class="material-symbols-outlined text-[16px] shrink-0" aria-hidden="true">${item.icon}</span>
                     </div>
                     <div>
                       <div class="font-mono text-sm font-bold text-[#1C1C1C] tabular-nums">
                         ${formatCOP(item.total)}
                       </div>
-                      <div class="font-sans text-[10px] text-[#6B645A] mt-0.5">
+                      <div class="font-sans text-xs text-[#57534E] mt-0.5">
                         ${pct}% · ${item.count} tx
                       </div>
                     </div>
@@ -192,11 +194,12 @@ export function renderCortesPage() {
             </div>
 
             <!-- Barra Proporcional de Métodos -->
-            <div class="w-full bg-[#E8DFCE] h-2.5 rounded-full overflow-hidden flex mt-2 shadow-inner">
+            <div class="w-full bg-[#E8DFCE] h-2.5 rounded-full overflow-hidden flex mt-2 shadow-inner" role="img" aria-label="Distribución proporcional de ingresos por método de pago">
               ${Object.keys(breakdown).map(k => {
                 const item = breakdown[k];
                 const pct = totalIngresos > 0 ? (item.total / totalIngresos) * 100 : 0;
-                return `<div class="${item.color} h-full" style="width: ${pct}%;" title="${item.label}: ${pct.toFixed(1)}%"></div>`;
+                const barHex = item.hex || '#1F3A5F';
+                return `<div class="h-full transition-all" style="width: ${pct}%; background-color: ${barHex};" title="${item.label}: ${pct.toFixed(1)}%"></div>`;
               }).join('')}
             </div>
           </div>
@@ -207,14 +210,15 @@ export function renderCortesPage() {
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs p-4 flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <!-- Buscador y Dropdowns -->
         <div class="flex flex-wrap items-center gap-2.5 flex-1">
-          <div class="relative min-w-[240px] flex-1 sm:flex-initial">
-            <span class="material-symbols-outlined absolute left-3 top-2.5 text-[#6B645A] text-[18px]">search</span>
+          <div class="relative min-w-[260px] flex-1 xl:max-w-xs">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-[#57534E] text-[18px]" aria-hidden="true">search</span>
             <input
               type="text"
               id="filter-cortes-search"
               value="${currentFilters.search}"
-              placeholder="${canFilterBarbers ? 'Buscar por código, cliente o barbero...' : 'Buscar por código, cliente o servicio...'}"
-              class="w-full pl-9 pr-3 h-10 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] placeholder-[#6B645A] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
+              placeholder="${canFilterBarbers ? 'Buscar código, cliente o barbero' : 'Buscar código, cliente o servicio'}"
+              aria-label="Buscar movimientos en caja"
+              class="w-full pl-9 pr-3 h-10 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] placeholder-[#57534E] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
             />
           </div>
 
@@ -312,27 +316,27 @@ export function renderCortesPage() {
       <!-- AUDIT DATA TABLE: TABLA AUDITABLE DE CORTES -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse">
+          <table class="responsive-table w-full text-left border-collapse">
             <thead>
-              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
-                <th class="py-3 px-4 font-semibold">ID / HORA</th>
-                ${canViewAllCash ? `<th class="py-3 px-4 font-semibold">BARBERO & SILLÓN</th>` : ''}
-                <th class="py-3 px-4 font-semibold">SERVICIOS / PRODUCTO</th>
-                <th class="py-3 px-4 font-semibold">ORIGEN</th>
-                <th class="py-3 px-4 font-semibold">MÉTODO DE PAGO</th>
-                <th class="py-3 px-4 font-semibold text-right">VALOR (COP)</th>
-                <th class="py-3 px-4 font-semibold text-center">ESTADO</th>
-                <th class="py-3 px-4 font-semibold text-right">${canAnnulCut ? 'ACCIÓN AUDITORÍA' : 'DETALLE'}</th>
+              <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-xs uppercase tracking-wider">
+                <th class="py-3 px-4 font-semibold">ID / Hora</th>
+                ${canViewAllCash ? `<th class="py-3 px-4 font-semibold">Barbero y Sillón</th>` : ''}
+                <th class="py-3 px-4 font-semibold">Servicio / Producto</th>
+                <th class="py-3 px-4 font-semibold">Origen</th>
+                <th class="py-3 px-4 font-semibold">Método de Pago</th>
+                <th class="py-3 px-4 font-semibold text-right">Valor</th>
+                <th class="py-3 px-4 font-semibold text-center">Estado</th>
+                <th class="py-3 px-4 font-semibold text-right">Detalle</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
               ${transacciones.length === 0 ? `
                 <tr>
-                  <td colspan="${canViewAllCash ? 8 : 7}" class="py-12 text-center text-[#6B645A]">
+                  <td colspan="${canViewAllCash ? 8 : 7}" class="py-12 text-center text-[#57534E]">
                     <div class="flex flex-col items-center gap-2">
-                      <span class="material-symbols-outlined text-[32px] text-[#8C8272]">receipt_long</span>
+                      <span class="material-symbols-outlined text-[32px] text-[#8C8272]" aria-hidden="true">receipt_long</span>
                       <p class="font-medium text-sm">No se encontraron movimientos con los filtros seleccionados.</p>
-                      <button type="button" id="btn-empty-reset" class="text-xs font-semibold text-[#1F3A5F] hover:underline">Restablecer filtros</button>
+                      <button type="button" id="btn-empty-reset" class="min-h-[36px] touch-action text-xs font-semibold text-[#1F3A5F] hover:underline">Restablecer filtros</button>
                     </div>
                   </td>
                 </tr>
@@ -340,60 +344,60 @@ export function renderCortesPage() {
                 const isAnulado = tx.esAnulado;
                 const isProducto = tx.tipoTransaccion === 'producto';
                 return `
-                  <tr class="hover:bg-[#FAF3E5] transition-colors ${isAnulado ? 'bg-[#FAF3E5]/50 opacity-80' : 'bg-white'}">
+                  <tr class="hover:bg-[#FAF3E5] transition-colors ${isAnulado ? 'bg-[#FAF3E5]/50 opacity-85' : 'bg-white'}">
                     <!-- Referencia / Hora -->
-                    <td class="py-3 px-4">
+                    <td class="py-3 px-4" data-label="ID / Hora">
                       <div class="font-mono text-xs font-bold ${isProducto ? 'text-[#235D3A]' : 'text-[#1F3A5F]'}">${tx.codigoCita || (isProducto ? 'POS' : 'CORTE')}</div>
-                      <div class="text-[11px] text-[#6B645A] font-mono mt-0.5">${tx.horaFormato || '02:00 PM'}</div>
+                      <div class="text-xs text-[#57534E] font-mono mt-0.5">${tx.horaFormato || '02:00 PM'}</div>
                     </td>
 
                     ${canViewAllCash ? `
                       <!-- Barbero & Sillón -->
-                      <td class="py-3 px-4">
+                      <td class="py-3 px-4" data-label="Barbero">
                         <div class="font-sans font-semibold text-[#1C1C1C]">${tx.barberoNombre}</div>
-                        <div class="text-[11px] text-[#6B645A]">${tx.sillon || 'Sillón 01'}</div>
+                        <div class="text-xs text-[#57534E]">${tx.sillon || 'Sillón 01'}</div>
                       </td>
                     ` : ''}
 
                     <!-- Servicios / Producto & Cliente -->
-                    <td class="py-3 px-4">
-                      <div class="font-medium text-[#1C1C1C] ${isAnulado ? 'line-through text-[#6B645A]' : ''}">
+                    <td class="py-3 px-4" data-label="Servicio / Producto">
+                      <div class="font-medium text-[#1C1C1C] ${isAnulado ? 'line-through text-[#57534E]' : ''}">
                         ${tx.descripcionPrincipal}
                       </div>
-                      <div class="text-[11px] text-[#6B645A]">
+                      <div class="text-xs text-[#57534E]">
                         ${tx.descripcionSecundaria}
                       </div>
                     </td>
 
                     <!-- Origen -->
-                    <td class="py-3 px-4">
+                    <td class="py-3 px-4" data-label="Origen">
                       ${isProducto ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold border border-[#235D3A]/20">
-                          <span class="material-symbols-outlined text-[13px]">shopping_bag</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold border border-[#235D3A]/20">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">shopping_bag</span>
                           <span>Producto</span>
                         </span>
                       ` : (tx.origen === 'walk_in' || tx.origen === 'walk-in') ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FDF1DC] text-[#8A5300] font-semibold border border-[#8A5300]/20">
-                          <span class="material-symbols-outlined text-[13px]">directions_walk</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#FDF1DC] text-[#8A5300] font-semibold border border-[#8A5300]/20">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">directions_walk</span>
                           <span>Walk-in</span>
                         </span>
                       ` : `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] font-semibold border border-[#1F3A5F]/20">
-                          <span class="material-symbols-outlined text-[13px]">event_available</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] font-semibold border border-[#1F3A5F]/20">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">event_available</span>
                           <span>Cita</span>
                         </span>
                       `}
                     </td>
 
                     <!-- Método de Pago -->
-                    <td class="py-3 px-4">
+                    <td class="py-3 px-4" data-label="Método de Pago">
                       <div class="inline-flex items-center gap-1.5 font-sans text-xs text-[#4F4A42] bg-[#E8DFCE]/60 px-2.5 py-1 rounded border border-[#D5CBB8]">
                         <span class="material-symbols-outlined text-[15px] ${
                           tx.metodoPago === 'nequi' ? 'text-[#7BA3D4]' :
                           tx.metodoPago === 'daviplata' ? 'text-[#E07A7A]' :
                           tx.metodoPago === 'efectivo' ? 'text-[#235D3A]' :
-                          (tx.metodoPago === 'datafono' || tx.metodoPago === 'tarjeta_debito_credito') ? 'text-[#1F3A5F]' : 'text-[#6B645A]'
-                        }">
+                          (tx.metodoPago === 'datafono' || tx.metodoPago === 'tarjeta_debito_credito') ? 'text-[#1F3A5F]' : 'text-[#57534E]'
+                        }" aria-hidden="true">
                           ${
                             tx.metodoPago === 'nequi' ? 'phone_iphone' :
                             tx.metodoPago === 'daviplata' ? 'account_balance_wallet' :
@@ -406,60 +410,48 @@ export function renderCortesPage() {
                     </td>
 
                     <!-- Valor COP -->
-                    <td class="py-3 px-4 text-right font-mono font-bold text-[#1C1C1C] tabular-nums ${isAnulado ? 'line-through text-[#8C8272]' : ''}">
+                    <td class="py-3 px-4 text-right font-mono font-bold text-[#1C1C1C] tabular-nums ${isAnulado ? 'line-through text-[#57534E]' : ''}" data-label="Valor">
                       ${formatCOP(tx.monto)}
                     </td>
 
                     <!-- Estado -->
-                    <td class="py-3 px-4 text-center">
+                    <td class="py-3 px-4 text-center" data-label="Estado">
                       ${isAnulado ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold border border-[#B3261E]/30" title="${tx.motivoAnulacion || 'Corte anulado'}">
-                          <span class="material-symbols-outlined text-[13px]">cancel</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#FCE8E6] text-[#B3261E] font-semibold border border-[#B3261E]/30" title="${tx.motivoAnulacion || 'Corte anulado'}">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">cancel</span>
                           <span>Anulado</span>
                         </span>
                       ` : `
-                        <span class="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold border border-[#235D3A]/20">
-                          <span class="material-symbols-outlined text-[13px]">check_circle</span>
+                        <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] font-semibold border border-[#235D3A]/20">
+                          <span class="material-symbols-outlined text-[13px]" aria-hidden="true">check_circle</span>
                           <span>Activo</span>
                         </span>
                       `}
                     </td>
 
-                    <!-- Acción Auditoría -->
-                    <td class="py-3 px-4 text-right">
-                      ${isAnulado ? `
-                        <button
-                          type="button"
-                          class="btn-ver-motivo text-xs text-[#1F3A5F] hover:underline font-semibold"
-                          data-id="${tx.id}"
-                          data-motivo="${tx.motivoAnulacion || 'Sin motivo registrado'}"
-                          ${canViewAuditAuthor ? `data-autor="${tx.anuladoPor || 'Administrador'}"` : ''}
-                          data-fecha="${tx.fechaAnulacion || ''}"
-                        >
-                          Ver Motivo
-                        </button>
-                      ` : isProducto ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] text-[#235D3A] font-semibold">
-                          <span class="material-symbols-outlined text-[13px]">receipt</span>
-                          <span>Venta POS</span>
-                        </span>
-                      ` : !canAnnulCut ? `
-                        <span class="inline-flex items-center gap-1 text-[11px] text-[#235D3A] font-semibold">
-                          <span class="material-symbols-outlined text-[13px]">check_circle</span>
-                          <span>Cobrado</span>
-                        </span>
-                      ` : `
-                        <button
-                          type="button"
-                          class="btn-anular-corte text-xs text-[#B3261E] hover:text-[#8B1E1E] hover:underline font-semibold"
-                          data-id="${tx.id}"
-                          data-cliente="${tx.clienteNombre}"
-                          data-precio="${tx.precio}"
-                          data-servicio="${tx.servicioNombre}"
-                        >
-                          Ver / Anular
-                        </button>
-                      `}
+                    <!-- Acción Auditoría / Detalle -->
+                    <td class="py-3 px-4 text-right" data-label="Detalle">
+                      <button
+                        type="button"
+                        class="btn-ver-detalle-tx touch-action min-h-[36px] inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-[#D5CBB8] bg-white hover:bg-[#FAF3E5] text-xs font-semibold text-[#1F3A5F] transition-colors cursor-pointer"
+                        data-id="${tx.id}"
+                        data-tipo="${tx.tipoTransaccion || 'servicio'}"
+                        data-codigo="${tx.codigoCita || (isProducto ? 'POS' : 'CORTE')}"
+                        data-hora="${tx.horaFormato || ''}"
+                        data-barbero="${tx.barberoNombre || 'Caja'}"
+                        data-sillon="${tx.sillon || 'Mostrador'}"
+                        data-cliente="${tx.clienteNombre || 'Cliente Mostrador'}"
+                        data-servicio="${tx.descripcionPrincipal || tx.servicioNombre || ''}"
+                        data-metodo="${tx.metodoPago || 'efectivo'}"
+                        data-monto="${tx.monto ?? tx.precio ?? 0}"
+                        data-anulado="${isAnulado ? '1' : '0'}"
+                        data-motivo="${tx.motivoAnulacion || ''}"
+                        ${canViewAuditAuthor ? `data-autor="${tx.anuladoPor || 'Administrador'}"` : ''}
+                        data-fecha-anulacion="${tx.fechaAnulacion || ''}"
+                      >
+                        <span class="material-symbols-outlined text-[15px]" aria-hidden="true">visibility</span>
+                        <span>${isAnulado ? 'Ver detalle' : 'Ver detalle'}</span>
+                      </button>
                     </td>
                   </tr>
                 `;
@@ -470,8 +462,8 @@ export function renderCortesPage() {
 
         <!-- Table Footer / Auditoría info -->
         <div class="bg-[#E8DFCE] px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[#4F4A42]">
-          <span>Mostrando <strong>${transacciones.length}</strong> movimientos (${transacciones.filter(t => !t.esAnulado).length} activos, ${anulados.length} auditados anulados)</span>
-          <span class="font-mono text-[11px] text-[#6B645A]">SmartBarber POS v2.0 · Arqueo Inmutable</span>
+          <span>Mostrando <strong>${formatPlural(transacciones.length, 'movimiento', 'movimientos')}</strong> (${transacciones.filter(t => !t.esAnulado).length} activos, ${anulados.length} auditados anulados)</span>
+          <span class="font-mono text-xs text-[#57534E]">SmartBarber POS · Arqueo de Caja</span>
         </div>
       </section>
     </div>
@@ -501,7 +493,8 @@ export function renderCortesPage() {
           <button
             type="button"
             id="btn-close-walkin-drawer"
-            class="w-8 h-8 rounded-full flex items-center justify-center text-[#BDB4A5] hover:text-white hover:bg-white/10 transition-colors"
+            aria-label="Cerrar panel de registro walk-in"
+            class="touch-action w-11 h-11 rounded-full flex items-center justify-center text-[#BDB4A5] hover:text-white hover:bg-white/10 transition-colors"
           >
             <span class="material-symbols-outlined text-[20px]">close</span>
           </button>
@@ -672,9 +665,8 @@ export function renderCortesPage() {
             <span class="font-sans text-xs uppercase tracking-wider text-[#6B645A] font-semibold">Total a Cobrar:</span>
             <div class="text-right">
               <span id="walkin-total-display" class="font-mono text-2xl font-bold text-[#1C1C1C] tabular-nums">
-                ${cachedServicios[0] ? formatCOP(cachedServicios[0].precio) : '$ 25.000'}
+                ${cachedServicios[0] ? formatCOP(cachedServicios[0].precio) : '$ 25.000 COP'}
               </span>
-              <span class="font-mono text-xs text-[#4F4A42] font-semibold ml-1">COP</span>
             </div>
           </div>
 
@@ -771,36 +763,80 @@ export function renderCortesPage() {
     ` : ''}
 
     <!-- ========================================== -->
-    <!-- MODAL DE VISUALIZACIÓN DE MOTIVO ANULADO   -->
+    <!-- MODAL DE DETALLE DE MOVIMIENTO Y AUDITORÍA -->
     <!-- ========================================== -->
     <dialog
-      id="dialog-ver-motivo"
+      id="dialog-detalle-tx"
       class="p-0 rounded-2xl bg-[#FAF7F2] border border-[#D5CBB8] shadow-2xl backdrop:bg-black/50 max-w-md w-full mx-auto my-auto"
     >
       <div class="p-6 flex flex-col gap-4">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-[#E8DFCE] text-[#4F4A42] flex items-center justify-center">
-            <span class="material-symbols-outlined text-[20px]">info</span>
+        <div class="flex items-start justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-full bg-[#E4ECF5] text-[#1F3A5F] flex items-center justify-center shrink-0">
+              <span class="material-symbols-outlined text-[20px]" aria-hidden="true">receipt_long</span>
+            </div>
+            <div>
+              <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Detalle del Movimiento</h3>
+              <span class="text-xs text-[#57534E] font-mono" id="detalle-tx-codigo">#RC-1042</span>
+            </div>
           </div>
-          <div>
-            <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Motivo de Anulación</h3>
-            <span class="text-xs text-[#6B645A] font-mono" id="ver-motivo-id">#RC-1037</span>
-          </div>
-        </div>
-
-        <div class="p-3.5 rounded-lg bg-white border border-[#D5CBB8] text-xs text-[#1C1C1C] leading-relaxed" id="ver-motivo-texto">
-        </div>
-
-        <div class="text-[11px] text-[#6B645A] flex justify-between border-t border-[#D5CBB8] pt-2">
-          ${canViewAuditAuthor ? `<span id="ver-motivo-autor">Auditor: Administración</span>` : `<span>Anulado por administración</span>`}
-          <span id="ver-motivo-fecha"></span>
-        </div>
-
-        <div class="flex justify-end pt-2">
           <button
             type="button"
-            id="btn-cerrar-ver-motivo"
-            class="min-h-[44px] px-4 py-2 rounded-lg bg-[#1F3A5F] text-white text-xs font-semibold"
+            id="btn-cerrar-detalle-x"
+            aria-label="Cerrar detalle"
+            class="touch-action w-9 h-9 rounded-full flex items-center justify-center text-[#57534E] hover:bg-[#E8DFCE] transition-colors"
+          >
+            <span class="material-symbols-outlined text-[18px]" aria-hidden="true">close</span>
+          </button>
+        </div>
+
+        <div class="p-3.5 rounded-lg bg-[#FAF3E5] border border-[#D5CBB8] flex flex-col gap-2 text-xs">
+          <div class="flex justify-between gap-2">
+            <span class="text-[#57534E]">Concepto:</span>
+            <span class="font-semibold text-[#1C1C1C] text-right" id="detalle-tx-servicio">—</span>
+          </div>
+          <div class="flex justify-between gap-2">
+            <span class="text-[#57534E]">Cliente:</span>
+            <span class="text-[#1C1C1C] text-right" id="detalle-tx-cliente">—</span>
+          </div>
+          <div class="flex justify-between gap-2">
+            <span class="text-[#57534E]">Barbero / Responsable:</span>
+            <span class="text-[#1C1C1C] text-right" id="detalle-tx-barbero">—</span>
+          </div>
+          <div class="flex justify-between gap-2">
+            <span class="text-[#57534E]">Método de pago:</span>
+            <span class="capitalize font-medium text-[#1C1C1C]" id="detalle-tx-metodo">—</span>
+          </div>
+          <div class="flex justify-between gap-2 border-t border-[#D5CBB8] pt-2 mt-0.5">
+            <span class="text-[#57534E]">Total cobrado:</span>
+            <span class="font-mono font-bold text-[#1C1C1C]" id="detalle-tx-monto">$ 0 COP</span>
+          </div>
+        </div>
+
+        <!-- Bloque auditoría (solo si está anulado) -->
+        <div id="detalle-tx-anulacion-box" class="hidden flex-col gap-2">
+          <span class="text-xs font-semibold text-[#B3261E]">Motivo de anulación:</span>
+          <div class="p-3 rounded-lg bg-white border border-[#B3261E]/30 text-xs text-[#1C1C1C] leading-relaxed" id="ver-motivo-texto"></div>
+          <div class="text-xs text-[#57534E] flex justify-between">
+            ${canViewAuditAuthor ? `<span id="ver-motivo-autor">Auditor: Administración</span>` : `<span>Anulado por administración</span>`}
+            <span id="ver-motivo-fecha"></span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between gap-2 pt-2 border-t border-[#D5CBB8]">
+          ${canAnnulCut ? `
+            <button
+              type="button"
+              id="btn-detalle-ir-anular"
+              class="hidden min-h-[44px] px-4 py-2 rounded-lg bg-[#FCE8E6] hover:bg-[#B3261E] text-[#B3261E] hover:text-white border border-[#B3261E]/30 text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Anular movimiento
+            </button>
+          ` : '<span></span>'}
+          <button
+            type="button"
+            id="btn-cerrar-detalle-tx"
+            class="min-h-[44px] px-4 py-2 rounded-lg bg-[#1F3A5F] hover:bg-[#162B47] text-white text-xs font-semibold ml-auto cursor-pointer"
           >
             Cerrar
           </button>
@@ -996,36 +1032,105 @@ export function attachCortesListeners(onDataChange) {
     });
   }
 
-  // 9. Anular Corte Modal (CU-008, solo con capacidad cuts.annul)
-  if (canAnnulCut) {
-    const dialogAnular = document.getElementById('dialog-anular-corte');
-    const anularBtns = document.querySelectorAll('.btn-anular-corte');
-    const cancelAnularBtn = document.getElementById('btn-cancelar-anulacion');
-    const confirmAnularBtn = document.getElementById('btn-confirmar-anulacion');
-    const motivoTextarea = document.getElementById('anular-motivo-input');
-    const charCounter = document.getElementById('anular-char-counter');
+  // 9. Modal de Detalle de Movimiento & Anulación Auditable (CU-008)
+  const dialogDetalle = document.getElementById('dialog-detalle-tx');
+  const detalleBtns = document.querySelectorAll('.btn-ver-detalle-tx');
+  const cerrarDetalleBtn = document.getElementById('btn-cerrar-detalle-tx');
+  const cerrarDetalleX = document.getElementById('btn-cerrar-detalle-x');
+  const btnDetalleIrAnular = document.getElementById('btn-detalle-ir-anular');
 
-    let activeCorteToAnular = null;
+  const dialogAnular = document.getElementById('dialog-anular-corte');
+  const cancelAnularBtn = document.getElementById('btn-cancelar-anulacion');
+  const confirmAnularBtn = document.getElementById('btn-confirmar-anulacion');
+  const motivoTextarea = document.getElementById('anular-motivo-input');
+  const charCounter = document.getElementById('anular-char-counter');
 
-    anularBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        activeCorteToAnular = btn.getAttribute('data-id');
-        const cliente = btn.getAttribute('data-cliente');
-        const precio = Number(btn.getAttribute('data-precio')) || 0;
-        const servicio = btn.getAttribute('data-servicio');
+  let activeCorteToAnular = null;
+  let activeDetallePayload = null;
 
-        document.getElementById('anular-corte-id').textContent = `#${activeCorteToAnular}`;
-        document.getElementById('anular-corte-servicio').textContent = servicio;
-        document.getElementById('anular-corte-cliente').textContent = cliente;
-        document.getElementById('anular-corte-valor').textContent = formatCOP(precio);
+  detalleBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.getAttribute('data-id');
+      const tipo = btn.getAttribute('data-tipo');
+      const codigo = btn.getAttribute('data-codigo');
+      const hora = btn.getAttribute('data-hora');
+      const barbero = btn.getAttribute('data-barbero');
+      const sillon = btn.getAttribute('data-sillon');
+      const cliente = btn.getAttribute('data-cliente');
+      const servicio = btn.getAttribute('data-servicio');
+      const metodo = String(btn.getAttribute('data-metodo') || 'efectivo').replace('_', ' ');
+      const monto = Number(btn.getAttribute('data-monto')) || 0;
+      const isAnulado = btn.getAttribute('data-anulado') === '1';
+      const motivo = btn.getAttribute('data-motivo');
+      const autor = btn.getAttribute('data-autor');
+      const fechaAnulacion = btn.getAttribute('data-fecha-anulacion');
 
-        motivoTextarea.value = '';
-        charCounter.textContent = '0 / 10 caracteres requeridos';
-        confirmAnularBtn.disabled = true;
+      activeDetallePayload = { id, tipo, cliente, monto, servicio };
 
-        if (dialogAnular) dialogAnular.showModal();
-      });
+      const codigoEl = document.getElementById('detalle-tx-codigo');
+      if (codigoEl) codigoEl.textContent = `${codigo}${hora ? ` · ${hora}` : ''}`;
+      const servEl = document.getElementById('detalle-tx-servicio');
+      if (servEl) servEl.textContent = servicio || '—';
+      const cliEl = document.getElementById('detalle-tx-cliente');
+      if (cliEl) cliEl.textContent = cliente || 'Cliente Mostrador';
+      const barbEl = document.getElementById('detalle-tx-barbero');
+      if (barbEl) barbEl.textContent = sillon ? `${barbero} (${sillon})` : barbero;
+      const metEl = document.getElementById('detalle-tx-metodo');
+      if (metEl) metEl.textContent = metodo;
+      const monEl = document.getElementById('detalle-tx-monto');
+      if (monEl) monEl.textContent = formatCOP(monto);
+
+      const anulacionBox = document.getElementById('detalle-tx-anulacion-box');
+      if (anulacionBox) {
+        if (isAnulado) {
+          anulacionBox.classList.remove('hidden');
+          anulacionBox.classList.add('flex');
+          const textoEl = document.getElementById('ver-motivo-texto');
+          if (textoEl) textoEl.textContent = motivo || 'Sin motivo registrado';
+          const autorEl = document.getElementById('ver-motivo-autor');
+          if (autorEl && canViewAuditAuthor) autorEl.textContent = `Auditor: ${autor || 'Administrador'}`;
+          const fechaEl = document.getElementById('ver-motivo-fecha');
+          if (fechaEl) fechaEl.textContent = fechaAnulacion ? `Fecha: ${fechaAnulacion.substring(0, 10)}` : '';
+        } else {
+          anulacionBox.classList.add('hidden');
+          anulacionBox.classList.remove('flex');
+        }
+      }
+
+      if (btnDetalleIrAnular) {
+        const allowAnnul = canAnnulCut && tipo !== 'producto' && !isAnulado;
+        btnDetalleIrAnular.classList.toggle('hidden', !allowAnnul);
+      }
+
+      if (dialogDetalle) dialogDetalle.showModal();
     });
+  });
+
+  if (cerrarDetalleBtn && dialogDetalle) {
+    cerrarDetalleBtn.addEventListener('click', () => dialogDetalle.close());
+  }
+  if (cerrarDetalleX && dialogDetalle) {
+    cerrarDetalleX.addEventListener('click', () => dialogDetalle.close());
+  }
+
+  if (canAnnulCut) {
+    if (btnDetalleIrAnular && dialogAnular) {
+      btnDetalleIrAnular.addEventListener('click', () => {
+        if (!activeDetallePayload) return;
+        if (dialogDetalle) dialogDetalle.close();
+        activeCorteToAnular = activeDetallePayload.id;
+        document.getElementById('anular-corte-id').textContent = `#${activeDetallePayload.id}`;
+        document.getElementById('anular-corte-servicio').textContent = activeDetallePayload.servicio;
+        document.getElementById('anular-corte-cliente').textContent = activeDetallePayload.cliente;
+        document.getElementById('anular-corte-valor').textContent = formatCOP(activeDetallePayload.monto);
+
+        if (motivoTextarea) motivoTextarea.value = '';
+        if (charCounter) charCounter.textContent = '0 / 10 caracteres requeridos';
+        if (confirmAnularBtn) confirmAnularBtn.disabled = true;
+
+        dialogAnular.showModal();
+      });
+    }
 
     if (motivoTextarea && charCounter && confirmAnularBtn) {
       motivoTextarea.addEventListener('input', (e) => {
@@ -1064,34 +1169,6 @@ export function attachCortesListeners(onDataChange) {
         }
       });
     }
-  }
-
-  // 10. Ver Motivo de Corte Anulado
-  const dialogVerMotivo = document.getElementById('dialog-ver-motivo');
-  const verMotivoBtns = document.querySelectorAll('.btn-ver-motivo');
-  const cerrarVerMotivoBtn = document.getElementById('btn-cerrar-ver-motivo');
-
-  verMotivoBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const id = btn.getAttribute('data-id');
-      const motivo = btn.getAttribute('data-motivo');
-      const autor = btn.getAttribute('data-autor');
-      const fecha = btn.getAttribute('data-fecha');
-
-      document.getElementById('ver-motivo-id').textContent = `#${id}`;
-      document.getElementById('ver-motivo-texto').textContent = motivo;
-      const autorEl = document.getElementById('ver-motivo-autor');
-      if (autorEl && canViewAuditAuthor) {
-        autorEl.textContent = `Auditor: ${autor || 'Administrador'}`;
-      }
-      document.getElementById('ver-motivo-fecha').textContent = fecha ? `Fecha: ${fecha.substring(0, 10)}` : '';
-
-      if (dialogVerMotivo) dialogVerMotivo.showModal();
-    });
-  });
-
-  if (cerrarVerMotivoBtn && dialogVerMotivo) {
-    cerrarVerMotivoBtn.addEventListener('click', () => dialogVerMotivo.close());
   }
 }
 

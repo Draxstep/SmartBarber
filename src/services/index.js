@@ -15,4 +15,5 @@ export * from './cortes.service.js';
 export * from './caja-financial.service.js';
 export * from './inventario.service.js';
 export * from './auth.service.js';
+export * from './usuarios.service.js';
 export * from './camera.service.js';

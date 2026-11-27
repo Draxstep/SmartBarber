@@ -184,8 +184,8 @@ export const barberosService = {
     return response;
   },
 
-  async guardarHorarioSemanal(barberoId, franjas) {
-    const response = await httpClient.post(`/barberos/${barberoId}/horarios`, { franjas });
+  async guardarHorarioSemanal(barberoId, horarios) {
+    const response = await httpClient.post(`/barberos/${barberoId}/horarios`, { horarios });
     return response;
   },
 

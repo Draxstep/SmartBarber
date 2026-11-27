@@ -325,16 +325,27 @@ export class CorteService {
     const fechaInicio = `${today}T00:00:00-05:00`;
     const fechaFin = `${today}T23:59:59-05:00`;
 
-    // 1. Cortes del día (activos)
-    const cortes = await this.corteRepo.findHistorialDiario({
-      sedeId,
-      fechaInicio,
-      fechaFin,
-      barberoId: null,
-      estado: 'activo'
-    });
+    // 1. Cortes del día (activos) + resumen consolidado (servicios + ventas POS)
+    const [cortes, resumenCaja] = await Promise.all([
+      this.corteRepo.findHistorialDiario({
+        sedeId,
+        fechaInicio,
+        fechaFin,
+        barberoId: null,
+        estado: 'activo'
+      }),
+      this.corteRepo.getResumenIngresos({
+        sedeId,
+        fechaInicio,
+        fechaFin,
+        barberoId: null
+      })
+    ]);
 
-    const ingresosHoyCop = cortes.reduce((sum, c) => sum + (c.precioCobradoCop || c.precio || 0), 0);
+    const ingresosServiciosCop = cortes.reduce((sum, c) => sum + (c.precioCobradoCop || c.precio || 0), 0);
+    const ingresosProductosCop = Number(resumenCaja?.totalProductosCop || 0);
+    const totalVentasProductos = Number(resumenCaja?.totalVentasProductos || 0);
+    const ingresosHoyCop = ingresosServiciosCop + ingresosProductosCop;
     const comisionesHoyCop = cortes.reduce((sum, c) => sum + (c.comisionCalculadaCop || 0), 0);
     const margenNetoSedeCop = Math.max(0, ingresosHoyCop - comisionesHoyCop);
 
@@ -350,16 +361,16 @@ export class CorteService {
     const citasNoAsistio = citas.filter(c => c.estado === 'no_asistio').length;
     const citasCanceladas = citas.filter(c => c.estado === 'cancelada').length;
 
-    // 3. Rendimiento por barbero
+    // 3. Rendimiento por barbero (con número de sillón consistente)
     const barberos = await this.barberoRepo.findBySede(sedeId, { activosSolo: false });
-    const rendimientoBarberos = barberos.map(b => {
+    const rendimientoBarberos = barberos.map((b, idx) => {
       const cortesBarbero = cortes.filter(c => c.barberoId === b.barberoId);
       const totalIngresos = cortesBarbero.reduce((sum, c) => sum + (c.precioCobradoCop || c.precio || 0), 0);
       const totalComisiones = cortesBarbero.reduce((sum, c) => sum + (c.comisionCalculadaCop || 0), 0);
       return {
         barberoId: b.barberoId,
         nombre: b.nombrePublico || b.nombreCompleto,
-        sillon: b.sillon || 'Sillón',
+        sillon: b.sillon || `Sillón ${String(idx + 1).padStart(2, '0')}`,
         porcentajeComision: b.porcentajeComision,
         activo: b.estado === 'activo',
         cortesCount: cortesBarbero.length,
@@ -394,6 +405,9 @@ export class CorteService {
     return {
       fecha: today,
       ingresosHoyCop,
+      ingresosServiciosCop,
+      ingresosProductosCop,
+      totalVentasProductos,
       comisionesHoyCop,
       margenNetoSedeCop,
       cortesTotalHoy: cortes.length,
