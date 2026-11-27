@@ -9,9 +9,8 @@ import { renderLandingPage } from './landing.page.js';
 import { renderBookingWizard, attachWizardListeners } from './booking-wizard.page.js';
 import { renderConsultarCitaPage, attachConsultarCitaListeners } from './consultar-cita.page.js';
 import { bookingStore } from './booking-state.js';
-import { serviciosService, barberosService } from '../../services/index.js';
 import { registrarServiceWorker, inicializarEventosConectividad } from '../../pwa/sw-register.js';
-import { inicializarInstaladorPWA } from '../../pwa/install-prompt.js';
+import { inicializarInstaladorPWA, sincronizarBotonInstalacion } from '../../pwa/install-prompt.js';
 
 // Inicializar capacidades PWA Offline-First
 registrarServiceWorker();
@@ -56,12 +55,9 @@ export async function renderApp() {
       appRoot.innerHTML = renderLandingPage({ services: [], barbers: [], isLoading: true });
 
       try {
-        const [srvRes, barbRes] = await Promise.all([
-          serviciosService.getServicios(),
-          barberosService.getBarberos()
-        ]);
-        cachedServices = srvRes?.ok ? srvRes.data : [];
-        cachedBarbers = barbRes?.ok ? barbRes.data : [];
+        await bookingStore.ensureInitialized();
+        cachedServices = bookingStore.servicesCatalog;
+        cachedBarbers = bookingStore.barbersCatalog.filter(b => b.id !== 'any');
       } catch (_) {}
 
       isLoadingData = false;
@@ -74,6 +70,8 @@ export async function renderApp() {
     });
     attachLandingListeners();
   }
+
+  sincronizarBotonInstalacion();
 }
 
 function attachLandingListeners() {

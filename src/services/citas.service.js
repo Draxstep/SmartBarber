@@ -6,6 +6,7 @@
 import { httpClient, ConflictError, ValidationError, NetworkError } from './http-client.js';
 import { encolarCambio } from '../pwa/sync.js';
 import { emitDataMutation } from '../utils/event-bus.js';
+import { getTodayBogota } from '../utils/formatters.js';
 
 export const citasService = {
   /**
@@ -15,7 +16,7 @@ export const citasService = {
   async getDisponibilidad({ fecha, barberoId, duracionBloques = 1, servicioIds, duracionMinutos } = {}) {
     const rawBloques = Number(duracionBloques) || (duracionMinutos ? Math.ceil(duracionMinutos / 30) : 1);
     const bloques = Math.max(1, rawBloques);
-    const hoyBogota = new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString().split('T')[0];
+    const hoyBogota = getTodayBogota();
     const query = new URLSearchParams({
       fecha: fecha || hoyBogota,
       duracionBloques: bloques

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:full": "node server/scripts/dev-full.js",
     "build": "vite build && node server/scripts/build-sw.js",
     "build:sw": "node server/scripts/build-sw.js",
     "copy:workbox": "workbox copyLibraries public/lib",

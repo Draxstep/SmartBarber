@@ -25,7 +25,7 @@ import { onDataMutation, AppEvent } from '../../utils/event-bus.js';
 
 // Módulos PWA Offline-First
 import { registrarServiceWorker, inicializarEventosConectividad } from '../../pwa/sw-register.js';
-import { inicializarInstaladorPWA } from '../../pwa/install-prompt.js';
+import { inicializarInstaladorPWA, sincronizarBotonInstalacion } from '../../pwa/install-prompt.js';
 import { suscribirAPush, tieneSuscripcionActiva, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones, soportaNotificacionesPush } from '../../pwa/notificaciones.js';
 import { obtenerEstadoOutbox, descartarCambio, pedirSincronizacion } from '../../pwa/sync.js';
 import { abrirBaseDeDatos, limpiarDatosLocales } from '../../pwa/db.js';
@@ -137,13 +137,16 @@ export async function renderBackoffice() {
   if (!currentUser || !authService.isAuthenticated()) {
     appRoot.innerHTML = renderLoginPage();
     attachLoginListeners(async (user) => {
-      // Inicializar base de datos local al autenticar
+      // Inicializar base de datos local y estado del Backoffice tras autenticar
       await abrirBaseDeDatos().catch(() => {});
+      await backofficeStore.ensureInitialized(true);
       window.location.hash = '#agenda';
       renderBackoffice();
     });
     return;
   }
+
+  await backofficeStore.ensureInitialized();
 
   const currentRoute = getActiveRoute(currentUser);
   const currentRole = currentUser.rol || 'barbero';
@@ -190,6 +193,7 @@ export async function renderBackoffice() {
     routeConfig.attachListeners(() => renderBackoffice(), currentUser);
   }
   actualizarPillConectividad();
+  sincronizarBotonInstalacion();
 }
 
 function renderWithLayout(activeRoute, user, contentHtml) {
@@ -400,6 +404,7 @@ function attachBackofficeCommonListeners() {
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       await authService.logout();
+      backofficeStore.reset();
       await limpiarDatosLocales().catch(() => {});
       window.location.hash = '';
       renderBackoffice();
@@ -623,7 +628,8 @@ onDataMutation(async (detail) => {
   }
 });
 
-// Inicializar capacidades PWA del Backoffice
+// Inicializar capacidades PWA del Backoffice (sin llamadas de red previas al login)
+abrirBaseDeDatos().catch(() => {});
 registrarServiceWorker();
 inicializarEventosConectividad();
 inicializarInstaladorPWA();

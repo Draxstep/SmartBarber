@@ -9,11 +9,15 @@ const { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } = workbox.
 const { ExpirationPlugin } = workbox.expiration;
 
 cleanupOutdatedCaches();
-precacheAndRoute([{"revision":"cecfe2ad0ad837091f8386b192336aa5","url":"index.html"},{"revision":"e75ccce6a3398198e6e3dd866c9cc4c1","url":"backoffice.html"},{"revision":"6e43bfbd39f9750ae399a584ed64f031","url":"offline.html"},{"revision":"2c85ad1fe2a2a9810be73d8d381cc031","url":"styleguide.html"},{"revision":"e0dac51d12ae063d226253bc7f89b789","url":"manifest.json"},{"revision":"6b20840d89c2f64f4741486ef6e248f8","url":"assets/ui-dialog-Dju8F_L8.css"},{"revision":"0b16500c91130db6faec6188d89dd7a7","url":"assets/ui-dialog-BoA2dAI7.js"},{"revision":"8020d6b37e13f623f485fd41756b7eb7","url":"assets/styleguide-qN1p-43G.js"},{"revision":"e9dabe013743d4304e7da1cd450f7137","url":"assets/status-badge-CKGoXOPm.js"},{"revision":"b29d6f80c8042bc7ac634f0b3d1afc52","url":"assets/install-prompt-CbsfP3eg.js"},{"revision":"873812a3e36d96a95f08073bfe233c07","url":"assets/index-Cqq9TuDS.js"},{"revision":"3e70cb3f7a87703cbd6892e1c150a850","url":"assets/booking-stepper-ByqZlII2.js"},{"revision":"123b5d15ec0719c4cef9c244d3e1e45c","url":"assets/backoffice-Cmo-hpy0.js"},{"revision":"4836ea148892c29f1730baa234c62fa9","url":"icons/launchericon-96x96.png"},{"revision":"e0e18106be09696cfc5480335f7de5a4","url":"icons/launchericon-72x72.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/launchericon-512x512.png"},{"revision":"63c48d1c5d163f4011b8b19f12589241","url":"icons/launchericon-48x48.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/launchericon-192x192.png"},{"revision":"50d689b81a1a1a22442665adda270877","url":"icons/launchericon-144x144.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/icon-512-maskable.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/icon-192.png"}]);
+precacheAndRoute([{"revision":"0fced93491811524b657f9260edec65a","url":"index.html"},{"revision":"f22d221a4d725ec08405cd6956250cc1","url":"backoffice.html"},{"revision":"255b94e36df3c246a4cb2a6e7359dddb","url":"offline.html"},{"revision":"dc923b114a31bf44cb8c6089094d0d43","url":"styleguide.html"},{"revision":"533693f93ee02c9aab40385831d3966f","url":"manifest.json"},{"revision":"6b20840d89c2f64f4741486ef6e248f8","url":"assets/ui-dialog-Dju8F_L8.css"},{"revision":"1e86c8c5428e522a24a00343a9f753cd","url":"assets/ui-dialog-CiIMnK7o.js"},{"revision":"dcb489e19ec68f60df7e9230ef4acf7d","url":"assets/styleguide-BjkK0Ysr.js"},{"revision":"e9dabe013743d4304e7da1cd450f7137","url":"assets/status-badge-CKGoXOPm.js"},{"revision":"5147d4ba1a90cecc9092a1cee2be22cb","url":"assets/install-prompt-Fu7aH7e9.js"},{"revision":"bb5381a541890de8e1dd8ddbda215ceb","url":"assets/index-CGAd_O99.js"},{"revision":"912efa9c1d76c16b8a765c05217caaa6","url":"assets/booking-stepper-DJ10ppAF.js"},{"revision":"51d22ab41b75cb05390a92d965bd1908","url":"assets/backoffice-B1491kY8.js"},{"revision":"4836ea148892c29f1730baa234c62fa9","url":"icons/launchericon-96x96.png"},{"revision":"e0e18106be09696cfc5480335f7de5a4","url":"icons/launchericon-72x72.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/launchericon-512x512.png"},{"revision":"63c48d1c5d163f4011b8b19f12589241","url":"icons/launchericon-48x48.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/launchericon-192x192.png"},{"revision":"50d689b81a1a1a22442665adda270877","url":"icons/launchericon-144x144.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/icon-512-maskable.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/icon-192.png"}]);
+
+const isSameOrigin = (url) => url.origin === self.location.origin;
 
 // 1. Imágenes e íconos estáticos -> CacheFirst (LCP < 2.5s en 4G, RNF-01)
 registerRoute(
-  ({ url }) => url.pathname.startsWith("/icons/") || url.pathname.startsWith("/uploads/barberos/"),
+  ({ url }) =>
+    isSameOrigin(url) &&
+    (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/uploads/barberos/")),
   new CacheFirst({
     cacheName: "smartbarber-imagenes",
     plugins: [new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 })],
@@ -32,15 +36,17 @@ registerRoute(
 // 3. Disponibilidad en vivo y autenticación -> NetworkOnly (jamás servir slots obsoletos ni tokens)
 registerRoute(
   ({ url }) =>
-    url.pathname.startsWith("/api/public/disponibilidad") ||
-    url.pathname.startsWith("/api/v1/public/disponibilidad") ||
-    url.pathname.startsWith("/api/v1/auth/"),
+    isSameOrigin(url) &&
+    (url.pathname.startsWith("/api/public/disponibilidad") ||
+      url.pathname.startsWith("/api/v1/public/disponibilidad") ||
+      url.pathname.startsWith("/api/v1/auth/")),
   new NetworkOnly()
 );
 
 // 4. Datos públicos Landing y lecturas GET del Backoffice -> NetworkFirst con fallback a caché
 registerRoute(
   ({ url, request }) =>
+    isSameOrigin(url) &&
     request.method === "GET" &&
     (url.pathname.startsWith("/api/public/landing") ||
       url.pathname.startsWith("/api/public/info") ||
@@ -53,19 +59,32 @@ registerRoute(
   })
 );
 
-// Fallback editorial para navegación offline no precacheada
-setCatchHandler(async ({ request }) => {
+// Fallback editorial para navegación offline y respuesta controlada 503 para API sin red
+setCatchHandler(async ({ request, url }) => {
   if (request.destination === "document") {
     return caches.match("/offline.html");
+  }
+  const reqUrl = url || new URL(request.url);
+  if (isSameOrigin(reqUrl) && reqUrl.pathname.startsWith("/api/")) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: {
+          code: "OFFLINE_OR_UNREACHABLE",
+          message: "Servidor no disponible o dispositivo sin conexión a internet."
+        }
+      }),
+      {
+        status: 503,
+        statusText: "Service Unavailable",
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
   return Response.error();
 });
 
 // Control de actualización controlada (RF-PWA-08) e invalidación de caché reactiva
-self.addEventListener("install", () => {
-  self.skipWaiting();
-});
-
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();

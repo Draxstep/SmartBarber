@@ -13,6 +13,7 @@ import {
   serviciosService
 } from '../../services/index.js';
 import { emitDataMutation } from '../../utils/event-bus.js';
+import { getTodayBogota } from '../../utils/formatters.js';
 
 class BackofficeStateStore {
   constructor() {
@@ -23,30 +24,70 @@ class BackofficeStateStore {
     this.products = [];
     this.inventorySearchQuery = '';
     this.inventoryStatusFilter = 'all';
+    this.isInitialized = false;
+    this.initPromise = null;
 
-    this.selectedDate = new Date().toISOString().split('T')[0];
-    this.init();
+    this.selectedDate = getTodayBogota();
+  }
+
+  /**
+   * Inicializa el estado del Backoffice de forma perezosa e idempotente,
+   * ejecutándose únicamente cuando existe una sesión autenticada.
+   */
+  async ensureInitialized(force = false) {
+    if (!authService.isAuthenticated()) {
+      return;
+    }
+    if (this.isInitialized && !force) {
+      return;
+    }
+    if (!this.initPromise || force) {
+      this.initPromise = this.init().finally(() => {
+        this.initPromise = null;
+      });
+    }
+    await this.initPromise;
   }
 
   async init() {
     const user = authService.getCurrentUser();
-    if (user) {
-      this.currentRole = user.rol;
-      if (user.barberoId) {
-        this.activeBarber = {
-          id: user.barberoId,
-          name: user.nombreCompleto || 'Barbero',
-          chair: 'Sillón 1',
-          chairIndex: 0
-        };
-      }
+    if (!user || !authService.isAuthenticated()) {
+      return;
+    }
+
+    this.currentRole = user.rol;
+    if (user.barberoId) {
+      this.activeBarber = {
+        id: user.barberoId,
+        name: user.nombreCompleto || 'Barbero',
+        chair: 'Sillón 1',
+        chairIndex: 0
+      };
     }
 
     await this.loadAgendaData();
+    this.isInitialized = true;
+  }
+
+  reset() {
+    this.currentRole = 'administrador';
+    this.activeBarber = null;
+    this.barbers = [];
+    this.appointments = [];
+    this.products = [];
+    this.inventorySearchQuery = '';
+    this.inventoryStatusFilter = 'all';
+    this.selectedDate = getTodayBogota();
+    this.isInitialized = false;
+    this.initPromise = null;
   }
 
   async loadAgendaData(fecha = null) {
-    const targetDate = fecha || this.selectedDate || new Date().toISOString().split('T')[0];
+    if (!authService.isAuthenticated()) {
+      return [];
+    }
+
+    const targetDate = fecha || this.selectedDate || getTodayBogota();
     this.selectedDate = targetDate;
 
     try {

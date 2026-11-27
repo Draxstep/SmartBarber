@@ -11,9 +11,13 @@ const { ExpirationPlugin } = workbox.expiration;
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
+const isSameOrigin = (url) => url.origin === self.location.origin;
+
 // 1. Imágenes e íconos estáticos -> CacheFirst (LCP < 2.5s en 4G, RNF-01)
 registerRoute(
-  ({ url }) => url.pathname.startsWith("/icons/") || url.pathname.startsWith("/uploads/barberos/"),
+  ({ url }) =>
+    isSameOrigin(url) &&
+    (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/uploads/barberos/")),
   new CacheFirst({
     cacheName: "smartbarber-imagenes",
     plugins: [new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 })],
@@ -32,15 +36,17 @@ registerRoute(
 // 3. Disponibilidad en vivo y autenticación -> NetworkOnly (jamás servir slots obsoletos ni tokens)
 registerRoute(
   ({ url }) =>
-    url.pathname.startsWith("/api/public/disponibilidad") ||
-    url.pathname.startsWith("/api/v1/public/disponibilidad") ||
-    url.pathname.startsWith("/api/v1/auth/"),
+    isSameOrigin(url) &&
+    (url.pathname.startsWith("/api/public/disponibilidad") ||
+      url.pathname.startsWith("/api/v1/public/disponibilidad") ||
+      url.pathname.startsWith("/api/v1/auth/")),
   new NetworkOnly()
 );
 
 // 4. Datos públicos Landing y lecturas GET del Backoffice -> NetworkFirst con fallback a caché
 registerRoute(
   ({ url, request }) =>
+    isSameOrigin(url) &&
     request.method === "GET" &&
     (url.pathname.startsWith("/api/public/landing") ||
       url.pathname.startsWith("/api/public/info") ||
@@ -53,19 +59,32 @@ registerRoute(
   })
 );
 
-// Fallback editorial para navegación offline no precacheada
-setCatchHandler(async ({ request }) => {
+// Fallback editorial para navegación offline y respuesta controlada 503 para API sin red
+setCatchHandler(async ({ request, url }) => {
   if (request.destination === "document") {
     return caches.match("/offline.html");
+  }
+  const reqUrl = url || new URL(request.url);
+  if (isSameOrigin(reqUrl) && reqUrl.pathname.startsWith("/api/")) {
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: {
+          code: "OFFLINE_OR_UNREACHABLE",
+          message: "Servidor no disponible o dispositivo sin conexión a internet."
+        }
+      }),
+      {
+        status: 503,
+        statusText: "Service Unavailable",
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
   return Response.error();
 });
 
 // Control de actualización controlada (RF-PWA-08) e invalidación de caché reactiva
-self.addEventListener("install", () => {
-  self.skipWaiting();
-});
-
 self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "SKIP_WAITING") {
     self.skipWaiting();

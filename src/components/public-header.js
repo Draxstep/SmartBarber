@@ -25,6 +25,16 @@ export function renderPublicHeader({ title = 'SmartBarber', subtitle = 'Tradici√
 
         <!-- Header Actions -->
         <div class="flex items-center gap-2 sm:gap-3">
+          <button
+            id="btn-instalar-app"
+            type="button"
+            style="display: none;"
+            class="items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-[#8C8272]/50 text-xs font-semibold text-[#F2EBDD] hover:bg-white/10 transition-colors min-h-[36px]"
+            title="Instalar SmartBarber como aplicaci√≥n"
+          >
+            <span class="material-symbols-outlined text-[16px]">install_mobile</span>
+            <span class="hidden sm:inline">Instalar App</span>
+          </button>
           <a href="#consultar" class="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-[#BDB4A5] hover:text-[#F2EBDD] transition-colors rounded-md focus-visible:ring-2 focus-visible:ring-[#1F3A5F]" title="Consultar mi Cita">
             <span class="material-symbols-outlined text-[18px]">manage_search</span>
             <span class="hidden sm:inline">Consultar Cita</span>

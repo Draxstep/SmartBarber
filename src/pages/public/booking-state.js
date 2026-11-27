@@ -5,6 +5,7 @@
  */
 
 import { serviciosService, barberosService, citasService } from '../../services/index.js';
+import { getTodayBogota } from '../../utils/formatters.js';
 
 const STORAGE_KEY = 'smartbarber_booking_state';
 
@@ -13,19 +14,22 @@ class BookingStateStore {
     this.servicesCatalog = [];
     this.barbersCatalog = [];
     this.isInitialized = false;
+    this.initPromise = null;
     this.state = this.loadState();
-    this.initPromise = this.init();
   }
 
   async ensureInitialized() {
     if (this.isInitialized && this.servicesCatalog.length > 0) return;
+    if (!this.initPromise) {
+      this.initPromise = this.init().finally(() => {
+        this.initPromise = null;
+      });
+    }
     await this.initPromise;
   }
 
   getTodayBogota() {
-    const nowUtc = new Date();
-    const nowBogota = new Date(nowUtc.getTime() - 5 * 60 * 60 * 1000);
-    return nowBogota.toISOString().slice(0, 10);
+    return getTodayBogota();
   }
 
   async init() {
@@ -57,9 +61,9 @@ class BookingStateStore {
           ...barbRes.data
         ];
       }
-      this.isInitialized = true;
+      this.isInitialized = this.servicesCatalog.length > 0;
     } catch (_) {
-      this.isInitialized = true;
+      this.isInitialized = false;
     }
   }
 

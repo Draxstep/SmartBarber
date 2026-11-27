@@ -118,8 +118,12 @@ class HttpClient {
     } catch (_) {}
   }
 
+  buildUrl(endpoint) {
+    return endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
+  }
+
   async request(endpoint, options = {}) {
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseURL}${endpoint}`;
+    const url = this.buildUrl(endpoint);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeoutMs);
 

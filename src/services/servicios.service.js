@@ -42,23 +42,20 @@ export const serviciosService = {
    * En backoffice autenticado, consume /servicios.
    */
   async getServicios(filtros = {}) {
-    // Si no hay sesión autenticada (portal público), consultar directamente /public/info sin disparar 401
+    const sortServicios = (list) => {
+      if (!filtros.sort) return list;
+      if (filtros.sort === 'price-asc') return list.sort((a, b) => a.precio - b.precio);
+      if (filtros.sort === 'price-desc') return list.sort((a, b) => b.precio - a.precio);
+      if (filtros.sort === 'duration') return list.sort((a, b) => b.duracionMinutos - a.duracionMinutos);
+      return list.sort((a, b) => a.orden - b.orden);
+    };
+
+    // Sin sesión autenticada (portal público): usar exclusivamente /public/info sin caer a ruta privada
     if (!httpClient.getToken()) {
-      try {
-        const pub = await sedesService.getPublicInfo();
-        if (pub?.data?.servicios && Array.isArray(pub.data.servicios)) {
-          let list = pub.data.servicios.map(normalizeServicio);
-          if (filtros.sort) {
-            if (filtros.sort === 'price-asc') list.sort((a, b) => a.precio - b.precio);
-            else if (filtros.sort === 'price-desc') list.sort((a, b) => b.precio - a.precio);
-            else if (filtros.sort === 'duration') list.sort((a, b) => b.duracionMinutos - a.duracionMinutos);
-            else list.sort((a, b) => a.orden - b.orden);
-          }
-          return { ok: true, success: true, data: list };
-        }
-      } catch (publicErr) {
-        console.warn('[ServiciosService] Fallback a /servicios tras error en /public/info:', publicErr.message);
-      }
+      const pub = await sedesService.getPublicInfo();
+      const rawList = Array.isArray(pub?.data?.servicios) ? pub.data.servicios : [];
+      const list = sortServicios(rawList.map(normalizeServicio).filter(Boolean));
+      return { ok: true, success: true, data: list };
     }
 
     try {
@@ -71,24 +68,16 @@ export const serviciosService = {
       const response = await httpClient.get(`/servicios${queryString}`);
 
       if (response?.data && Array.isArray(response.data)) {
-        let list = response.data.map(normalizeServicio);
-
-        if (filtros.sort) {
-          if (filtros.sort === 'price-asc') list.sort((a, b) => a.precio - b.precio);
-          else if (filtros.sort === 'price-desc') list.sort((a, b) => b.precio - a.precio);
-          else if (filtros.sort === 'duration') list.sort((a, b) => b.duracionMinutos - a.duracionMinutos);
-          else list.sort((a, b) => a.orden - b.orden);
-        }
-
+        const list = sortServicios(response.data.map(normalizeServicio).filter(Boolean));
         return { ok: true, success: true, data: list };
       }
       return response;
     } catch (err) {
-      // Si falla por falta de token (portal público no autenticado), consumir /public/info
+      // Si el token expiró (401), degradar a /public/info
       if (err.status === 401) {
         const pub = await sedesService.getPublicInfo();
         if (pub?.data?.servicios && Array.isArray(pub.data.servicios)) {
-          const list = pub.data.servicios.map(normalizeServicio);
+          const list = sortServicios(pub.data.servicios.map(normalizeServicio).filter(Boolean));
           return { ok: true, success: true, data: list };
         }
       }

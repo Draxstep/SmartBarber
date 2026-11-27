@@ -1,6 +1,8 @@
 // src/pwa/notificaciones.js
 // Gestión de Push API VAPID (RFC 8292) y avisos locales según SMARTBARBER_TECH_SPEC.md
 
+import { httpClient } from "../services/http-client.js";
+
 /**
  * Convierte una clave pública VAPID en Base64 URL-safe a Uint8Array
  */
@@ -67,15 +69,17 @@ export async function suscribirAPush() {
   }
 
   // 2. Obtener clave pública VAPID desde el servidor
-  let respKey = await fetch("/api/v1/push/vapid-public-key").catch(() => null);
-  if (!respKey || !respKey.ok) {
-    respKey = await fetch("/api/v1/push/clave-publica");
+  let keyResponse;
+  try {
+    keyResponse = await httpClient.get("/push/vapid-public-key");
+  } catch {
+    keyResponse = await httpClient.get("/push/clave-publica");
   }
-  if (!respKey.ok) {
+  const publicKey = keyResponse?.data?.publicKey;
+  if (!publicKey) {
     throw new Error("No se pudo obtener la clave pública VAPID del servidor.");
   }
-  const { data } = await respKey.json();
-  const applicationServerKey = urlBase64ABytes(data.publicKey);
+  const applicationServerKey = urlBase64ABytes(publicKey);
 
   // 3. Suscribir en el PushManager del Service Worker
   const reg = await navigator.serviceWorker.ready;
@@ -89,31 +93,18 @@ export async function suscribirAPush() {
   }
 
   // 4. Enviar la suscripción al backend vinculada a la sesión activa
-  const token = localStorage.getItem("smartbarber_token");
-  let respSub = await fetch("/api/v1/push/subscribe", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    },
-    credentials: "include",
-    body: JSON.stringify({ subscription: suscripcion }),
-  }).catch(() => null);
-
-  if (!respSub || !respSub.ok) {
-    respSub = await fetch("/api/v1/push/suscribir", {
+  try {
+    await httpClient.request("/push/subscribe", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
       credentials: "include",
       body: JSON.stringify({ subscription: suscripcion }),
     });
-  }
-
-  if (!respSub.ok) {
-    throw new Error("Fallo al registrar suscripción en el servidor.");
+  } catch {
+    await httpClient.request("/push/suscribir", {
+      method: "POST",
+      credentials: "include",
+      body: JSON.stringify({ subscription: suscripcion }),
+    });
   }
 
   return { ok: true, estado: "granted", mensaje: "Notificaciones activadas exitosamente." };
@@ -132,26 +123,21 @@ export async function desuscribirDePush() {
       const endpoint = sub.endpoint;
       await sub.unsubscribe().catch(() => {});
 
-      const token = localStorage.getItem("smartbarber_token");
-      await fetch("/api/v1/push/unsubscribe", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {})
-        },
-        credentials: "include",
-        body: JSON.stringify({ endpoint }),
-      }).catch(() => {
-        return fetch("/api/v1/push/desuscribir", {
+      await httpClient
+        .request("/push/unsubscribe", {
           method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          },
           credentials: "include",
           body: JSON.stringify({ endpoint }),
-        }).catch(() => {});
-      });
+        })
+        .catch(() =>
+          httpClient
+            .request("/push/desuscribir", {
+              method: "DELETE",
+              credentials: "include",
+              body: JSON.stringify({ endpoint }),
+            })
+            .catch(() => {})
+        );
     }
     return { ok: true, mensaje: "Notificaciones desactivadas correctamente." };
   } catch (err) {
@@ -163,34 +149,17 @@ export async function desuscribirDePush() {
  * Envía una notificación Push de prueba al usuario en sesión
  */
 export async function enviarNotificacionPrueba() {
-  const token = localStorage.getItem("smartbarber_token");
-  let resp = await fetch("/api/v1/push/test", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
-    },
-    credentials: "include"
-  }).catch(() => null);
-
-  if (!resp || !resp.ok) {
-    resp = await fetch("/api/v1/push/probar", {
+  try {
+    return await httpClient.request("/push/test", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {})
-      },
-      credentials: "include"
+      credentials: "include",
+    });
+  } catch {
+    return await httpClient.request("/push/probar", {
+      method: "POST",
+      credentials: "include",
     });
   }
-
-  if (!resp.ok) {
-    const errData = await resp.json().catch(() => ({}));
-    throw new Error(errData?.error?.message || errData?.message || "Error al enviar notificación de prueba.");
-  }
-
-  const json = await resp.json();
-  return json;
 }
 
 /**

@@ -2,6 +2,7 @@
 // Sincronización en segundo plano (Background Sync + Outbox Pattern + Plan B) según SMARTBARBER_TECH_SPEC.md
 
 import { pedir, abrirBaseDeDatos } from "./db.js";
+import { httpClient, HttpError } from "../services/http-client.js";
 
 export const ETIQUETA_SYNC = "sync-smartbarber";
 
@@ -75,38 +76,25 @@ export async function vaciarDesdeLaPagina(dbInstancia = null) {
 
   let enviados = 0;
 
-  // Obtener token de autenticación
-  const token = localStorage.getItem("smartbarber_token");
-  const headers = {
-    "Content-Type": "application/json",
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  };
-
   for (const cambio of pendientes) {
     try {
-      const resp = await fetch("/api/v1/sync/outbox", {
+      await httpClient.request("/sync/outbox", {
         method: "POST",
-        headers,
         credentials: "include",
         body: JSON.stringify(cambio),
       });
-
-      if (resp.status === 409 || resp.status === 422) {
-        // Conflicto de negocio definitivo: NO reintentar infinitamente; marcar para resolución manual
-        const detalle = await resp.json().catch(() => ({ message: "Conflicto de negocio" }));
-        await marcarConflicto(db, cambio.idCambio, detalle);
-        continue;
-      }
-
-      if (!resp.ok) {
-        throw new Error("Error temporal del servidor: " + resp.status);
-      }
 
       // Borrado inmediato del ítem confirmado
       const txDel = db.transaction("outbox", "readwrite");
       await pedir(txDel.objectStore("outbox").delete(cambio.idCambio));
       enviados++;
     } catch (err) {
+      if (err instanceof HttpError && (err.status === 409 || err.status === 422)) {
+        // Conflicto de negocio definitivo: NO reintentar infinitamente; marcar para resolución manual
+        const detalle = err.details || { message: err.message || "Conflicto de negocio" };
+        await marcarConflicto(db, cambio.idCambio, detalle);
+        continue;
+      }
       console.warn("⚠️ Fallo en sincronización de ítem:", cambio.idCambio, err.message);
       break;
     }

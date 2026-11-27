@@ -6,6 +6,7 @@
 import { httpClient, ValidationError, NetworkError } from './http-client.js';
 import { encolarCambio } from '../pwa/sync.js';
 import { emitDataMutation } from '../utils/event-bus.js';
+import { getTodayBogota } from '../utils/formatters.js';
 
 export function normalizePaymentMethodEnum(m) {
   if (!m) return 'efectivo';
@@ -260,7 +261,7 @@ export const cortesService = {
    * Liquidación referencial de comisiones por barbero (CU-013, RF-BAR-05).
    */
   async getLiquidacionComisiones({ barberoId = 'all', fechaInicio, fechaFin } = {}) {
-    const today = new Date().toISOString().split('T')[0];
+    const today = getTodayBogota();
     const query = new URLSearchParams({
       fechaInicio: fechaInicio || today,
       fechaFin: fechaFin || today

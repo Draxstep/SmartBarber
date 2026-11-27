@@ -47,20 +47,15 @@ export const barberosService = {
    * Si la sesión no está autenticada, consume /public/info.
    */
   async getBarberos() {
-    // Si no hay sesión autenticada (portal público), consultar directamente /public/info sin disparar 401
+    // Sin sesión autenticada (portal público): usar exclusivamente /public/info sin caer a ruta privada
     if (!httpClient.getToken()) {
-      try {
-        const pub = await sedesService.getPublicInfo();
-        if (pub?.data?.barberos && Array.isArray(pub.data.barberos)) {
-          return {
-            ok: true,
-            success: true,
-            data: pub.data.barberos.map((b, idx) => normalizeBarbero(b, idx))
-          };
-        }
-      } catch (publicErr) {
-        console.warn('[BarberosService] Fallback a /barberos tras error en /public/info:', publicErr.message);
-      }
+      const pub = await sedesService.getPublicInfo();
+      const rawList = Array.isArray(pub?.data?.barberos) ? pub.data.barberos : [];
+      return {
+        ok: true,
+        success: true,
+        data: rawList.map((b, idx) => normalizeBarbero(b, idx)).filter(Boolean)
+      };
     }
 
     try {
@@ -69,7 +64,7 @@ export const barberosService = {
         return {
           ok: true,
           success: true,
-          data: response.data.map((b, idx) => normalizeBarbero(b, idx))
+          data: response.data.map((b, idx) => normalizeBarbero(b, idx)).filter(Boolean)
         };
       }
       return response;
@@ -80,7 +75,7 @@ export const barberosService = {
           return {
             ok: true,
             success: true,
-            data: pub.data.barberos.map((b, idx) => normalizeBarbero(b, idx))
+            data: pub.data.barberos.map((b, idx) => normalizeBarbero(b, idx)).filter(Boolean)
           };
         }
       }

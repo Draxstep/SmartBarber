@@ -12,6 +12,21 @@ export async function registrarServiceWorker() {
     return null;
   }
 
+  const isProd = typeof import.meta !== "undefined" && Boolean(import.meta.env?.PROD);
+  const enableInDev = typeof import.meta !== "undefined" && import.meta.env?.VITE_ENABLE_SW_DEV === "true";
+
+  // En desarrollo Vite (HMR), desregistrar cualquier SW residual salvo activación explícita
+  if (!isProd && !enableInDev) {
+    try {
+      const registrations = await navigator.serviceWorker.getRegistrations();
+      if (registrations.length > 0) {
+        await Promise.all(registrations.map((reg) => reg.unregister()));
+        console.info("🧹 Service Worker previo desregistrado en modo desarrollo.");
+      }
+    } catch (_) {}
+    return null;
+  }
+
   try {
     const reg = await navigator.serviceWorker.register("/sw.js", { scope: "/" });
     console.log("💈 Service Worker registrado exitosamente con scope: /");
@@ -23,7 +38,6 @@ export async function registrarServiceWorker() {
 
       nuevoWorker.addEventListener("statechange", () => {
         if (nuevoWorker.state === "installed" && navigator.serviceWorker.controller) {
-          nuevoWorker.postMessage({ type: "SKIP_WAITING" });
           mostrarBannerActualizacion(nuevoWorker);
         }
       });

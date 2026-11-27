@@ -5,7 +5,7 @@
  */
 
 import { backofficeStore } from './backoffice-state.js';
-import { formatCOP, formatDurationBlocks } from '../../utils/formatters.js';
+import { formatCOP, formatDurationBlocks, getTodayBogota } from '../../utils/formatters.js';
 import { openDialog } from '../../components/ui-dialog.js';
 import { openDrawer } from '../../components/ui-drawer.js';
 import { renderPaymentMethodSelector, attachPaymentMethodSelectorListeners } from '../../components/payment-method-selector.js';
@@ -48,7 +48,7 @@ export function renderAgendaPage() {
   // Configuración de grid según cantidad de sillones visibles (3 para admin, 1 para barbero)
   const gridColsClass = role === 'barbero' ? 'grid-cols-[80px_1fr]' : 'grid-cols-[80px_repeat(3,1fr)]';
 
-  const selectedDateStr = backofficeStore.selectedDate || new Date().toISOString().split('T')[0];
+  const selectedDateStr = backofficeStore.selectedDate || getTodayBogota();
   const dateFormatted = new Date(`${selectedDateStr}T12:00:00`).toLocaleDateString('es-CO', {
     weekday: 'short',
     day: 'numeric',
@@ -394,7 +394,7 @@ export function attachAgendaListeners(onUpdate) {
   const btnPrevDay = document.getElementById('btn-agenda-prev-day');
   if (btnPrevDay) {
     btnPrevDay.addEventListener('click', async () => {
-      const cur = new Date(`${backofficeStore.selectedDate || new Date().toISOString().split('T')[0]}T12:00:00`);
+      const cur = new Date(`${backofficeStore.selectedDate || getTodayBogota()}T12:00:00`);
       cur.setDate(cur.getDate() - 1);
       const newDate = cur.toISOString().split('T')[0];
       await backofficeStore.loadAgendaData(newDate);
@@ -405,7 +405,7 @@ export function attachAgendaListeners(onUpdate) {
   const btnNextDay = document.getElementById('btn-agenda-next-day');
   if (btnNextDay) {
     btnNextDay.addEventListener('click', async () => {
-      const cur = new Date(`${backofficeStore.selectedDate || new Date().toISOString().split('T')[0]}T12:00:00`);
+      const cur = new Date(`${backofficeStore.selectedDate || getTodayBogota()}T12:00:00`);
       cur.setDate(cur.getDate() + 1);
       const newDate = cur.toISOString().split('T')[0];
       await backofficeStore.loadAgendaData(newDate);

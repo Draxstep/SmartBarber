@@ -47,6 +47,17 @@ export function renderBackofficeHeader({
 
       <!-- Identidad de Sesión y Acciones -->
       <div class="flex items-center gap-2 sm:gap-3">
+        <button
+          id="btn-instalar-app"
+          type="button"
+          style="display: none;"
+          class="items-center gap-1.5 px-2.5 py-1.5 rounded-md bg-[#FAF7F2] border border-[#D5CBB8] text-xs font-semibold text-[#1F3A5F] hover:bg-[#E8DFCE] transition-colors min-h-[36px]"
+          title="Instalar SmartBarber como aplicación"
+        >
+          <span class="material-symbols-outlined text-[16px]">install_desktop</span>
+          <span class="hidden md:inline">Instalar App</span>
+        </button>
+
         <!-- Rol Autenticado Real (Badge Semántico) -->
         <div class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-semibold border ${roleBadgeClass}">
           <span class="material-symbols-outlined text-[16px]" aria-hidden="true">

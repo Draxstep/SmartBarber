@@ -30,6 +30,15 @@ export function formatDurationBlocks(minutes) {
 }
 
 /**
+ * Retorna la fecha operativa actual en formato YYYY-MM-DD para zona horaria America/Bogota (UTC-5).
+ * @param {Date} [date=new Date()]
+ * @returns {string}
+ */
+export function getTodayBogota(date = new Date()) {
+  return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(date);
+}
+
+/**
  * Formatea una fecha o string ISO a formato legible en zona horaria America/Bogota (UTC-5).
  * @param {string|Date} dateInput
  * @param {Intl.DateTimeFormatOptions} options

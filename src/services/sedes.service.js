@@ -5,14 +5,21 @@
 
 import { httpClient } from './http-client.js';
 
+let publicInfoInFlight = null;
+
 export const sedesService = {
   /**
    * Obtiene la información consolidada pública para la Landing Page (CU-020).
    * Incluye negocio, catálogo de servicios y barberos activos sin requerir autenticación.
+   * Deduplica peticiones concurrentes en vuelo para evitar ráfagas duplicadas.
    */
   async getPublicInfo() {
-    const response = await httpClient.get('/public/info');
-    return response;
+    if (!publicInfoInFlight) {
+      publicInfoInFlight = httpClient.get('/public/info').finally(() => {
+        publicInfoInFlight = null;
+      });
+    }
+    return await publicInfoInFlight;
   },
 
   /**
