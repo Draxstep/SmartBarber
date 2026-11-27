@@ -7,6 +7,8 @@
 import { backofficeStore } from './backoffice-state.js';
 import { formatCOP, formatDateBogota, formatDurationBlocks, formatPlural, getTodayBogota } from '../../utils/formatters.js';
 import {
+  AGENDA_HEADER_HEIGHT_PX,
+  AGENDA_SLOT_HEIGHT_PX,
   generateAgendaTimeSlots,
   computeAppointmentPlacement,
   getCurrentBogotaMinutes,
@@ -60,20 +62,20 @@ function renderAppointmentCard(match, placement, colStyle = '') {
   return `
     <div
       data-appointment-id="${match.id}"
-      class="appointment-card cursor-pointer rounded-md border-l-4 ${statusClasses} border border-[#D5CBB8] p-2 flex flex-col justify-between shadow-2xs hover:shadow-sm hover:border-[#1F3A5F] transition-all select-none overflow-hidden z-10 m-0.5"
+      class="appointment-card cursor-pointer rounded-md border-l-4 ${statusClasses} border border-[#D5CBB8] px-2.5 py-1.5 flex flex-col justify-center gap-1 shadow-2xs hover:shadow-sm hover:border-[#1F3A5F] transition-all select-none overflow-hidden z-10 m-0.5"
       style="${colStyle} grid-row: ${placement.gridRowStart} / span ${placement.span};"
       title="${match.clientName} · ${match.serviceName} (${match.timeStart} - ${match.timeEnd})"
       tabindex="0"
       role="button"
       aria-label="Cita con ${match.clientName}, ${match.serviceName}, ${match.timeStart}"
     >
-      <div class="flex items-center justify-between gap-1.5 min-w-0">
+      <div class="flex items-center justify-between gap-1.5 min-w-0 leading-tight">
         <span class="font-sans font-bold text-xs text-[#1C1C1C] capitalize truncate">${match.clientName}</span>
         <span class="font-mono font-bold text-xs text-[#1C1C1C] tabular-nums shrink-0">${formatCOP(match.price)}</span>
       </div>
-      <div class="flex items-center justify-between gap-1.5 min-w-0 mt-0.5">
+      <div class="flex items-center justify-between gap-1.5 min-w-0 leading-tight">
         <span class="text-xs text-[#4F4A42] truncate">${match.serviceName}</span>
-        ${renderStatusBadge(match.status, { size: 'sm' })}
+        <span class="shrink-0">${renderStatusBadge(match.status, { size: 'sm' })}</span>
       </div>
     </div>
   `;
@@ -171,7 +173,7 @@ function renderSingleGrid({ barbers, appointments, slots, selectedDateStr, today
     <div id="${viewportId}" class="agenda-grid-viewport border border-[#D5CBB8] bg-white">
       <div
         class="relative min-w-full"
-        style="display: grid; grid-template-columns: ${gridCols}; grid-template-rows: 48px repeat(${slots.length}, 56px);"
+        style="display: grid; grid-template-columns: ${gridCols}; grid-template-rows: ${AGENDA_HEADER_HEIGHT_PX}px repeat(${slots.length}, ${AGENDA_SLOT_HEIGHT_PX}px);"
       >
         <div
           class="agenda-sticky-corner border-b border-[#D5CBB8] px-2 flex items-center justify-end font-sans text-xs font-semibold uppercase tracking-wider text-[#57534E]"

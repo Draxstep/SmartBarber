@@ -5,7 +5,7 @@
  */
 
 export const AGENDA_HEADER_HEIGHT_PX = 48;
-export const AGENDA_SLOT_HEIGHT_PX = 56;
+export const AGENDA_SLOT_HEIGHT_PX = 64;
 export const AGENDA_START_HOUR = 8;
 export const AGENDA_END_HOUR = 20;
 

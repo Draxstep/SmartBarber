@@ -107,7 +107,7 @@ export function renderStatusBadge(statusOrOptions, options = {}) {
       class="inline-flex items-center font-sans font-semibold rounded-full border ${config.bg} ${config.text} ${config.border} ${sizeClasses} select-none"
       role="status"
     >
-      <span class="material-symbols-outlined ${iconSize} shrink-0" aria-hidden="true">
+      <span class="material-symbols-outlined ${iconSize} leading-none shrink-0" aria-hidden="true">
         ${config.icon}
       </span>
       <span class="leading-none whitespace-nowrap">${label}</span>
