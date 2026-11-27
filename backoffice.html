@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#1C1C1C" />
+    <meta name="description" content="SmartBarber: Panel Administrativo y Operación Diaria." />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Google Fonts Preconnect & Carga No-Bloqueante CORS (sin respuestas opacas en SW) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+
+    <!-- Material Symbols Outlined (estático acotado, no bloqueante, CORS) -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
+    />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+        crossorigin="anonymous"
+      />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+        crossorigin="anonymous"
+      />
+    </noscript>
+
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="/src/styles/main.css" />
+
+    <title>SmartBarber | Panel Administrativo</title>
+  </head>
+  <body class="bg-[#F2EBDD] text-[#1C1C1C] min-h-screen font-sans antialiased">
+    <div id="app">
+      <!-- Inyectado dinámicamente por VanillaJS -->
+    </div>
+
+    <!-- Script Principal del Backoffice -->
+    <script type="module" src="/src/pages/backoffice/main-backoffice.js"></script>
+  </body>
+</html>

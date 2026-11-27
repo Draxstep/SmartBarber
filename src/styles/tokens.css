@@ -1,0 +1,309 @@
+/**
+ * SmartBarber Design Tokens & Utility Rules
+ * Source of Truth: docs/DESIGN.md
+ * Heritage Craft Barbershop Palette & Accessible Typography (WCAG 2.1 AA)
+ */
+
+:root {
+  /* Brand & Action */
+  --color-brand-primary: #1F3A5F;
+  --color-brand-primary-hover: #162B47;
+  --color-brand-secondary: #1C1C1C;
+  --color-brand-accent: #8B1E1E;
+  --color-brand-accent-hover: #6E1616;
+
+  /* Surfaces & Backgrounds */
+  --color-bg-canvas: #F2EBDD;
+  --color-bg-surface: #FAF7F2;
+  --color-bg-surface-subtle: #E8DFCE;
+  --color-bg-input: #FFFFFF;
+  --color-bg-dark-elevated: #2A2A2A;
+
+  /* Text & Borders (WCAG 2.2 AA >= 4.5:1) */
+  --color-text-primary: #1C1C1C;
+  --color-text-secondary: #4F4A42;
+  --color-text-muted: #57534E;
+  --color-text-on-dark: #F2EBDD;
+  --color-text-on-dark-muted: #BDB4A5;
+  --color-text-on-brand: #FFFFFF;
+  --color-accent-on-dark-blue: #7BA3D4;
+  --color-accent-on-dark-red: #E07A7A;
+  --color-border-subtle: #D5CBB8;
+  --color-border-strong: #8C8272;
+  --color-border-focus: #1F3A5F;
+
+  /* Semantic Status Tokens (Always Pair Text + Icon + Pill) */
+  --color-status-success-text: #235D3A;
+  --color-status-success-bg: #E3EFE7;
+  --color-status-warning-text: #8A5300;
+  --color-status-warning-bg: #FDF1DC;
+  --color-status-error-text: #B3261E;
+  --color-status-error-bg: #FCE8E6;
+  --color-status-info-text: #1F3A5F;
+  --color-status-info-bg: #E4ECF5;
+  --color-status-neutral-text: #4F4A42;
+  --color-status-neutral-bg: #E8DFCE;
+
+  /* Stitch Compatibility Aliases */
+  --color-alabastro: #F2EBDD;
+  --color-marfil: #FAF7F2;
+  --color-bordeCard: #D5CBB8;
+  --color-carbon: #1C1C1C;
+  --color-sangria: #8B1E1E;
+  --color-prusia: #1F3A5F;
+  --color-verdeBosque: #235D3A;
+  --color-verdeBg: #E3EFE7;
+  --color-textoClaroSec: #BDB4A5;
+  --color-textoOscuroSec: #4F4A42;
+  --color-textoAtenuado: #57534E;
+  --color-bordeBadge: #8C8272;
+  --color-primary-container: #1F3A5F;
+  --color-secondary: #8B1E1E;
+  --color-tertiary: #1C1C1C;
+  --color-on-primary: #FFFFFF;
+  --color-on-secondary: #FFFFFF;
+
+  /* Typography */
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: Inter, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  /* Layout & Elevations */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-full: 9999px;
+
+  --elevation-0: none;
+  --elevation-1: 0 1px 2px rgba(28, 28, 28, 0.06);
+  --elevation-2: 0 4px 12px rgba(28, 28, 28, 0.10);
+  --elevation-3: 0 12px 32px rgba(28, 28, 28, 0.22);
+}
+
+/* Base resets & typography */
+.font-serif-title {
+  font-family: var(--font-serif);
+}
+
+.font-sans-ui {
+  font-family: var(--font-sans);
+}
+
+.font-mono-numbers {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.double-rule-divider {
+  border-top: 2px solid #1C1C1C;
+  height: 3px;
+  border-bottom: 1px solid #8B1E1E;
+}
+
+/* Touch targets >= 44x44px en pantallas táctiles PWA (WCAG 2.2 SC 2.5.8) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+@media (pointer: coarse) {
+  .touch-action {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+/* Patrón responsivo Table-to-Card para PWA móvil */
+@media (max-width: 768px) {
+  table.responsive-table thead {
+    display: none;
+  }
+
+  table.responsive-table,
+  table.responsive-table tbody,
+  table.responsive-table tr,
+  table.responsive-table td {
+    display: block;
+    width: 100%;
+  }
+
+  table.responsive-table tr {
+    background: #FFFFFF;
+    border: 1px solid #D5CBB8;
+    border-radius: 12px;
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  table.responsive-table td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.4rem 0 !important;
+    text-align: right !important;
+    border-bottom: 1px solid rgba(213, 203, 184, 0.35);
+  }
+
+  table.responsive-table td:last-child {
+    border-bottom: none;
+    padding-top: 0.6rem !important;
+  }
+
+  table.responsive-table td[colspan] {
+    display: block;
+    text-align: center !important;
+    border-bottom: none;
+  }
+
+  table.responsive-table td[data-label]::before {
+    content: attr(data-label);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #57534E;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    text-align: left;
+    flex-shrink: 0;
+  }
+}
+
+/* Viewport bidireccional y ejes sticky de Agenda Operativa */
+.agenda-grid-viewport {
+  max-height: calc(100dvh - 290px);
+  min-height: 460px;
+  overflow: auto;
+  position: relative;
+  border-radius: 0.5rem;
+}
+
+.agenda-sticky-corner {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 40;
+  background-color: #FAF7F2;
+}
+
+.agenda-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background-color: #FAF7F2;
+}
+
+.agenda-sticky-time {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  background-color: #FAF7F2;
+}
+
+/* Accessible focus ring */
+:focus-visible {
+  outline: 2px solid #1F3A5F;
+  outline-offset: 2px;
+}
+
+/* Estilos nativos para <dialog> (reestablece centrado tras Preflight de Tailwind v4) */
+dialog {
+  margin: auto;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
+dialog.ui-modal {
+  margin: auto;
+  inset: 0;
+  border: 1px solid #8C8272;
+  border-radius: 12px;
+  background-color: #FAF7F2;
+  color: #1C1C1C;
+  padding: 0;
+  box-shadow: 0 12px 32px rgba(28, 28, 28, 0.22);
+  max-width: min(90vw, calc(100vw - 2rem));
+  width: 520px;
+}
+
+dialog.ui-modal::backdrop {
+  background: rgba(28, 28, 28, 0.65);
+  backdrop-filter: blur(2px);
+  animation: backdrop-fade 200ms ease-out;
+}
+
+@keyframes backdrop-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+dialog[open].ui-modal {
+  animation: modal-slide-in 220ms ease-out;
+}
+
+@keyframes modal-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Estilos de ui-drawer (Slide-in) */
+.ui-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 28, 28, 0.65);
+  backdrop-filter: blur(2px);
+  z-index: 9998;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease-in-out;
+}
+
+.ui-drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ui-drawer-panel {
+  position: fixed;
+  background: #FAF7F2;
+  box-shadow: 0 12px 32px rgba(28, 28, 28, 0.28);
+  z-index: 9999;
+  transition: transform 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Right side drawer (Desktop / Tablet) */
+.ui-drawer-panel.drawer-right {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 440px;
+  max-width: 90vw;
+  border-left: 1px solid #8C8272;
+  transform: translateX(100%);
+}
+
+.ui-drawer-panel.drawer-right.active {
+  transform: translateX(0);
+}
+
+/* Bottom drawer (Mobile) */
+.ui-drawer-panel.drawer-bottom {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 85vh;
+  border-top: 1px solid #8C8272;
+  border-radius: 16px 16px 0 0;
+  transform: translateY(100%);
+}
+
+.ui-drawer-panel.drawer-bottom.active {
+  transform: translateY(0);
+}

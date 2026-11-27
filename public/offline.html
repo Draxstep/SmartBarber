@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SmartBarber | Sin Conexión</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#1C1C1C" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+      rel="stylesheet"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+      crossorigin="anonymous"
+    />
+    <style>
+      :root {
+        --brand-primary: #1F3A5F;
+        --brand-primary-hover: #162B47;
+        --brand-secondary: #1C1C1C;
+        --brand-accent: #8B1E1E;
+        --bg-canvas: #F2EBDD;
+        --bg-surface: #FAF7F2;
+        --text-primary: #1C1C1C;
+        --text-secondary: #4F4A42;
+        --text-muted: #6B645A;
+        --border-subtle: #D5CBB8;
+        --font-display: 'Playfair Display', Georgia, serif;
+        --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        background-color: var(--bg-canvas);
+        color: var(--text-primary);
+        font-family: var(--font-ui);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        text-align: center;
+      }
+
+      .offline-card {
+        background: var(--bg-surface);
+        border: 1px solid var(--border-subtle);
+        border-radius: 12px;
+        max-width: 520px;
+        width: 100%;
+        padding: 40px 32px;
+        box-shadow: 0 4px 20px rgba(28, 28, 28, 0.06);
+      }
+
+      .icon-container {
+        width: 64px;
+        height: 64px;
+        background: #FDF1DC;
+        color: #8A5300;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 24px;
+      }
+
+      .icon-container span {
+        font-size: 36px;
+      }
+
+      h1 {
+        font-family: var(--font-display);
+        font-size: 28px;
+        font-weight: 700;
+        color: var(--brand-secondary);
+        margin-bottom: 12px;
+      }
+
+      p {
+        font-size: 15px;
+        line-height: 1.6;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+      }
+
+      .info-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #E8DFCE;
+        color: var(--text-primary);
+        font-size: 13px;
+        padding: 8px 14px;
+        border-radius: 9999px;
+        margin-bottom: 28px;
+      }
+
+      .btn-retry {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        background: var(--brand-primary);
+        color: #FFFFFF;
+        font-family: var(--font-ui);
+        font-weight: 600;
+        font-size: 15px;
+        padding: 12px 24px;
+        min-height: 48px;
+        min-width: 160px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      .btn-retry:hover {
+        background: var(--brand-primary-hover);
+      }
+
+      .footer-note {
+        margin-top: 24px;
+        font-size: 12px;
+        color: var(--text-muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main class="offline-card" role="main">
+      <div class="icon-container" aria-hidden="true">
+        <span class="material-symbols-outlined">wifi_off</span>
+      </div>
+
+      <h1>Modo sin conexión</h1>
+      <p>
+        No tienes conexión a internet en este momento. Las pantallas que ya has visitado
+        continúan disponibles y las operaciones del Backoffice se sincronizarán automáticamente al reconectar.
+      </p>
+
+      <div class="info-pill">
+        <span class="material-symbols-outlined" style="font-size: 18px;">sync</span>
+        <span>SmartBarber Offline-First activo</span>
+      </div>
+
+      <div>
+        <button class="btn-retry" onclick="window.location.reload()">
+          <span class="material-symbols-outlined" style="font-size: 20px;">refresh</span>
+          Reintentar conexión
+        </button>
+      </div>
+
+      <div class="footer-note">
+        SmartBarber · Tradición & Oficio en Bogotá (UTC-5)
+      </div>
+    </main>
+  </body>
+</html>

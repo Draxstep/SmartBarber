@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+
+<html lang="es"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/><link href="https://fonts.googleapis.com" rel="preconnect"/><link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@600;700&amp;family=Playfair+Display:wght@600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config = { darkMode: "class", theme: { extend: { "colors": { "border-focus": "#1F3A5F", "on-tertiary-fixed-variant": "#474746", "status-warning-text": "#8A5300", "tertiary-container": "#3a3939", "surface": "#fff9ee", "surface-container-high": "#eee7da", "surface-container-lowest": "#ffffff", "status-error-bg": "#FCE8E6", "outline-variant": "#c4c6cf", "bg-canvas": "#F2EBDD", "status-info-text": "#1F3A5F", "status-info-bg": "#E4ECF5", "on-secondary": "#ffffff", "bg-surface": "#FAF7F2", "secondary-fixed": "#ffdad6", "status-success-bg": "#E3EFE7", "on-background": "#1e1b13", "surface-bright": "#fff9ee", "surface-container-highest": "#e9e2d4", "secondary-fixed-dim": "#ffb3ad", "primary-fixed-dim": "#aec8f4", "on-primary": "#ffffff", "on-primary-container": "#8ba4cf", "surface-dim": "#e0d9cc", "error": "#ba1a1a", "surface-variant": "#e9e2d4", "surface-container-low": "#faf3e5", "text-on-dark-muted": "#BDB4A5", "text-on-dark": "#F2EBDD", "on-error-container": "#93000a", "on-primary-fixed-variant": "#2d476d", "background": "#fff9ee", "text-primary": "#1C1C1C", "inverse-surface": "#333027", "surface-container": "#f4eddf", "outline": "#74777f", "error-container": "#ffdad6", "bg-input": "#FFFFFF", "primary-fixed": "#d5e3ff", "on-surface-variant": "#43474e", "status-warning-bg": "#FDF1DC", "inverse-primary": "#aec8f4", "accent-on-dark-red": "#E07A7A", "brand-accent-hover": "#6E1616", "text-on-brand": "#FFFFFF", "status-success-text": "#235D3A", "on-tertiary": "#ffffff", "text-muted": "#6B645A", "on-tertiary-fixed": "#1b1b1b", "on-error": "#ffffff", "text-secondary": "#4F4A42", "tertiary-fixed-dim": "#c8c6c5", "secondary": "#aa3531", "on-secondary-fixed-variant": "#891c1d", "on-primary-fixed": "#001c3b", "bg-dark-elevated": "#2A2A2A", "status-error-text": "#B3261E", "status-neutral-bg": "#E8DFCE", "accent-on-dark-blue": "#7BA3D4", "border-strong": "#8C8272", "tertiary": "#242424", "primary": "#032448", "on-surface": "#1e1b13", "inverse-on-surface": "#f7f0e2", "bg-surface-subtle": "#E8DFCE", "surface-tint": "#465f86", "on-tertiary-container": "#a4a3a2", "border-subtle": "#D5CBB8", "primary-container": "#1f3a5f", "secondary-container": "#fd726a", "tertiary-fixed": "#e5e2e1", "status-neutral-text": "#4F4A42", "on-secondary-fixed": "#410003", "brand-primary-hover": "#162B47", "on-secondary-container": "#6f060d" }, "borderRadius": { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" }, "spacing": { "space-md": "1rem", "space-xl": "2rem", "margin-tablet": "1.5rem", "gutter-mobile": "0.75rem", "space-lg": "1.5rem", "space-xs": "0.25rem", "margin": "2rem", "margin-mobile": "1rem", "gutter-tablet": "1rem", "space-sm": "0.5rem", "gutter": "1.25rem" }, "fontFamily": { "display-hero": [ "Playfair Display" ], "heading-h1": [ "Playfair Display" ], "label-ui": [ "Inter" ], "body-lg": [ "Inter" ], "mono-data": [ "JetBrains Mono" ], "caption-sm": [ "Inter" ], "heading-h3": [ "Inter" ], "display-hero-mobile": [ "Playfair Display" ], "kpi-value": [ "Inter" ], "heading-h2": [ "Playfair Display" ], "body-md": [ "Inter" ] }, "fontSize": { "display-hero": [ "40px", { "lineHeight": "46px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "heading-h1": [ "28px", { "lineHeight": "35px", "letterSpacing": "-0.01em", "fontWeight": "700" } ], "label-ui": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "body-lg": [ "16px", { "lineHeight": "24px", "fontWeight": "400" } ], "mono-data": [ "14px", { "lineHeight": "17px", "fontWeight": "600" } ], "caption-sm": [ "12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500" } ], "heading-h3": [ "18px", { "lineHeight": "24px", "fontWeight": "600" } ], "display-hero-mobile": [ "32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" } ], "kpi-value": [ "28px", { "lineHeight": "32px", "fontWeight": "700" } ], "heading-h2": [ "22px", { "lineHeight": "29px", "fontWeight": "600" } ], "body-md": [ "14px", { "lineHeight": "21px", "fontWeight": "400" } ] } } } }</script></head><body class="bg-bg-canvas font-body-md text-text-primary antialiased min-h-screen"><aside class="fixed left-0 top-0 h-full w-[240px] bg-tertiary z-50 flex flex-col justify-between select-none shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col"><div class="px-space-lg pt-space-lg pb-space-md"><div class="flex items-center gap-space-sm"><div class="w-8 h-8 rounded-lg bg-secondary flex items-center justify-center"><span class="material-symbols-outlined text-on-secondary text-[20px]">content_cut</span></div><div><span class="block font-heading-h3 text-heading-h3 text-text-on-dark tracking-tight leading-none">SmartBarber</span><span class="block font-caption-sm text-caption-sm text-text-on-dark-muted mt-1 uppercase tracking-wider">Panel Administrativo</span></div></div><div class="mt-space-md w-full h-[1px] bg-bg-dark-elevated"></div></div><nav class="flex flex-col gap-1 px-space-xs mt-space-sm" data-active-classes="bg-bg-dark-elevated text-text-on-dark font-label-ui text-label-ui border-l-[3px] border-accent-on-dark-blue"><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="agenda-y-caja" href="#"><span class="material-symbols-outlined text-[20px]">calendar_today</span><span>Agenda y Caja</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="historial-de-cortes" href="#"><span class="material-symbols-outlined text-[20px]">receipt_long</span><span>Historial de Cortes</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="barberos-y-horarios" href="#"><span class="material-symbols-outlined text-[20px]">badge</span><span>Barberos y Horarios</span></a><a class="flex items-center gap-space-sm px-space-md py-3 rounded-DEFAULT text-text-on-dark-muted hover:bg-bg-dark-elevated hover:text-text-on-dark transition-colors font-body-md text-body-md" data-path="catalogo-de-servicios" href="#"><span class="material-symbols-outlined text-[20px]">style</span><span>Catálogo de Servicios</span></a><a aria-current="page" class="flex items-center justify-between px-space-md py-3 rounded-DEFAULT transition-colors bg-bg-dark-elevated text-text-on-dark font-label-ui text-label-ui border-l-[3px] border-accent-on-dark-blue" data-path="inventario" href="#"><div class="flex items-center gap-space-sm"><span class="material-symbols-outlined text-[20px]">inventory_2</span><span>Inventario</span></div><span class="px-2 py-0.5 rounded-full bg-accent-on-dark-red text-text-primary font-caption-sm text-caption-sm font-bold leading-none">3</span></a></nav></div><div class="p-space-md bg-bg-dark-elevated mx-space-xs mb-space-md rounded-lg flex items-center justify-between"><div class="flex items-center gap-space-sm overflow-hidden"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="flex flex-col min-w-0"><span class="font-label-ui text-label-ui text-text-on-dark truncate">Carlos Mendoza</span><span class="font-caption-sm text-caption-sm text-text-on-dark-muted truncate">Dueño</span></div></div><a class="text-text-on-dark-muted hover:text-text-on-dark p-1 rounded-DEFAULT transition-colors flex items-center justify-center flex-shrink-0" data-path="login" href="#" title="Cerrar sesión"><span class="material-symbols-outlined text-[20px]">logout</span></a></div></aside><div class="pl-[240px]"><header class="fixed top-0 left-[240px] right-0 z-40 bg-bg-canvas/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-space-xl flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-md flex-1"><div class="flex items-center gap-space-xs bg-bg-surface px-space-md py-2 rounded-lg text-text-primary"><span class="material-symbols-outlined text-[18px] text-text-secondary">store</span><span class="font-label-ui text-label-ui text-text-primary">Sede Principal · Medellín</span><span class="material-symbols-outlined text-[18px] text-text-secondary">expand_more</span></div><div class="relative max-w-md w-full hidden md:block"><span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[18px] text-text-muted">search</span><input class="w-full h-10 pl-9 pr-4 rounded-lg bg-bg-surface text-text-primary placeholder:text-text-muted font-body-md text-body-md focus:outline-none focus:ring-2 focus:ring-border-focus" placeholder="Buscar producto, SKU, cliente o barbero..." type="search"/></div></div><div class="flex items-center gap-space-md"><button class="relative p-2 rounded-lg bg-bg-surface text-text-secondary hover:text-text-primary transition-colors flex items-center justify-center" type="button"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-secondary"></span></button><div class="flex items-center gap-space-sm pl-space-sm"><div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center"><span class="material-symbols-outlined text-on-primary text-[18px]">person</span></div><div class="hidden lg:flex flex-col text-left"><span class="font-label-ui text-label-ui text-text-primary leading-tight">Carlos M.</span><span class="font-caption-sm text-caption-sm text-text-secondary leading-tight">Administrador</span></div></div></div></div></header><main class="w-full pt-16 min-h-screen bg-bg-canvas px-space-xl py-space-xl"><div class="flex flex-col w-full relative">
+<!-- Backdrop scrim for side drawer focus on desktop operational layout -->
+<div class="fixed inset-0 bg-tertiary/40 backdrop-blur-[1px] z-40 transition-opacity duration-200" id="drawer-backdrop"></div>
+<!-- Main Content Stage -->
+<div class="w-full pr-[436px] transition-all duration-300">
+<!-- Header Section with Heritage Double-Rule -->
+<header class="flex flex-col gap-space-sm mb-space-lg">
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-space-md">
+<div>
+<h1 class="font-heading-h1 text-heading-h1 text-text-primary tracking-tight">Inventario de Productos</h1>
+<p class="font-body-md text-body-md text-text-secondary mt-1">Control de existencias, alertas de reposición y movimientos (Kardex)</p>
+</div>
+<div class="flex items-center gap-space-sm self-start md:self-auto">
+<!-- Button Secondary: Ver Kardex -->
+<button class="h-10 px-space-md bg-bg-surface border-[1.5px] border-primary-container text-primary-container hover:bg-status-info-bg font-label-ui text-label-ui rounded-xl transition-all duration-150 flex items-center gap-2 shadow-sm active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[19px]">menu_book</span>
+<span>Ver Kardex</span>
+</button>
+<!-- Button Primary: + Nuevo Producto -->
+<button class="h-10 px-space-md bg-primary-container hover:bg-brand-primary-hover text-on-primary font-label-ui text-label-ui rounded-xl transition-all duration-150 flex items-center gap-1.5 shadow-sm active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span>Nuevo Producto</span>
+</button>
+</div>
+</div>
+<!-- Barber Editorial Accent Double-rule line -->
+<div class="w-full pt-2 flex flex-col gap-[3px]">
+<div class="h-[2px] w-full bg-text-primary"></div>
+<div class="h-[1px] w-full bg-secondary"></div>
+</div>
+</header>
+<!-- KPI Metric Cards Grid -->
+<section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-space-md mb-space-lg">
+<!-- KPI 1: Total Referencias -->
+<div class="bg-bg-surface border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-caption-sm text-caption-sm uppercase text-text-muted font-semibold tracking-wider block">Total Referencias</span>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-text-primary tabular-nums">18</span>
+<span class="font-label-ui text-label-ui text-text-secondary font-medium">SKU activos</span>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle/60 flex items-center justify-between text-text-secondary">
+<span class="font-caption-sm text-caption-sm">Valoración en bodega</span>
+<span class="font-mono-data text-mono-data text-text-primary tabular-nums">$ 1.840.000 COP</span>
+</div>
+</div>
+<!-- KPI 2: En Nivel Óptimo -->
+<div class="bg-bg-surface border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-caption-sm text-caption-sm uppercase text-text-muted font-semibold tracking-wider block">En Nivel Óptimo</span>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-text-primary tabular-nums">15</span>
+<span class="font-label-ui text-label-ui text-text-secondary font-medium">productos</span>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle/60 flex items-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Disponible</span>
+</span>
+</div>
+</div>
+<!-- KPI 3: Alerta Stock Bajo -->
+<div class="bg-bg-surface border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-caption-sm text-caption-sm uppercase text-text-muted font-semibold tracking-wider block">Alerta Stock Bajo</span>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-text-primary tabular-nums">2</span>
+<span class="font-label-ui text-label-ui text-text-secondary font-medium">referencias</span>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle/60 flex items-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-status-warning-bg text-status-warning-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Stock bajo · Reordenar</span>
+</span>
+</div>
+</div>
+<!-- KPI 4: Agotados Críticos -->
+<div class="bg-bg-surface border border-border-subtle rounded-xl p-space-md shadow-sm flex flex-col justify-between">
+<div>
+<span class="font-caption-sm text-caption-sm uppercase text-text-muted font-semibold tracking-wider block">Agotados Críticos</span>
+<div class="mt-1 flex items-baseline gap-2">
+<span class="font-kpi-value text-kpi-value text-text-primary tabular-nums">1</span>
+<span class="font-label-ui text-label-ui text-text-secondary font-medium">referencia</span>
+</div>
+</div>
+<div class="mt-3 pt-2 border-t border-border-subtle/60 flex items-center">
+<span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">error</span>
+<span>Agotado · Pérdida de venta</span>
+</span>
+</div>
+</div>
+</section>
+<!-- Filters & Search Toolbar -->
+<section class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 mb-space-md">
+<div class="flex flex-1 items-center gap-3">
+<!-- Search Field -->
+<div class="relative flex-1 max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[19px] text-text-muted">search</span>
+<input class="w-full h-11 pl-10 pr-4 bg-bg-input border border-border-strong rounded-xl text-text-primary font-body-md text-body-md placeholder:text-text-muted focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus/20 shadow-sm" placeholder="Buscar por nombre, código de barras o SKU..." type="search" value="Cera Mate"/>
+</div>
+<!-- Category Dropdown Filter -->
+<div class="relative">
+<select class="h-11 pl-3 pr-9 bg-bg-input border border-border-strong rounded-xl text-text-primary font-body-md text-body-md focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus/20 appearance-none shadow-sm cursor-pointer">
+<option>Todas las categorías (4)</option>
+<option>Ceras y Pomadas</option>
+<option>Cuidado de Barba</option>
+<option>Cuidado Capilar</option>
+<option>Afeitado Clásico</option>
+</select>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-text-secondary pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Quick Status Filter Chips -->
+<div class="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
+<!-- Tab: Todos (Active) -->
+<button class="h-10 px-3.5 rounded-xl bg-primary-container text-on-primary font-label-ui text-label-ui transition-colors shadow-sm whitespace-nowrap" type="button">
+          Todos (18)
+        </button>
+<!-- Tab: Disponible -->
+<button class="h-10 px-3.5 rounded-xl bg-bg-input border border-border-strong text-text-primary hover:bg-bg-surface-subtle font-label-ui text-label-ui transition-colors whitespace-nowrap" type="button">
+          Disponible (15)
+        </button>
+<!-- Tab: Stock Bajo -->
+<button class="h-10 px-3.5 rounded-xl bg-status-warning-bg border border-status-warning-text/40 text-status-warning-text hover:bg-status-warning-bg/80 font-label-ui text-label-ui flex items-center gap-1.5 transition-colors whitespace-nowrap" type="button">
+<span class="material-symbols-outlined text-[16px]">warning</span>
+<span>Stock bajo (2)</span>
+</button>
+<!-- Tab: Agotado -->
+<button class="h-10 px-3.5 rounded-xl bg-status-error-bg border border-status-error-text/40 text-status-error-text hover:bg-status-error-bg/80 font-label-ui text-label-ui flex items-center gap-1.5 transition-colors whitespace-nowrap" type="button">
+<span class="material-symbols-outlined text-[16px]">error</span>
+<span>Agotado (1)</span>
+</button>
+</div>
+</section>
+<!-- Main Products Table -->
+<div class="bg-bg-surface border border-border-subtle rounded-xl shadow-sm overflow-hidden mb-space-lg">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-bg-surface-subtle border-b border-border-subtle">
+<th class="py-3.5 px-4 font-label-ui text-caption-sm text-text-primary uppercase tracking-wider" scope="col">Producto &amp; SKU</th>
+<th class="py-3.5 px-4 font-label-ui text-caption-sm text-text-primary uppercase tracking-wider" scope="col">Categoría</th>
+<th class="py-3.5 px-4 font-label-ui text-caption-sm text-text-primary uppercase tracking-wider" scope="col">Precio Venta COP</th>
+<th class="py-3.5 px-4 font-label-ui text-caption-sm text-text-primary uppercase tracking-wider" scope="col">Stock Actual / Mínimo</th>
+<th class="py-3.5 px-4 font-label-ui text-caption-sm text-text-primary uppercase tracking-wider" scope="col">Estado</th>
+<th class="py-3.5 px-4 font-label-ui text-caption-sm text-text-primary uppercase tracking-wider text-right pr-5" scope="col">Acciones Operativas</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-subtle/80">
+<!-- Row 1: Cera Mate 100g (SELECTED ROW) -->
+<tr class="bg-status-info-bg/40 border-l-[4px] border-primary-container transition-colors">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center flex-shrink-0 text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">sanitizer</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold truncate">Cera Mate 100g</span>
+<span class="font-mono-data text-caption-sm text-text-secondary">SKU-001</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-text-secondary">Ceras y Pomadas</td>
+<td class="py-3.5 px-4 font-mono-data text-mono-data text-text-primary font-bold tabular-nums">$ 35.000 COP</td>
+<td class="py-3.5 px-4 min-w-[170px]">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between font-mono-data text-caption-sm">
+<span class="font-bold text-status-warning-text">2 unidades</span>
+<span class="text-text-muted">mín. 2</span>
+</div>
+<div class="w-full h-2 rounded-full bg-border-subtle/50 overflow-hidden">
+<div class="h-full bg-status-warning-text w-[50%] rounded-full"></div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-status-warning-bg text-status-warning-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Stock bajo</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-right pr-5">
+<div class="inline-flex items-center gap-2">
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Entrada</span>
+</button>
+<button class="h-8 px-2.5 bg-primary-container text-on-primary font-label-ui text-caption-sm rounded-lg shadow-sm flex items-center gap-1 ring-2 ring-primary-container/30" type="button">
+<span class="material-symbols-outlined text-[14px]">remove</span>
+<span>Salida</span>
+<span class="w-1.5 h-1.5 rounded-full bg-secondary-container ml-0.5 animate-pulse"></span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2: Aceite para Barba Cedro 30ml (OUT OF STOCK) -->
+<tr class="hover:bg-bg-surface-subtle/40 transition-colors">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center flex-shrink-0 text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">science</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold truncate">Aceite para Barba Cedro 30ml</span>
+<span class="font-mono-data text-caption-sm text-text-secondary">SKU-004</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-text-secondary">Cuidado de Barba</td>
+<td class="py-3.5 px-4 font-mono-data text-mono-data text-text-primary font-bold tabular-nums">$ 42.000 COP</td>
+<td class="py-3.5 px-4 min-w-[170px]">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between font-mono-data text-caption-sm">
+<span class="font-bold text-status-error-text">0 unidades</span>
+<span class="text-text-muted">mín. 3</span>
+</div>
+<div class="w-full h-2 rounded-full bg-border-subtle/50 overflow-hidden">
+<div class="h-full bg-error w-[4%] rounded-full"></div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-status-error-bg text-status-error-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">cancel</span>
+<span>Agotado</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-right pr-5">
+<div class="inline-flex items-center gap-2">
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Entrada</span>
+</button>
+<!-- Visual and functional disabled button -->
+<button class="h-8 px-2.5 bg-status-neutral-bg text-text-muted font-label-ui text-caption-sm rounded-lg flex items-center gap-1 cursor-not-allowed opacity-60" disabled="" title="Sin existencias para registrar salidas" type="button">
+<span class="material-symbols-outlined text-[14px]">block</span>
+<span>Salida</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3: Pomada Brillo Clásico 120g -->
+<tr class="hover:bg-bg-surface-subtle/40 transition-colors">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center flex-shrink-0 text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">brush</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold truncate">Pomada Brillo Clásico 120g</span>
+<span class="font-mono-data text-caption-sm text-text-secondary">SKU-002</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-text-secondary">Ceras y Pomadas</td>
+<td class="py-3.5 px-4 font-mono-data text-mono-data text-text-primary font-bold tabular-nums">$ 38.000 COP</td>
+<td class="py-3.5 px-4 min-w-[170px]">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between font-mono-data text-caption-sm">
+<span class="font-bold text-status-success-text">11 unidades</span>
+<span class="text-text-muted">mín. 4</span>
+</div>
+<div class="w-full h-2 rounded-full bg-border-subtle/50 overflow-hidden">
+<div class="h-full bg-status-success-text w-[85%] rounded-full"></div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Disponible</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-right pr-5">
+<div class="inline-flex items-center gap-2">
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Entrada</span>
+</button>
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">remove</span>
+<span>Salida</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4: Shampoo Carbón Activo 250ml -->
+<tr class="hover:bg-bg-surface-subtle/40 transition-colors">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center flex-shrink-0 text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">soap</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold truncate">Shampoo Carbón Activo 250ml</span>
+<span class="font-mono-data text-caption-sm text-text-secondary">SKU-007</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-text-secondary">Cuidado Capilar</td>
+<td class="py-3.5 px-4 font-mono-data text-mono-data text-text-primary font-bold tabular-nums">$ 32.000 COP</td>
+<td class="py-3.5 px-4 min-w-[170px]">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between font-mono-data text-caption-sm">
+<span class="font-bold text-status-warning-text">3 unidades</span>
+<span class="text-text-muted">mín. 3</span>
+</div>
+<div class="w-full h-2 rounded-full bg-border-subtle/50 overflow-hidden">
+<div class="h-full bg-status-warning-text w-[50%] rounded-full"></div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-status-warning-bg text-status-warning-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+<span>Stock bajo</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-right pr-5">
+<div class="inline-flex items-center gap-2">
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Entrada</span>
+</button>
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">remove</span>
+<span>Salida</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5: Tónico Capilar Romero 150ml -->
+<tr class="hover:bg-bg-surface-subtle/40 transition-colors">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center flex-shrink-0 text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">water_drop</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold truncate">Tónico Capilar Romero 150ml</span>
+<span class="font-mono-data text-caption-sm text-text-secondary">SKU-009</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-text-secondary">Cuidado Capilar</td>
+<td class="py-3.5 px-4 font-mono-data text-mono-data text-text-primary font-bold tabular-nums">$ 28.000 COP</td>
+<td class="py-3.5 px-4 min-w-[170px]">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between font-mono-data text-caption-sm">
+<span class="font-bold text-status-success-text">8 unidades</span>
+<span class="text-text-muted">mín. 3</span>
+</div>
+<div class="w-full h-2 rounded-full bg-border-subtle/50 overflow-hidden">
+<div class="h-full bg-status-success-text w-[75%] rounded-full"></div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Disponible</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-right pr-5">
+<div class="inline-flex items-center gap-2">
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Entrada</span>
+</button>
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">remove</span>
+<span>Salida</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 6: Bálsamo Hidratante para Barba 60g -->
+<tr class="hover:bg-bg-surface-subtle/40 transition-colors">
+<td class="py-3.5 px-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center flex-shrink-0 text-text-secondary">
+<span class="material-symbols-outlined text-[20px]">spa</span>
+</div>
+<div class="flex flex-col min-w-0">
+<span class="font-label-ui text-label-ui text-text-primary font-semibold truncate">Bálsamo Hidratante para Barba 60g</span>
+<span class="font-mono-data text-caption-sm text-text-secondary">SKU-005</span>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4 font-body-md text-body-md text-text-secondary">Cuidado de Barba</td>
+<td class="py-3.5 px-4 font-mono-data text-mono-data text-text-primary font-bold tabular-nums">$ 26.000 COP</td>
+<td class="py-3.5 px-4 min-w-[170px]">
+<div class="flex flex-col gap-1.5">
+<div class="flex items-baseline justify-between font-mono-data text-caption-sm">
+<span class="font-bold text-status-success-text">6 unidades</span>
+<span class="text-text-muted">mín. 2</span>
+</div>
+<div class="w-full h-2 rounded-full bg-border-subtle/50 overflow-hidden">
+<div class="h-full bg-status-success-text w-[68%] rounded-full"></div>
+</div>
+</div>
+</td>
+<td class="py-3.5 px-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-status-success-bg text-status-success-text font-caption-sm text-caption-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+<span>Disponible</span>
+</span>
+</td>
+<td class="py-3.5 px-4 text-right pr-5">
+<div class="inline-flex items-center gap-2">
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">add</span>
+<span>Entrada</span>
+</button>
+<button class="h-8 px-2.5 bg-bg-surface border border-border-strong text-primary-container hover:bg-status-info-bg font-label-ui text-caption-sm rounded-lg transition-colors flex items-center gap-1 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[14px]">remove</span>
+<span>Salida</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer with Pagination & Summary -->
+<div class="px-space-md py-3 bg-bg-surface border-t border-border-subtle flex items-center justify-between text-text-secondary font-caption-sm text-caption-sm">
+<div class="flex items-center gap-1">
+<span>Mostrando</span>
+<span class="font-bold text-text-primary font-mono-data">1 - 6</span>
+<span>de</span>
+<span class="font-bold text-text-primary font-mono-data">18</span>
+<span>productos registrados</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-1 rounded text-text-muted cursor-not-allowed" disabled="" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_left</span>
+</button>
+<span class="px-2 py-0.5 rounded bg-primary-container text-on-primary font-mono-data font-bold">1</span>
+<button class="px-2 py-0.5 rounded hover:bg-bg-surface-subtle font-mono-data" type="button">2</button>
+<button class="px-2 py-0.5 rounded hover:bg-bg-surface-subtle font-mono-data" type="button">3</button>
+<button class="p-1 rounded text-text-primary hover:bg-bg-surface-subtle" type="button">
+<span class="material-symbols-outlined text-[18px]">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- DRAWER LATERAL DERECHO ABIERTO (Elevation-3, 420px width) -->
+<aside aria-labelledby="drawer-title" class="fixed top-0 right-0 bottom-0 w-[420px] bg-bg-surface border-l-[1.5px] border-border-strong shadow-[0_12px_32px_rgba(28,28,28,0.22)] z-50 flex flex-col justify-between overflow-hidden" id="kardex-drawer">
+<!-- Drawer Header -->
+<div class="p-space-lg border-b border-border-subtle bg-bg-surface">
+<div class="flex items-start justify-between">
+<div>
+<span class="font-caption-sm text-caption-sm uppercase tracking-wider text-secondary font-bold block mb-1">Kardex de Operación</span>
+<h2 class="font-heading-h2 text-heading-h2 text-text-primary leading-tight" id="drawer-title">Registrar Salida de Inventario</h2>
+<p class="font-caption-sm text-caption-sm text-text-secondary mt-1">Movimiento atómico de Kardex · Resta stock en tiempo real</p>
+</div>
+<button aria-label="Cerrar modal de salida" class="w-8 h-8 rounded-lg border border-border-subtle flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-bg-surface-subtle transition-colors" type="button">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- Selected Product Summary Card -->
+<div class="mt-space-md bg-bg-input border border-border-subtle rounded-xl p-3 flex items-center justify-between shadow-xs">
+<div class="flex items-center gap-2.5">
+<div class="w-10 h-10 rounded-lg bg-bg-surface-subtle border border-border-subtle flex items-center justify-center text-text-secondary flex-shrink-0">
+<span class="material-symbols-outlined text-[20px]">sanitizer</span>
+</div>
+<div>
+<span class="font-label-ui text-label-ui text-text-primary font-bold block leading-tight">Cera Mate 100g</span>
+<span class="font-mono-data text-caption-sm text-text-muted">SKU-001</span>
+</div>
+</div>
+<div class="text-right">
+<span class="font-mono-data text-mono-data text-text-primary font-bold block">$ 35.000 COP</span>
+<span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-status-warning-bg text-status-warning-text font-caption-sm text-[11px] font-semibold">
+            Stock: 2 unids
+          </span>
+</div>
+</div>
+</div>
+<!-- Drawer Scrollable Form Body -->
+<div class="flex-1 overflow-y-auto p-space-lg space-y-space-md">
+<!-- 1. Movement Type Selector (Segmented 3-tabs) -->
+<div>
+<label class="block font-label-ui text-label-ui text-text-primary mb-1.5">Tipo de Salida</label>
+<div class="grid grid-cols-3 gap-1 p-1 bg-bg-surface-subtle rounded-xl border border-border-subtle">
+<button class="py-2 px-1 text-center rounded-lg bg-primary-container text-on-primary font-label-ui text-caption-sm font-semibold shadow-xs" type="button">
+            Venta al público
+          </button>
+<button class="py-2 px-1 text-center rounded-lg bg-transparent text-text-secondary hover:text-text-primary font-body-md text-caption-sm" type="button">
+            Consumo interno
+          </button>
+<button class="py-2 px-1 text-center rounded-lg bg-transparent text-text-secondary hover:text-text-primary font-body-md text-caption-sm" type="button">
+            Ajuste negativo
+          </button>
+</div>
+</div>
+<!-- 2. Quantity Counter & Balance Alert -->
+<div>
+<div class="flex items-center justify-between mb-1.5">
+<label class="font-label-ui text-label-ui text-text-primary" for="quantity-input">Cantidad a despachar</label>
+<span class="font-caption-sm text-caption-sm text-text-muted">Disponibles: 2</span>
+</div>
+<div class="flex items-center gap-3">
+<!-- Minus button -->
+<button aria-label="Disminuir cantidad" class="w-11 h-11 bg-bg-input border border-border-strong rounded-xl text-text-primary hover:bg-bg-surface-subtle flex items-center justify-center font-bold text-lg active:scale-95 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<!-- Numeric input -->
+<input class="flex-1 h-11 text-center font-mono-data text-heading-h3 font-bold bg-bg-input border border-border-strong rounded-xl text-text-primary focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus/20 shadow-xs" id="quantity-input" max="2" min="1" type="number" value="1"/>
+<!-- Plus button -->
+<button aria-label="Aumentar cantidad" class="w-11 h-11 bg-bg-input border border-border-strong rounded-xl text-text-primary hover:bg-bg-surface-subtle flex items-center justify-center font-bold text-lg active:scale-95 shadow-xs" type="button">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+<!-- Dynamic Stock Balance Note -->
+<div class="mt-2.5 p-2.5 rounded-lg bg-surface-container-low border border-dashed border-status-warning-text/60 flex items-start gap-2 text-status-warning-text font-caption-sm text-caption-sm">
+<span class="material-symbols-outlined text-[18px] flex-shrink-0 text-status-warning-text">warning</span>
+<div class="leading-tight">
+<span class="font-bold">Saldo resultante: 1 unidad.</span>
+<span class="block mt-0.5 text-text-secondary">El producto se mantendrá en alerta de stock bajo (mínimo definido: 2 unidades).</span>
+</div>
+</div>
+</div>
+<!-- 3. Payment Method Quick Selector (Colombian POS 5 cards) -->
+<div>
+<label class="block font-label-ui text-label-ui text-text-primary mb-1.5">
+          Método de Pago Recibido <span class="font-caption-sm text-caption-sm font-normal text-text-secondary">(Venta en mostrador)</span>
+</label>
+<div class="grid grid-cols-2 gap-2">
+<!-- Method 1: Efectivo (Selected) -->
+<div class="relative flex items-center gap-2 p-2.5 bg-status-info-bg border-2 border-border-focus rounded-xl cursor-pointer shadow-xs">
+<span class="material-symbols-outlined text-[20px] text-border-focus">payments</span>
+<span class="font-label-ui text-caption-sm font-bold text-border-focus">Efectivo</span>
+<span class="material-symbols-outlined text-[16px] text-border-focus ml-auto">check_circle</span>
+</div>
+<!-- Method 2: Nequi -->
+<div class="flex items-center gap-2 p-2.5 bg-bg-input border border-border-strong hover:bg-bg-surface-subtle rounded-xl cursor-pointer shadow-xs transition-colors">
+<span class="material-symbols-outlined text-[20px] text-text-secondary">phone_iphone</span>
+<span class="font-label-ui text-caption-sm text-text-primary">Nequi</span>
+</div>
+<!-- Method 3: Daviplata -->
+<div class="flex items-center gap-2 p-2.5 bg-bg-input border border-border-strong hover:bg-bg-surface-subtle rounded-xl cursor-pointer shadow-xs transition-colors">
+<span class="material-symbols-outlined text-[20px] text-text-secondary">account_balance_wallet</span>
+<span class="font-label-ui text-caption-sm text-text-primary">Daviplata</span>
+</div>
+<!-- Method 4: Transferencia -->
+<div class="flex items-center gap-2 p-2.5 bg-bg-input border border-border-strong hover:bg-bg-surface-subtle rounded-xl cursor-pointer shadow-xs transition-colors">
+<span class="material-symbols-outlined text-[20px] text-text-secondary">swap_horiz</span>
+<span class="font-label-ui text-caption-sm text-text-primary">Transferencia</span>
+</div>
+<!-- Method 5: Tarjeta (Full width in 2-col grid) -->
+<div class="col-span-2 flex items-center gap-2 p-2.5 bg-bg-input border border-border-strong hover:bg-bg-surface-subtle rounded-xl cursor-pointer shadow-xs transition-colors">
+<span class="material-symbols-outlined text-[20px] text-text-secondary">credit_card</span>
+<span class="font-label-ui text-caption-sm text-text-primary">Tarjeta Débito / Crédito</span>
+</div>
+</div>
+</div>
+<!-- 4. Responsible Barber Selector -->
+<div>
+<label class="block font-label-ui text-label-ui text-text-primary mb-1.5" for="barber-select">Barbero / Responsable</label>
+<div class="relative">
+<select class="w-full h-11 pl-10 pr-9 bg-bg-input border border-border-strong rounded-xl text-text-primary font-body-md text-body-md focus:outline-none focus:border-border-focus focus:ring-2 focus:ring-border-focus/20 appearance-none shadow-xs" id="barber-select">
+<option selected="">Mateo Ríos (Sillón 01)</option>
+<option>Carlos Mendoza (Dueño / Admin)</option>
+<option>David Gómez (Sillón 02)</option>
+<option>Sebastián Ortiz (Sillón 03)</option>
+</select>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[19px] text-text-secondary pointer-events-none">badge</span>
+<span class="material-symbols-outlined absolute right-2.5 top-1/2 -translate-y-1/2 text-[18px] text-text-secondary pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- 5. Total Highlight Card -->
+<div class="p-3.5 bg-bg-surface-subtle border border-border-subtle rounded-xl flex items-center justify-between shadow-xs">
+<div>
+<span class="font-caption-sm text-caption-sm text-text-secondary uppercase tracking-wider block font-semibold">Total a ingresar a caja</span>
+<span class="font-caption-sm text-[11px] text-text-muted">1 unidad × $ 35.000 COP</span>
+</div>
+<div class="text-right">
+<span class="font-mono-data text-heading-h2 text-text-primary font-bold tabular-nums">$ 35.000</span>
+<span class="font-mono-data text-caption-sm text-text-secondary font-semibold ml-1">COP</span>
+</div>
+</div>
+</div>
+<!-- Drawer Footer Actions -->
+<div class="p-space-md border-t border-border-subtle bg-bg-surface flex items-center gap-space-sm">
+<button class="flex-1 h-11 bg-bg-surface border-[1.5px] border-primary-container text-primary-container hover:bg-status-info-bg font-label-ui text-label-ui rounded-xl transition-all duration-150 active:scale-[0.98] text-center" type="button">
+        Cancelar
+      </button>
+<button class="flex-[2] h-11 bg-primary-container hover:bg-brand-primary-hover text-on-primary font-label-ui text-label-ui rounded-xl transition-all duration-150 flex items-center justify-center gap-2 shadow-md active:scale-[0.98]" type="button">
+<span class="material-symbols-outlined text-[19px]">outbox</span>
+<span>Confirmar Salida</span>
+</button>
+</div>
+</aside>
+</div>
+<!-- Inline JavaScript for micro-interactions without violating CSS rules -->
+<script>
+  (function() {
+    const qtyInput = document.getElementById('quantity-input');
+    const drawer = document.getElementById('kardex-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+
+    if (!qtyInput) return;
+
+    // Optional quick close on backdrop click for testing ease
+    backdrop?.addEventListener('click', () => {
+      drawer.classList.toggle('translate-x-full');
+      backdrop.classList.toggle('hidden');
+    });
+  })();
+</script></main></div></body></html>

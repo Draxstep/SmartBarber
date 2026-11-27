@@ -1,27 +1,46 @@
 {
-  "name": "SmartBarber",
+  "name": "SmartBarber - Tradición y Oficio",
   "short_name": "SmartBarber",
-  "description": "Gestiona tu barberia, agenda e inventario.",
-  "start_url": "/index.html",
+  "description": "Gestión integral y agendamiento ágil para barbería clásica en Bogotá.",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#1A1A1A",
-  "background_color": "#FFCC29",
+  "theme_color": "#1C1C1C",
+  "background_color": "#F2EBDD",
   "lang": "es",
   "dir": "ltr",
+  "categories": ["business", "productivity", "lifestyle"],
   "icons": [
     {
-      "src": "icons/launchericon-192x192.png",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "icons/launchericon-512x512.png",
+      "src": "/icons/icon-512-maskable.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    },
+    {
+      "src": "/icons/launchericon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/launchericon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/launchericon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
