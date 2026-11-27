@@ -331,9 +331,9 @@ export function renderCortesPage() {
                 const isProducto = tx.tipoTransaccion === 'producto';
                 return `
                   <tr class="hover:bg-[#FAF3E5] transition-colors ${isAnulado ? 'bg-[#FAF3E5]/50 opacity-80' : 'bg-white'}">
-                    <!-- ID / Hora -->
+                    <!-- Referencia / Hora -->
                     <td class="py-3 px-4">
-                      <div class="font-mono text-xs font-bold ${isProducto ? 'text-[#235D3A]' : 'text-[#1F3A5F]'}">#${tx.id ? String(tx.id).slice(0, 8) : 'TX'}</div>
+                      <div class="font-mono text-xs font-bold ${isProducto ? 'text-[#235D3A]' : 'text-[#1F3A5F]'}">${tx.codigoCita || (isProducto ? 'POS' : 'CORTE')}</div>
                       <div class="text-[11px] text-[#6B645A] font-mono mt-0.5">${tx.horaFormato || '02:00 PM'}</div>
                     </td>
 

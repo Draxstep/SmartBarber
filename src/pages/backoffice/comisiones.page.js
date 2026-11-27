@@ -52,15 +52,8 @@ export function renderComisionesPage() {
 
   return `
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
-      <!-- BREADCRUMB & TAG DISTINTIVO -->
-      <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-        <nav aria-label="Ruta de navegación" class="flex items-center gap-2 text-xs text-[#6B645A]">
-          <span>SmartBarber</span>
-          <span>/</span>
-          <span>Barberos y Horarios</span>
-          <span>/</span>
-          <span class="text-[#1F3A5F] font-semibold">Liquidación por Comisiones</span>
-        </nav>
+      <!-- TAG DISTINTIVO -->
+      <section class="flex justify-start sm:justify-end">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-[#E8DFCE] text-[#4F4A42] rounded text-xs w-fit">
           <span class="material-symbols-outlined text-[15px] text-[#6B645A]">balance</span>
           <span>Liquidación Referencial · No constituye nómina electrónica DIAN</span>
@@ -318,7 +311,7 @@ export function renderComisionesPage() {
               ${data.cortesDetalle.map(c => `
                 <tr class="hover:bg-[#FAF3E5] transition-colors bg-white">
                   <td class="py-3 px-4">
-                    <span class="font-mono text-xs font-bold text-[#1F3A5F]">#${c.id}</span>
+                    <span class="font-mono text-xs font-bold text-[#1F3A5F]">${c.codigoCita || 'CORTE'}</span>
                     <span class="block text-[11px] text-[#6B645A]">${c.horaFormato || 'Hoy'}</span>
                   </td>
                   <td class="py-3 px-4 font-semibold">${c.barberoNombre}</td>

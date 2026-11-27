@@ -8,6 +8,39 @@ import { encolarCambio } from '../pwa/sync.js';
 import { emitDataMutation } from '../utils/event-bus.js';
 import { getTodayBogota } from '../utils/formatters.js';
 
+function normalizeCitaConsulta(d) {
+  const servicios = Array.isArray(d.servicios) ? d.servicios : [];
+  const precioServicios = servicios.reduce(
+    (sum, s) => sum + Number(s.precioCopSnapshot ?? s.precioCop ?? s.precio ?? 0),
+    0
+  );
+  const precioCop = Number(d.precioEstimadoCop ?? d.precio ?? precioServicios) || 0;
+  const serviceName = servicios.length > 0
+    ? servicios.map(s => s.nombreServicioSnapshot || s.nombre).join(' + ')
+    : 'Servicio Reservado';
+
+  return {
+    id: d.codigoReserva,
+    codigo: d.codigoReserva,
+    codigoReserva: d.codigoReserva,
+    fecha: d.fecha,
+    timeStart: d.horaInicio?.slice(0, 5) || '',
+    timeEnd: d.horaFin?.slice(0, 5) || '',
+    horaInicio: d.horaInicio?.slice(0, 5) || '',
+    horaFin: d.horaFin?.slice(0, 5) || '',
+    status: d.estado,
+    estado: d.estado,
+    clientName: d.clienteNombre || d.cliente?.nombre || 'Cliente',
+    clientPhone: d.clienteTelefono || d.cliente?.telefono || '',
+    barberName: d.barberoNombre || d.barbero?.nombre || 'Barbero Asignado',
+    price: precioCop,
+    precio: precioCop,
+    precioEstimadoCop: precioCop,
+    serviceName,
+    servicios
+  };
+}
+
 export const citasService = {
   /**
    * Consulta los bloques horarios de 30 minutos disponibles en tiempo real (CU-025).
@@ -167,27 +200,7 @@ export const citasService = {
     const response = await httpClient.get(`/public/reservas/${codeClean}`);
 
     if (response?.data) {
-      const d = response.data;
-      const normalized = {
-        id: d.codigoReserva,
-        codigo: d.codigoReserva,
-        codigoReserva: d.codigoReserva,
-        fecha: d.fecha,
-        timeStart: d.horaInicio,
-        timeEnd: d.horaFin,
-        horaInicio: d.horaInicio,
-        horaFin: d.horaFin,
-        status: d.estado,
-        estado: d.estado,
-        clientName: d.clienteNombre || d.cliente?.nombre || 'Cliente',
-        clientPhone: d.clienteTelefono || d.cliente?.telefono || '',
-        barberName: d.barberoNombre || 'Barbero Asignado',
-        precio: d.precioEstimadoCop,
-        precioEstimadoCop: d.precioEstimadoCop,
-        serviceName: Array.isArray(d.servicios) ? d.servicios.map(s => s.nombreServicioSnapshot || s.nombre).join(' + ') : 'Servicio Reservado',
-        servicios: d.servicios || []
-      };
-      return { ok: true, success: true, data: normalized };
+      return { ok: true, success: true, data: normalizeCitaConsulta(response.data) };
     }
 
     return response;

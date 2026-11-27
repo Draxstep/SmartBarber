@@ -205,7 +205,7 @@ export function renderAgendaPage() {
                       >
                         <div class="flex items-center justify-between gap-1">
                           <span class="font-sans font-bold text-xs text-[#1C1C1C] truncate">${match.clientName}</span>
-                          <span class="font-mono text-[10px] text-[#6B645A]">${match.id}</span>
+                          ${match.codigo ? `<span class="font-mono text-[10px] text-[#6B645A] shrink-0">${match.codigo}</span>` : ''}
                         </div>
                         <div class="flex items-center justify-between mt-1 text-[11px]">
                           <span class="text-[#4F4A42] truncate">${match.serviceName}</span>
@@ -258,7 +258,7 @@ export function attachAgendaListeners(onUpdate) {
       if (!apt) return;
 
       openDrawer({
-        title: `Cita ${apt.id} · ${apt.clientName}`,
+        title: apt.codigo ? `Cita ${apt.codigo} · ${apt.clientName}` : `Cita · ${apt.clientName}`,
         subtitle: `${apt.serviceName} · ${formatDurationBlocks(apt.durationMinutes)}`,
         position: 'right',
         contentHtml: `
@@ -374,8 +374,8 @@ export function attachAgendaListeners(onUpdate) {
         if (btnCancel) {
           btnCancel.addEventListener('click', () => {
             openDialog({
-              title: `¿Anular Cita ${apt.id}?`,
-              contentHtml: `<p class="text-xs text-[#B3261E]">Esta acción cancela la cita de ${apt.clientName}.</p>`,
+              title: `¿Anular cita de ${apt.clientName}?`,
+              contentHtml: `<p class="text-xs text-[#B3261E]">Esta acción cancela la cita${apt.codigo ? ` <strong>${apt.codigo}</strong>` : ''} de ${apt.clientName}.</p>`,
               confirmText: 'Sí, Anular',
               confirmVariant: 'danger',
               onConfirm: async () => {

@@ -28,15 +28,9 @@ export function renderServiciosPage() {
 
   return `
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
-      <!-- BREADCRUMB & HEADER SUPERIOR -->
+      <!-- HEADER SUPERIOR -->
       <section class="flex flex-col gap-2">
-        <nav aria-label="Ruta de navegación" class="flex items-center gap-2 text-xs text-[#6B645A]">
-          <span>SmartBarber</span>
-          <span class="text-[#8C8272]">/</span>
-          <span class="text-[#1C1C1C] font-semibold">Catálogo de Servicios y Tarifas</span>
-        </nav>
-
-        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 pt-1">
+        <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Catálogo de Servicios

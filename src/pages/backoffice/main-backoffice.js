@@ -240,7 +240,7 @@ function renderWithLayout(activeRoute, user, contentHtml) {
       </div>
 
       <!-- Drawer de Conflictos Offline (Oculto por defecto) -->
-      <dialog id="drawer-conflictos" class="p-0 rounded-xl border border-[#D5CBB8] shadow-2xl backdrop:bg-black/40 max-w-lg w-full">
+      <dialog id="drawer-conflictos" class="m-auto p-0 rounded-xl border border-[#D5CBB8] shadow-2xl backdrop:bg-black/40 max-w-lg w-full">
         <div class="p-6 bg-[#FAF7F2] flex flex-col gap-4">
           <div class="flex items-center justify-between border-b border-[#D5CBB8] pb-3">
             <div class="flex items-center gap-2 text-[#B3261E]">

@@ -23,13 +23,6 @@ export function renderConfiguracionPage() {
       <!-- HEADER DE CONFIGURACIÓN -->
       <section class="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-[#D5CBB8]">
         <div class="flex flex-col gap-1">
-          <nav aria-label="Ruta de navegación" class="flex items-center gap-2 text-xs text-[#6B645A]">
-            <span>SmartBarber</span>
-            <span>/</span>
-            <span>Configuración</span>
-            <span>/</span>
-            <span class="text-[#1C1C1C] font-semibold">Identidad y Parámetros</span>
-          </nav>
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
             Configuración del Negocio
           </h1>

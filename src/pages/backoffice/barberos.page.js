@@ -60,23 +60,15 @@ export function renderBarberosPage() {
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
       <!-- ENCABEZADO SUPERIOR DEL CONTENIDO -->
       <section class="flex flex-col gap-2">
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <nav aria-label="Ruta de navegación" class="flex items-center gap-2 text-xs text-[#6B645A]">
-            <span>SmartBarber</span>
-            <span>/</span>
-            <span class="text-[#1C1C1C] font-semibold">Personal y Turnos</span>
-          </nav>
-          <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#E3EFE7] text-[#235D3A] text-xs font-semibold shadow-xs">
-            <span class="w-2 h-2 rounded-full bg-[#235D3A] animate-pulse"></span>
-            <span>${activeCount} Barberos en Turno Activo · Sincronizado</span>
-          </div>
-        </div>
-
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pt-1">
-          <div>
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Equipo de Barberos
             </h1>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-[#E3EFE7] text-[#235D3A] text-xs font-semibold shadow-xs">
+              <span class="w-2 h-2 rounded-full bg-[#235D3A] animate-pulse"></span>
+              <span>${activeCount} Barberos en Turno Activo · Sincronizado</span>
+            </div>
           </div>
 
           <div class="flex items-center gap-2.5 shrink-0">

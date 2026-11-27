@@ -100,7 +100,12 @@ export function renderConsultarCitaPage() {
               <div class="p-4 sm:p-5 flex flex-col gap-3 text-xs">
                 <div class="flex items-center justify-between pb-2 border-b border-[#D5CBB8]/60">
                   <span class="text-[#6B645A]">Cliente:</span>
-                  <strong class="text-[#1C1C1C]">${searchedCita.clientName} (${searchedCita.clientPhone})</strong>
+                  <strong class="text-[#1C1C1C]">${searchedCita.clientName}${searchedCita.clientPhone ? ` (${searchedCita.clientPhone})` : ''}</strong>
+                </div>
+
+                <div class="flex items-center justify-between pb-2 border-b border-[#D5CBB8]/60">
+                  <span class="text-[#6B645A]">Barbero a Cargo:</span>
+                  <strong class="text-[#1C1C1C]">${searchedCita.barberName || 'Barbero Asignado'}</strong>
                 </div>
 
                 <div class="flex items-center justify-between pb-2 border-b border-[#D5CBB8]/60">
@@ -115,7 +120,7 @@ export function renderConsultarCitaPage() {
 
                 <div class="flex items-center justify-between pb-2 border-b border-[#D5CBB8]/60">
                   <span class="text-[#6B645A]">Valor a Pagar en Sede:</span>
-                  <strong class="font-mono text-sm text-[#1F3A5F]">${formatCOP(searchedCita.price)} COP</strong>
+                  <strong class="font-mono text-sm text-[#1F3A5F]">${formatCOP(searchedCita.price ?? searchedCita.precio ?? searchedCita.precioEstimadoCop)}</strong>
                 </div>
 
                 <!-- Botón Cancelar si la cita no está completada ni cancelada -->

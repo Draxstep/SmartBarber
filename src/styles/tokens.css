@@ -113,15 +113,23 @@
   outline-offset: 2px;
 }
 
-/* Estilos nativos para <dialog> */
+/* Estilos nativos para <dialog> (reestablece centrado tras Preflight de Tailwind v4) */
+dialog {
+  margin: auto;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+}
+
 dialog.ui-modal {
+  margin: auto;
+  inset: 0;
   border: 1px solid #8C8272;
   border-radius: 12px;
   background-color: #FAF7F2;
   color: #1C1C1C;
   padding: 0;
   box-shadow: 0 12px 32px rgba(28, 28, 28, 0.22);
-  max-width: 90vw;
+  max-width: min(90vw, calc(100vw - 2rem));
   width: 520px;
 }
 

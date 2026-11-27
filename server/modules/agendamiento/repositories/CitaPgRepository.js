@@ -50,7 +50,7 @@ export class CitaPgRepository extends ICitaRepository {
            cl.nombre_completo as cliente_nombre,
            cl.telefono_whatsapp as cliente_telefono,
            cl.correo as cliente_correo,
-           b.nombre_completo as barbero_nombre
+           COALESCE(NULLIF(b.nombre_publico, ''), b.nombre_completo) as barbero_nombre
          FROM citas c
          LEFT JOIN clientes cl ON c.cliente_id = cl.cliente_id
          LEFT JOIN barberos b ON c.barbero_id = b.barbero_id

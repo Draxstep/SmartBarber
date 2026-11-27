@@ -46,7 +46,7 @@ export async function renderizarHistorialCortes(clienteId = 'cliente-101') {
     </div>
 
     <!-- DIÁLOGO COMPARTIDO DE CÁMARA (Guía Sesión 10: Un solo <dialog> compartido) -->
-    <dialog id="dlg-camara" class="modal-content" style="padding: 0; border: none; background: #111827; color: white; max-width: 500px; border-radius: 12px; overflow: hidden;">
+    <dialog id="dlg-camara" class="modal-content" style="margin: auto; padding: 0; border: none; background: #111827; color: white; max-width: 500px; border-radius: 12px; overflow: hidden;">
       <div style="padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; background: #1f2937;">
         <h4 style="margin: 0; font-size: 1em;">📷 Cámara en Vivo (Foto del Corte)</h4>
         <button id="btn-cerrar-dlg-camara" style="background: transparent; border: none; color: white; font-size: 20px; cursor: pointer;">&times;</button>
