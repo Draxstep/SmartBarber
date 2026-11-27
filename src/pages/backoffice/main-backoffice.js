@@ -9,10 +9,11 @@ import { renderBackofficeSidebar } from '../../components/backoffice-sidebar.js'
 import { renderBackofficeHeader } from '../../components/backoffice-header.js';
 import { renderLoginPage, attachLoginListeners } from './login.page.js';
 import { renderForbiddenPage, renderNotFoundPage } from './error.page.js';
-import { authService, inventarioService, cameraService } from '../../services/index.js';
+import { authService, inventarioService, cameraService, sedesService } from '../../services/index.js';
 import { openDialog } from '../../components/ui-dialog.js';
 import { backofficeStore } from './backoffice-state.js';
 import { onDataMutation } from '../../utils/event-bus.js';
+import { Capabilities, can, getDefaultRoute, normalizeRole } from '../../utils/access-control.js';
 
 // Módulos PWA Offline-First
 import { registrarServiceWorker, inicializarEventosConectividad } from '../../pwa/sw-register.js';
@@ -41,7 +42,7 @@ export const BACKOFFICE_ROUTES = {
   dashboard: {
     id: 'dashboard',
     title: 'Dashboard Ejecutivo',
-    roles: ['administrador'],
+    capability: Capabilities.DASHBOARD_VIEW,
     loadModule: () => import('./dashboard.page.js'),
     loader: async (user, mod) => await mod.loadDashboardData(),
     render: (user, mod) => mod.renderDashboardPage(),
@@ -50,7 +51,7 @@ export const BACKOFFICE_ROUTES = {
   agenda: {
     id: 'agenda',
     title: 'Agenda y Turnos',
-    roles: ['administrador', 'barbero'],
+    capability: null,
     loadModule: () => import('./agenda.page.js'),
     loader: async () => await backofficeStore.loadAgendaData(),
     render: (user, mod) => mod.renderAgendaPage(),
@@ -59,7 +60,7 @@ export const BACKOFFICE_ROUTES = {
   cortes: {
     id: 'cortes',
     title: 'Historial y Caja',
-    roles: ['administrador', 'barbero'],
+    capability: null,
     loadModule: () => import('./cortes.page.js'),
     loader: async (user, mod) => await mod.loadCortesData(),
     render: (user, mod) => mod.renderCortesPage(),
@@ -68,7 +69,7 @@ export const BACKOFFICE_ROUTES = {
   barberos: {
     id: 'barberos',
     title: 'Barberos y Horarios',
-    roles: ['administrador'],
+    capability: Capabilities.BARBERS_MANAGE,
     loadModule: () => import('./barberos.page.js'),
     loader: async (user, mod) => await mod.loadBarberosData(),
     render: (user, mod) => mod.renderBarberosPage(),
@@ -77,7 +78,7 @@ export const BACKOFFICE_ROUTES = {
   servicios: {
     id: 'servicios',
     title: 'Servicios y Tarifas',
-    roles: ['administrador'],
+    capability: Capabilities.SERVICES_MANAGE,
     loadModule: () => import('./servicios.page.js'),
     loader: async (user, mod) => await mod.loadServiciosData(),
     render: (user, mod) => mod.renderServiciosPage(),
@@ -86,16 +87,16 @@ export const BACKOFFICE_ROUTES = {
   inventario: {
     id: 'inventario',
     title: 'Inventario & Ventas',
-    roles: ['administrador', 'barbero'],
+    capability: Capabilities.INVENTORY_CATALOG_VIEW,
     loadModule: () => import('./inventory.page.js'),
-    loader: async (user, mod) => await mod.loadInventoryKardexData(user.rol),
-    render: (user, mod) => mod.renderInventoryPage({ userRole: user.rol }),
-    attachListeners: (refresh, user, mod) => mod.attachInventoryListeners(refresh, user.rol)
+    loader: async (user, mod) => await mod.loadInventoryKardexData(normalizeRole(user.rol)),
+    render: (user, mod) => mod.renderInventoryPage({ userRole: normalizeRole(user.rol), user }),
+    attachListeners: (refresh, user, mod) => mod.attachInventoryListeners(refresh, normalizeRole(user.rol), user)
   },
   comisiones: {
     id: 'comisiones',
     title: 'Liquidación Comisiones',
-    roles: ['administrador', 'barbero'],
+    capability: null,
     loadModule: () => import('./comisiones.page.js'),
     loader: async (user, mod) => await mod.loadComisionesData(),
     render: (user, mod) => mod.renderComisionesPage(),
@@ -104,7 +105,7 @@ export const BACKOFFICE_ROUTES = {
   configuracion: {
     id: 'configuracion',
     title: 'Configuración',
-    roles: ['administrador'],
+    capability: Capabilities.SETTINGS_MANAGE,
     loadModule: () => import('./configuracion.page.js'),
     loader: async () => {},
     render: (user, mod) => mod.renderConfiguracionPage(),
@@ -113,7 +114,7 @@ export const BACKOFFICE_ROUTES = {
   perfil: {
     id: 'perfil',
     title: 'Mi Perfil',
-    roles: ['administrador', 'barbero'],
+    capability: null,
     loadModule: () => import('./perfil.page.js'),
     loader: async (user, mod) => await mod.loadPerfilData(),
     render: (user, mod) => mod.renderPerfilPage(),
@@ -121,7 +122,8 @@ export const BACKOFFICE_ROUTES = {
   }
 };
 
-let sedeActivaNombre = 'SmartBarber Studio · Bogotá';
+let sedeActivaNombre = 'SmartBarber Studio';
+let sedeCargada = false;
 let totalAlertasInventario = 0;
 let alertasCargadas = false;
 let mountedShellUserKey = null;
@@ -140,7 +142,7 @@ function scheduleBackofficeRefresh() {
 function getActiveRoute(user = null) {
   const hash = window.location.hash.toLowerCase().replace('#', '').trim();
   if (!hash) {
-    return user?.rol === 'administrador' ? 'dashboard' : 'agenda';
+    return getDefaultRoute(user);
   }
   return hash.split('?')[0];
 }
@@ -159,12 +161,13 @@ export async function renderBackoffice() {
   if (!currentUser || !authService.isAuthenticated()) {
     mountedShellUserKey = null;
     alertasCargadas = false;
+    sedeCargada = false;
     totalAlertasInventario = 0;
     appRoot.innerHTML = renderLoginPage();
     attachLoginListeners(async (user) => {
       await abrirBaseDeDatos().catch(() => {});
       await backofficeStore.ensureInitialized(true);
-      window.location.hash = '#agenda';
+      window.location.hash = `#${getDefaultRoute(user)}`;
       renderBackoffice();
     });
     return;
@@ -174,24 +177,31 @@ export async function renderBackoffice() {
   if (seq !== renderSequence) return;
 
   const currentRoute = getActiveRoute(currentUser);
-  const currentRole = currentUser.rol || 'barbero';
+  const currentRole = normalizeRole(currentUser.rol) || 'barbero';
   const routeConfig = BACKOFFICE_ROUTES[currentRoute];
 
   // 2. Guard de Ruta Desconocida (404)
   if (!routeConfig) {
-    renderWithLayout(currentRoute, currentUser, renderNotFoundPage({ route: currentRoute }));
+    renderWithLayout(currentRoute, currentUser, renderNotFoundPage({ route: currentRoute, defaultRoute: getDefaultRoute(currentUser) }));
     return;
   }
 
-  // 3. Guard de Permisos RBAC Declarativo (403)
-  if (!routeConfig.roles.includes(currentRole)) {
+  // 3. Guard de Permisos PBAC Declarativo (403)
+  if (routeConfig.capability && !can(routeConfig.capability, currentUser)) {
     renderWithLayout(currentRoute, currentUser, renderForbiddenPage({ role: currentRole, requestedRoute: currentRoute }));
     return;
   }
 
-  // 4. Cargar alertas de reposición una sola vez por sesión (se invalida al mutar inventario)
+  // 4. Cargar alertas de reposición y sede activa una sola vez por sesión (condicional por capacidad)
   try {
-    if (!alertasCargadas && currentRole === 'administrador' && navigator.onLine) {
+    if (!sedeCargada && navigator.onLine) {
+      sedeCargada = true;
+      const sedeRes = await sedesService.getSedeActiva().catch(() => null);
+      if (sedeRes?.data?.nombreComercial) {
+        sedeActivaNombre = sedeRes.data.nombreComercial;
+      }
+    }
+    if (!alertasCargadas && can(Capabilities.INVENTORY_ALERTS_VIEW, currentUser) && navigator.onLine) {
       alertasCargadas = true;
       const alertasRes = await inventarioService.getAlertas();
       if (alertasRes?.data) {
@@ -288,8 +298,7 @@ function renderWithLayout(activeRoute, user, contentHtml) {
           userName: userDisplayName,
           userInitials,
           userRole: roleDisplay,
-          rawRole: user.rol,
-          notificationCount: totalAlertasInventario
+          rawRole: user.rol
         })}
 
         <!-- Main Content -->
@@ -546,6 +555,11 @@ function attachBackofficeCommonListeners() {
         return;
       }
 
+      const canReceiveStockAlerts = can(Capabilities.PUSH_ALERTS_INVENTORY);
+      const pushScopeSummary = canReceiveStockAlerts
+        ? '<strong>nuevas reservas online</strong> y <strong>quiebres de stock en inventario</strong>'
+        : '<strong>nuevas reservas asignadas</strong> y <strong>novedades de tu agenda</strong>';
+
       if (estado.activa) {
         // Modal de gestión interactiva cuando ya están activas
         openDialog({
@@ -558,7 +572,7 @@ function attachBackofficeCommonListeners() {
                 <span class="font-semibold">Notificaciones activas y sincronizadas en este dispositivo</span>
               </div>
               <p class="text-[#4F4A42] leading-relaxed">
-                Este navegador está registrado con clave criptográfica VAPID para recibir alertas de <strong>nuevas reservas online</strong> y <strong>quiebres de stock en inventario</strong>.
+                Este navegador está registrado con clave criptográfica VAPID para recibir alertas de ${pushScopeSummary}.
               </p>
               <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-[#D5CBB8]">
                 <button
@@ -646,7 +660,9 @@ function attachBackofficeCommonListeners() {
           await actualizarIconoCampana();
           openDialog({
             title: 'Notificaciones Activadas',
-            description: 'Recibirás avisos instantáneos de nuevas reservas de clientes y alertas de existencias bajas de inventario. Haz clic en la campana en cualquier momento para enviar una prueba.',
+            description: canReceiveStockAlerts
+              ? 'Recibirás avisos instantáneos de nuevas reservas de clientes y alertas de existencias bajas de inventario. Haz clic en la campana en cualquier momento para enviar una prueba.'
+              : 'Recibirás avisos instantáneos de nuevas citas asignadas y actualizaciones de tu agenda. Haz clic en la campana en cualquier momento para enviar una prueba.',
             confirmLabel: 'Entendido',
             isAlertOnly: true
           });

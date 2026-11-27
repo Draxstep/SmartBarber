@@ -4,15 +4,17 @@
  * Incluye indicador de conectividad y cola Outbox, botón contextual de Push VAPID y drawer de conflictos.
  */
 
+import { normalizeRole } from '../../shared/contracts/permissions.js';
+import { RolUsuario } from '../../shared/contracts/enums.js';
+
 export function renderBackofficeHeader({
-  sedeName = 'SmartBarber Studio · Bogotá',
+  sedeName = 'SmartBarber Studio',
   userName = 'Administrador',
   userInitials = 'AD',
   userRole = 'Administrador',
-  rawRole = 'administrador',
-  notificationCount = 0
+  rawRole = 'administrador'
 } = {}) {
-  const isBarbero = rawRole === 'barbero';
+  const isBarbero = normalizeRole(rawRole) === RolUsuario.BARBERO;
   const roleBadgeText = isBarbero ? 'Barbero' : 'Administrador';
   const roleBadgeClass = isBarbero
     ? 'bg-[#E4ECF5] text-[#1F3A5F] border-[#1F3A5F]/30'

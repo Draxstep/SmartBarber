@@ -19,12 +19,12 @@ const controller = new InventarioController();
 
 inventarioRouter.use(authenticate);
 
-// 1. Consultas generales de productos, alertas y movimientos (CU-016, CU-019)
+// 1. Consultas generales de productos (activos para barbero; completo, alertas y Kardex para Administrador)
 inventarioRouter.get('/', controller.list);
-inventarioRouter.get('/alertas', controller.getAlertas);
-inventarioRouter.get('/movimientos', controller.getMovimientos);
+inventarioRouter.get('/alertas', authorize(['administrador']), controller.getAlertas);
+inventarioRouter.get('/movimientos', authorize(['administrador']), controller.getMovimientos);
 inventarioRouter.get('/:id', controller.getById);
-inventarioRouter.get('/:id/kardex', controller.getKardex);
+inventarioRouter.get('/:id/kardex', authorize(['administrador']), controller.getKardex);
 
 // 2. Gestión de productos (Exclusivo Administrador: CU-016)
 inventarioRouter.post(

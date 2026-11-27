@@ -6,6 +6,7 @@
 
 import { barberosService, authService, cameraService } from '../../services/index.js';
 import { suscribirAPush, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones, soportaNotificacionesPush } from '../../pwa/notificaciones.js';
+import { Capabilities, can, isBarberoRole } from '../../utils/access-control.js';
 
 let cachedProfile = null;
 let profileSuccessMsg = '';
@@ -19,6 +20,12 @@ export async function loadPerfilData() {
   passwordSuccessMsg = '';
   passwordErrorMsg = '';
 
+  const user = authService.getCurrentUser();
+  if (!can(Capabilities.BARBER_PROFILE_MANAGE_OWN, user)) {
+    cachedProfile = null;
+    return;
+  }
+
   try {
     const res = await barberosService.getMiPerfil();
     if (res?.ok && res.data) {
@@ -31,7 +38,9 @@ export async function loadPerfilData() {
 
 export function renderPerfilPage() {
   const user = authService.getCurrentUser() || {};
-  const isBarbero = user.rol === 'barbero';
+  const isBarbero = isBarberoRole(user);
+  const canManageBarberProfile = can(Capabilities.BARBER_PROFILE_MANAGE_OWN, user);
+  const canReceiveInvPush = can(Capabilities.PUSH_ALERTS_INVENTORY, user);
   const data = cachedProfile || {};
   const b = data.barbero || {};
   const horarios = data.horarios || [];
@@ -64,19 +73,27 @@ export function renderPerfilPage() {
           Mi Perfil & Ajustes Personales
         </h1>
         <p class="text-xs text-[#6B645A]">
-          Gestiona tu información pública de atención, consulta tu esquema de comisión asignado y tus horarios laborales.
+          ${canManageBarberProfile
+            ? 'Gestiona tu información pública de atención, consulta tu esquema de comisión asignado y tus horarios laborales.'
+            : 'Administra tus credenciales de seguridad y las preferencias de notificaciones de tu cuenta administrativa.'}
         </p>
       </section>
 
       <!-- TARJETA PRINCIPAL DE IDENTIDAD -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-6 shadow-xs flex flex-col md:flex-row items-center md:items-start gap-6">
         <div class="relative shrink-0">
-          <img
-            id="profile-avatar-preview"
-            src="${foto}"
-            alt="${nombreCompleto}"
-            class="w-24 h-24 rounded-full object-cover border-2 border-[#D5CBB8] shadow-sm"
-          />
+          ${canManageBarberProfile ? `
+            <img
+              id="profile-avatar-preview"
+              src="${foto}"
+              alt="${nombreCompleto}"
+              class="w-24 h-24 rounded-full object-cover border-2 border-[#D5CBB8] shadow-sm"
+            />
+          ` : `
+            <div class="w-20 h-20 rounded-full bg-[#1F3A5F] text-white flex items-center justify-center shadow-sm border-2 border-[#D5CBB8]">
+              <span class="material-symbols-outlined text-[36px]">admin_panel_settings</span>
+            </div>
+          `}
           <span
             class="absolute bottom-1 right-1 w-4 h-4 rounded-full ${estado === 'activo' ? 'bg-[#235D3A]' : 'bg-[#6B645A]'} border-2 border-white"
             title="${estado === 'activo' ? 'Cuenta Activa' : 'Inactivo'}"
@@ -89,7 +106,7 @@ export function renderPerfilPage() {
             <span class="px-2.5 py-0.5 rounded-full text-[11px] font-bold ${isBarbero ? 'bg-[#8B1E1E] text-white' : 'bg-[#1F3A5F] text-white'}">
               ${isBarbero ? 'Barbero' : 'Administrador'}
             </span>
-            ${isBarbero ? `
+            ${canManageBarberProfile ? `
               <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-[11px] font-semibold">
                 ${sillon}
               </span>
@@ -98,7 +115,7 @@ export function renderPerfilPage() {
 
           <p class="text-xs font-mono text-[#6B645A]">${correo}</p>
 
-          ${isBarbero ? `
+          ${canManageBarberProfile ? `
             <!-- ESQUEMA DE COMISIÓN INMUTABLE POR EL BARBERO (RN-12) -->
             <div class="mt-2 inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-white border border-[#D5CBB8] text-xs shadow-2xs">
               <span class="material-symbols-outlined text-[18px] text-[#1F3A5F]">percent</span>
@@ -109,9 +126,10 @@ export function renderPerfilPage() {
         </div>
       </section>
 
-      <!-- GRID DE FORMULARIOS: DATOS PERSONALES & SEGURIDAD -->
+      <!-- GRID DE FORMULARIOS: DATOS PERSONALES / CUENTA & SEGURIDAD -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-        <!-- FORMULARIO 1: DATOS PERSONALES EDITABLES -->
+        ${canManageBarberProfile ? `
+        <!-- FORMULARIO 1: DATOS PERSONALES DE ATENCIÓN EDITABLES -->
         <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-4">
           <div class="flex items-center gap-2 pb-3 border-b border-[#D5CBB8]">
             <span class="material-symbols-outlined text-[20px] text-[#1F3A5F]">badge</span>
@@ -142,7 +160,7 @@ export function renderPerfilPage() {
                 class="h-10 px-3 bg-[#E8DFCE] border border-[#D5CBB8] rounded-lg text-xs text-[#6B645A] cursor-not-allowed font-medium"
                 title="Solo el administrador puede modificar el nombre oficial de registro"
               />
-              <span class="text-[10px] text-[#6B645A]">Inmutable por el barbero · Solo administrador</span>
+              <span class="text-[10px] text-[#6B645A]">${isBarbero ? 'Inmutable por el barbero · Solo administrador' : 'Editable desde gestión de barberos'}</span>
             </div>
 
             <div class="flex flex-col gap-1">
@@ -257,6 +275,28 @@ export function renderPerfilPage() {
             </div>
           </form>
         </section>
+        ` : `
+        <!-- RESUMEN DE CUENTA ADMINISTRATIVA (SIN PERFIL PÚBLICO DE SILLÓN) -->
+        <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-4">
+          <div class="flex items-center gap-2 pb-3 border-b border-[#D5CBB8]">
+            <span class="material-symbols-outlined text-[20px] text-[#1F3A5F]">verified_user</span>
+            <h3 class="font-serif text-base font-bold text-[#1C1C1C]">Información de Cuenta</h3>
+          </div>
+          <div class="flex flex-col gap-3 text-xs">
+            <div class="p-3 bg-white rounded-lg border border-[#D5CBB8] flex items-center justify-between">
+              <span class="text-[#6B645A]">Correo de acceso</span>
+              <span class="font-mono font-semibold text-[#1C1C1C]">${correo}</span>
+            </div>
+            <div class="p-3 bg-white rounded-lg border border-[#D5CBB8] flex items-center justify-between">
+              <span class="text-[#6B645A]">Nivel de permisos</span>
+              <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] font-semibold">Administrador Global</span>
+            </div>
+            <div class="p-3 rounded-lg bg-[#E8DFCE]/50 border border-[#D5CBB8] text-[11px] text-[#4F4A42] leading-relaxed">
+              Esta cuenta administra la sede y no tiene un sillón de barbero público asociado. Para ajustar parámetros del establecimiento dirígete a <a href="#configuracion" class="font-semibold text-[#1F3A5F] hover:underline">Configuración</a>.
+            </div>
+          </div>
+        </section>
+        `}
 
         <!-- FORMULARIO 2: CAMBIO SEGURO DE CONTRASEÑA -->
         <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-4">
@@ -345,7 +385,10 @@ export function renderPerfilPage() {
         </div>
 
         <p class="text-xs text-[#4F4A42] leading-relaxed">
-          Recibe avisos inmediatos en este equipo ante nuevas citas reservadas por clientes y alertas críticas de inventario. La suscripción se realiza de forma segura mediante claves criptográficas VAPID sin intermediarios externos.
+          ${canReceiveInvPush
+            ? 'Recibe avisos inmediatos en este equipo ante nuevas citas reservadas por clientes y alertas críticas de inventario.'
+            : 'Recibe avisos inmediatos en este equipo ante nuevas citas asignadas a tu agenda.'}
+          La suscripción se realiza de forma segura mediante claves criptográficas VAPID sin intermediarios externos.
         </p>
 
         <div class="flex flex-wrap items-center gap-3 pt-2 border-t border-[#D5CBB8]">
@@ -369,7 +412,7 @@ export function renderPerfilPage() {
         </div>
       </section>
 
-      ${isBarbero ? `
+      ${canManageBarberProfile ? `
         <!-- SECCIÓN 3: HORARIOS SEMANALES ASIGNADOS (SOLO LECTURA PARA BARBERO) -->
         <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col gap-4">
           <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-[#D5CBB8]">

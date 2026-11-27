@@ -5,16 +5,19 @@
  * Filtrado dinámico según rol de usuario (Admin vs. Barbero).
  */
 
+import { Capabilities, hasCapability, normalizeRole } from '../../shared/contracts/permissions.js';
+import { RolUsuario } from '../../shared/contracts/enums.js';
+
 export const ALL_NAV_ITEMS = [
-  { id: 'dashboard', label: 'Dashboard Ejecutivo', icon: 'dashboard', path: '#dashboard', roles: ['admin', 'administrador'] },
-  { id: 'agenda', label: 'Agenda y Turnos', icon: 'calendar_month', path: '#agenda', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mi Agenda' },
-  { id: 'cortes', label: 'Historial y Caja', icon: 'point_of_sale', path: '#cortes', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mis Cortes' },
-  { id: 'barberos', label: 'Equipo de Barberos', icon: 'badge', path: '#barberos', roles: ['admin', 'administrador'] },
-  { id: 'servicios', label: 'Servicios y Tarifas', icon: 'content_cut', path: '#servicios', roles: ['admin', 'administrador'] },
-  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Venta Mostrador' },
-  { id: 'comisiones', label: 'Liquidación Comisiones', icon: 'percent', path: '#comisiones', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mis Comisiones' },
-  { id: 'configuracion', label: 'Configuración', icon: 'settings', path: '#configuracion', roles: ['admin', 'administrador'] },
-  { id: 'perfil', label: 'Mi Perfil', icon: 'account_circle', path: '#perfil', roles: ['admin', 'administrador', 'barbero'], barberLabel: 'Mi Perfil' }
+  { id: 'dashboard', label: 'Dashboard Ejecutivo', icon: 'dashboard', path: '#dashboard', capability: Capabilities.DASHBOARD_VIEW },
+  { id: 'agenda', label: 'Agenda y Turnos', icon: 'calendar_month', path: '#agenda', capability: null, barberLabel: 'Mi Agenda' },
+  { id: 'cortes', label: 'Historial y Caja', icon: 'point_of_sale', path: '#cortes', capability: null, barberLabel: 'Mis Cortes' },
+  { id: 'barberos', label: 'Equipo de Barberos', icon: 'badge', path: '#barberos', capability: Capabilities.BARBERS_MANAGE },
+  { id: 'servicios', label: 'Servicios y Tarifas', icon: 'content_cut', path: '#servicios', capability: Capabilities.SERVICES_MANAGE },
+  { id: 'inventario', label: 'Inventario', icon: 'inventory_2', path: '#inventario', hasBadge: true, badgeCapability: Capabilities.INVENTORY_ALERTS_VIEW, capability: Capabilities.INVENTORY_CATALOG_VIEW, barberLabel: 'Venta Mostrador' },
+  { id: 'comisiones', label: 'Liquidación Comisiones', icon: 'percent', path: '#comisiones', capability: null, barberLabel: 'Mis Comisiones' },
+  { id: 'configuracion', label: 'Configuración', icon: 'settings', path: '#configuracion', capability: Capabilities.SETTINGS_MANAGE },
+  { id: 'perfil', label: 'Mi Perfil', icon: 'account_circle', path: '#perfil', capability: null, barberLabel: 'Mi Perfil' }
 ];
 
 /**
@@ -35,16 +38,17 @@ export function renderBackofficeSidebar({
   userRole = null
 } = {}) {
   const alerts = inventoryAlerts ?? inventoryAlertCount ?? 0;
-  const rawRole = user?.rawRole || user?.rol || userRole || 'administrador';
-  const currentRole = rawRole === 'barbero' ? 'barbero' : 'administrador';
-  const userName = user?.nombreCompleto || user?.nombre || user?.name || (currentRole === 'barbero' ? 'Barbero' : 'Carlos Mendoza');
-  const userDisplayRole = user?.role || (currentRole === 'barbero' ? 'Barbero' : 'Administrador');
+  const rawRole = user?.rawRole || user?.rol || userRole || RolUsuario.ADMINISTRADOR;
+  const currentRole = normalizeRole(rawRole) || RolUsuario.ADMINISTRADOR;
+  const effectiveUser = { ...(user || {}), rol: currentRole };
+  const userName = user?.nombreCompleto || user?.nombre || user?.name || (currentRole === RolUsuario.BARBERO ? 'Barbero' : 'Administrador');
+  const userDisplayRole = user?.role || (currentRole === RolUsuario.BARBERO ? 'Barbero' : 'Administrador');
 
-  const visibleItems = ALL_NAV_ITEMS.filter(item => item.roles.includes(currentRole));
+  const visibleItems = ALL_NAV_ITEMS.filter((item) => hasCapability(effectiveUser, item.capability));
 
   const itemsHtml = visibleItems.map(item => {
     const isActive = item.id === activeRoute;
-    const label = currentRole === 'barbero' && item.barberLabel ? item.barberLabel : item.label;
+    const label = currentRole === RolUsuario.BARBERO && item.barberLabel ? item.barberLabel : item.label;
 
     const baseClasses = 'flex items-center justify-between h-[44px] px-3 rounded-lg transition-all duration-150 font-sans text-sm font-medium';
     const activeClasses = isActive
@@ -53,7 +57,8 @@ export function renderBackofficeSidebar({
 
     const iconColor = isActive ? 'text-[#7BA3D4]' : 'text-[#BDB4A5]';
 
-    const badgeHtml = item.hasBadge && alerts > 0 && currentRole === 'administrador'
+    const canSeeAlerts = !item.badgeCapability || hasCapability(effectiveUser, item.badgeCapability);
+    const badgeHtml = item.hasBadge && alerts > 0 && canSeeAlerts
       ? `<span class="pointer-events-none flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-[#E07A7A] text-[#1C1C1C] font-mono text-[11px] font-bold leading-none shadow-xs" title="${alerts} alertas de reposición">
            ${alerts}
          </span>`

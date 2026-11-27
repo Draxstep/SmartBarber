@@ -278,7 +278,7 @@ export const cortesService = {
       const barberosArr = Array.isArray(d.barberos) ? d.barberos.map(b => ({
         barberoId: b.barberoId,
         barberoNombre: b.nombreCompleto || b.nombrePublico || 'Barbero',
-        sillon: 'Sillón 01',
+        sillon: b.sillon || 'Sillón',
         totalCortes: Number(b.totalCortesRealizados || 0),
         totalRecaudado: Number(b.totalCobradoCop || 0),
         porcentajeComision: Number(b.porcentajeComision || 50),

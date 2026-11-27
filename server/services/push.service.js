@@ -54,13 +54,18 @@ export class PushService {
   }
 
   /**
-   * Elimina una suscripción Push por su endpoint.
+   * Elimina una suscripción Push por su endpoint (validando propiedad si se indica usuarioId).
    * @param {string} endpoint
+   * @param {string|null} [usuarioId]
    */
-  async eliminarSuscripcion(endpoint) {
+  async eliminarSuscripcion(endpoint, usuarioId = null) {
     const client = await this.pool.connect();
     try {
-      await client.query('DELETE FROM push_suscripciones WHERE endpoint = $1', [endpoint]);
+      if (usuarioId) {
+        await client.query('DELETE FROM push_suscripciones WHERE endpoint = $1 AND usuario_id = $2', [endpoint, usuarioId]);
+      } else {
+        await client.query('DELETE FROM push_suscripciones WHERE endpoint = $1', [endpoint]);
+      }
     } finally {
       client.release();
     }

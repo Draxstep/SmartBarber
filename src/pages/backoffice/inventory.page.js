@@ -12,14 +12,18 @@ import { formatCOP } from '../../utils/formatters.js';
 import { renderStatusBadge } from '../../components/status-badge.js';
 import { renderKpiCard } from '../../components/kpi-card.js';
 import { openDialog } from '../../components/ui-dialog.js';
+import { Capabilities, can, getCurrentUserSafe } from '../../utils/access-control.js';
 
 let cachedKardexMovements = [];
 
 function renderInventoryRows(products, isBarbero) {
+  const canViewCost = !isBarbero && can(Capabilities.INVENTORY_COST_VIEW);
+  const canManageProducts = !isBarbero && can(Capabilities.INVENTORY_PRODUCT_MANAGE);
+
   if (products.length === 0) {
     return `
       <tr>
-        <td colspan="${isBarbero ? 7 : 8}" class="py-12 text-center text-[#6B645A]">
+        <td colspan="${canViewCost ? 8 : 7}" class="py-12 text-center text-[#6B645A]">
           <div class="flex flex-col items-center gap-2">
             <span class="material-symbols-outlined text-[32px] text-[#8C8272]">inventory_2</span>
             <p class="font-medium text-sm">No se encontraron productos con el filtro aplicado.</p>
@@ -42,7 +46,7 @@ function renderInventoryRows(products, isBarbero) {
     } else if (stock === 0) {
       statusBadge = renderStatusBadge('agotado', { customLabel: 'Agotado', size: 'sm' });
     } else if (stock <= min) {
-      statusBadge = renderStatusBadge('stock_bajo', { customLabel: 'Bajo', size: 'sm' });
+      statusBadge = renderStatusBadge('stock_bajo', { customLabel: canManageProducts ? 'Bajo' : 'Últimas uds', size: 'sm' });
     } else {
       statusBadge = renderStatusBadge('disponible', { customLabel: 'Óptimo', size: 'sm' });
     }
@@ -54,7 +58,7 @@ function renderInventoryRows(products, isBarbero) {
         </td>
         <td class="py-3 px-4">
           <div class="font-sans font-bold text-xs text-[#1C1C1C]">${p.nombre}</div>
-          ${!isBarbero ? `
+          ${canViewCost ? `
             <div class="text-[10px] text-[#6B645A] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
           ` : ''}
         </td>
@@ -66,7 +70,7 @@ function renderInventoryRows(products, isBarbero) {
         <td class="py-3 px-4 text-center font-mono font-bold text-sm ${isArchived ? 'text-[#8C8272]' : stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
           ${stock}
         </td>
-        ${!isBarbero ? `
+        ${canManageProducts ? `
           <td class="py-3 px-4 text-center font-mono text-xs text-[#6B645A]">
             ${min}
           </td>
@@ -78,7 +82,7 @@ function renderInventoryRows(products, isBarbero) {
           ${statusBadge}
         </td>
         <td class="py-3 px-4 text-right">
-          ${isBarbero ? `
+          ${!canManageProducts ? `
             ${stock > 0 ? `
               <button
                 type="button"
@@ -160,19 +164,23 @@ function renderInventoryRows(products, isBarbero) {
 }
 
 export async function loadInventoryKardexData(userRole = 'administrador') {
+  const user = getCurrentUserSafe() || { rol: userRole };
+  const canReadKardex = can(Capabilities.INVENTORY_KARDEX_READ, user);
+  const canViewArchived = can(Capabilities.INVENTORY_ARCHIVED_VIEW, user);
+
   try {
-    const isBarbero = userRole === 'barbero';
-    if (isBarbero) {
+    if (!canReadKardex) {
       // El barbero solo consulta productos activos disponibles (CU-018)
       const prodRes = await inventarioService.getProductos();
       if (prodRes?.ok && Array.isArray(prodRes.data)) {
         backofficeStore.products = prodRes.data;
       }
+      cachedKardexMovements = [];
     } else {
       // El administrador consulta catálogo completo (incluyendo archivados) y movimientos Kardex
       const [kdxRes, prodRes] = await Promise.all([
         inventarioService.getMovimientosKardex().catch(() => ({ ok: false, data: [] })),
-        inventarioService.getProductos({ activosSolo: false }).catch(() => ({ ok: false, data: [] }))
+        inventarioService.getProductos({ activosSolo: !canViewArchived }).catch(() => ({ ok: false, data: [] }))
       ]);
       if (kdxRes?.ok && Array.isArray(kdxRes.data)) {
         cachedKardexMovements = kdxRes.data;
@@ -188,7 +196,12 @@ export async function loadInventoryKardexData(userRole = 'administrador') {
 
 export function renderInventoryPage(options = {}) {
   const userRole = (typeof options === 'string' ? options : options?.userRole) || 'administrador';
-  const isBarbero = userRole === 'barbero';
+  const user = (typeof options === 'object' ? options?.user : null) || getCurrentUserSafe() || { rol: userRole };
+  const canManageProducts = can(Capabilities.INVENTORY_PRODUCT_MANAGE, user);
+  const canViewKardex = can(Capabilities.INVENTORY_KARDEX_READ, user);
+  const canViewCost = can(Capabilities.INVENTORY_COST_VIEW, user);
+  const canViewArchived = can(Capabilities.INVENTORY_ARCHIVED_VIEW, user);
+  const isBarbero = !canManageProducts;
 
   const products = backofficeStore.getFilteredProducts();
   const allProducts = backofficeStore.products;
@@ -220,8 +233,8 @@ export function renderInventoryPage(options = {}) {
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            ${isBarbero ? `
-              <!-- Acciones exclusivas del Barbero (CU-018) -->
+            ${!canManageProducts ? `
+              <!-- Acciones operativas de venta y consumo (Barbero - CU-018) -->
               <button
                 id="btn-inv-consumo"
                 type="button"
@@ -242,23 +255,27 @@ export function renderInventoryPage(options = {}) {
                 <span>+ Vender Producto</span>
               </button>
             ` : `
-              <!-- Acciones completas del Administrador (CU-016 a CU-019) -->
-              <button
-                id="btn-inv-kardex"
-                type="button"
-                class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border border-[#1F3A5F]/20 font-semibold text-xs hover:bg-[#d5e3ff] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-xs"
-              >
-                <span class="material-symbols-outlined text-[18px]">receipt_long</span>
-                <span>Historial Kardex</span>
-              </button>
-              <button
-                id="btn-inv-entrada"
-                type="button"
-                class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#235D3A] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
-              >
-                <span class="material-symbols-outlined text-[18px] text-[#235D3A]">arrow_downward</span>
-                <span>+ Entrada Stock</span>
-              </button>
+              <!-- Acciones administrativas completas (CU-016 a CU-019) -->
+              ${canViewKardex ? `
+                <button
+                  id="btn-inv-kardex"
+                  type="button"
+                  class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] border border-[#1F3A5F]/20 font-semibold text-xs hover:bg-[#d5e3ff] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-xs"
+                >
+                  <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+                  <span>Historial Kardex</span>
+                </button>
+              ` : ''}
+              ${can(Capabilities.INVENTORY_ENTRY_CREATE, user) ? `
+                <button
+                  id="btn-inv-entrada"
+                  type="button"
+                  class="min-h-[40px] px-3.5 py-1.5 rounded-lg bg-[#FAF7F2] border border-[#D5CBB8] text-[#1C1C1C] font-semibold text-xs hover:border-[#235D3A] transition-colors flex items-center gap-1.5 active:scale-[0.98] shadow-2xs"
+                >
+                  <span class="material-symbols-outlined text-[18px] text-[#235D3A]">arrow_downward</span>
+                  <span>+ Entrada Stock</span>
+                </button>
+              ` : ''}
               <button
                 id="btn-inv-salida"
                 type="button"
@@ -283,44 +300,75 @@ export function renderInventoryPage(options = {}) {
         <div class="double-rule-divider w-full mt-2"></div>
       </header>
 
-      <!-- 4 TARJETAS KPI -->
-      <section aria-label="Resumen de inventario" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        ${renderKpiCard({
-          label: isBarbero ? 'Productos Disponibles' : 'Total Referencias Activas',
-          value: activeProducts.length,
-          caption: isBarbero ? 'Catálogo activo para mostrador' : `Valoración activa: ${formatCOP(totalValueCOP)}`,
-          icon: 'inventory_2',
-          iconBg: 'bg-[#E4ECF5]',
-          iconColor: 'text-[#1F3A5F]'
-        })}
+      <!-- TARJETAS KPI ADAPTADAS POR CAPACIDAD -->
+      ${canManageProducts ? `
+        <section aria-label="Resumen de inventario" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          ${renderKpiCard({
+            label: 'Total Referencias Activas',
+            value: activeProducts.length,
+            caption: `Valoración activa: ${formatCOP(totalValueCOP)}`,
+            icon: 'inventory_2',
+            iconBg: 'bg-[#E4ECF5]',
+            iconColor: 'text-[#1F3A5F]'
+          })}
 
-        ${renderKpiCard({
-          label: 'En Nivel Óptimo',
-          value: optimalCount,
-          caption: 'Con stock suficiente para la jornada',
-          icon: 'check_circle',
-          iconBg: 'bg-[#E3EFE7]',
-          iconColor: 'text-[#235D3A]'
-        })}
+          ${renderKpiCard({
+            label: 'En Nivel Óptimo',
+            value: optimalCount,
+            caption: 'Con stock suficiente para la jornada',
+            icon: 'check_circle',
+            iconBg: 'bg-[#E3EFE7]',
+            iconColor: 'text-[#235D3A]'
+          })}
 
-        ${renderKpiCard({
-          label: 'Alerta Stock Bajo',
-          value: lowCount,
-          caption: 'Próximos a agotar existencias',
-          icon: 'warning',
-          iconBg: 'bg-[#FDF1DC]',
-          iconColor: 'text-[#8A5300]'
-        })}
+          ${renderKpiCard({
+            label: 'Alerta Stock Bajo',
+            value: lowCount,
+            caption: 'Próximos a agotar existencias',
+            icon: 'warning',
+            iconBg: 'bg-[#FDF1DC]',
+            iconColor: 'text-[#8A5300]'
+          })}
 
-        ${renderKpiCard({
-          label: 'Productos Agotados',
-          value: outCount,
-          caption: isBarbero ? 'No disponibles para venta' : 'Requieren reposición inmediata',
-          icon: 'cancel',
-          iconBg: 'bg-[#FCE8E6]',
-          iconColor: 'text-[#B3261E]'
-        })}
-      </section>
+          ${renderKpiCard({
+            label: 'Productos Agotados',
+            value: outCount,
+            caption: 'Requieren reposición inmediata',
+            icon: 'cancel',
+            iconBg: 'bg-[#FCE8E6]',
+            iconColor: 'text-[#B3261E]'
+          })}
+        </section>
+      ` : `
+        <section aria-label="Resumen de disponibilidad para venta" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          ${renderKpiCard({
+            label: 'Productos en Catálogo',
+            value: activeProducts.length,
+            caption: 'Referencias activas para mostrador',
+            icon: 'inventory_2',
+            iconBg: 'bg-[#E4ECF5]',
+            iconColor: 'text-[#1F3A5F]'
+          })}
+
+          ${renderKpiCard({
+            label: 'Disponibles para Venta',
+            value: optimalCount + lowCount,
+            caption: 'Con existencias listas para despacho',
+            icon: 'check_circle',
+            iconBg: 'bg-[#E3EFE7]',
+            iconColor: 'text-[#235D3A]'
+          })}
+
+          ${renderKpiCard({
+            label: 'Productos Agotados',
+            value: outCount,
+            caption: 'No disponibles para venta',
+            icon: 'cancel',
+            iconBg: 'bg-[#FCE8E6]',
+            iconColor: 'text-[#B3261E]'
+          })}
+        </section>
+      `}
 
       <!-- BARRA DE BÚSQUEDA Y FILTROS -->
       <section aria-label="Filtros de inventario" class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-4 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -364,7 +412,7 @@ export function renderInventoryPage(options = {}) {
           >
             Agotados (${outCount})
           </button>
-          ${!isBarbero ? `
+          ${canViewArchived ? `
             <button
               type="button"
               data-inv-filter="archivado"
@@ -387,7 +435,7 @@ export function renderInventoryPage(options = {}) {
                 <th class="py-3 px-4 font-semibold min-w-[220px]">Producto</th>
                 <th class="py-3 px-4 font-semibold">Categoría</th>
                 <th class="py-3 px-4 font-semibold text-center">Stock Disponible</th>
-                ${!isBarbero ? `<th class="py-3 px-4 font-semibold text-center">Mínimo</th>` : ''}
+                ${canManageProducts ? `<th class="py-3 px-4 font-semibold text-center">Mínimo</th>` : ''}
                 <th class="py-3 px-4 font-semibold text-right">Precio Venta (COP)</th>
                 <th class="py-3 px-4 font-semibold text-center">Estado</th>
                 <th class="py-3 px-4 font-semibold text-right min-w-[140px]">Acciones</th>
@@ -401,12 +449,12 @@ export function renderInventoryPage(options = {}) {
 
         <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between text-xs text-[#4F4A42]">
           <span id="inv-footer-summary">Mostrando <strong>${products.length}</strong> de <strong>${currentFilter === 'archivado' ? archivedProducts.length : activeProducts.length}</strong> referencias ${currentFilter === 'archivado' ? 'archivadas' : 'activas'}</span>
-          ${!isBarbero ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total activa: ${formatCOP(totalValueCOP)}</span>` : ''}
+          ${canViewCost ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total activa: ${formatCOP(totalValueCOP)}</span>` : ''}
         </div>
       </section>
     </div>
 
-    ${!isBarbero ? `
+    ${canViewKardex ? `
       <!-- ========================================== -->
       <!-- MODAL: LIBRO MAYOR KARDEX (ADMIN ONLY)     -->
       <!-- ========================================== -->
@@ -519,8 +567,10 @@ export function renderInventoryPage(options = {}) {
   `;
 }
 
-export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
-  const isBarbero = userRole === 'barbero';
+export function attachInventoryListeners(onUpdate, userRole = 'administrador', userArg = null) {
+  const user = userArg || getCurrentUserSafe() || { rol: userRole };
+  const canManageProducts = can(Capabilities.INVENTORY_PRODUCT_MANAGE, user);
+  const isBarbero = !canManageProducts;
 
   const updateInventoryTableGranular = () => {
     const tbody = document.getElementById('inv-table-body');
@@ -690,7 +740,9 @@ export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
  */
 function openStockExitModal(onUpdate, defaultSku = '', defaultReason = 'venta_publico', userRole = 'administrador') {
   const products = backofficeStore.products.filter(p => (p.stockActual || 0) > 0);
-  const isBarbero = userRole === 'barbero';
+  const user = getCurrentUserSafe() || { rol: userRole };
+  const canCreateShrinkage = can(Capabilities.INVENTORY_SHRINKAGE_CREATE, user);
+  const isBarbero = !can(Capabilities.INVENTORY_PRODUCT_MANAGE, user);
 
   if (products.length === 0) {
     openDialog({
@@ -740,7 +792,7 @@ function openStockExitModal(onUpdate, defaultSku = '', defaultReason = 'venta_pu
             <select id="exit-reason" class="h-10 px-3 rounded-lg bg-white border border-[#8C8272] text-xs text-[#1C1C1C] font-semibold">
               <option value="venta_publico" ${defaultReason === 'venta_publico' ? 'selected' : ''}>Venta al Público</option>
               <option value="consumo_interno" ${defaultReason === 'consumo_interno' ? 'selected' : ''}>Consumo en Sillón / Cabina</option>
-              ${!isBarbero ? `<option value="merma">Avería / Merma (Ajuste)</option>` : ''}
+              ${canCreateShrinkage ? `<option value="merma">Avería / Merma (Ajuste)</option>` : ''}
             </select>
           </div>
         </div>

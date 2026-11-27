@@ -7,9 +7,10 @@
  */
 
 import { cajaFinancialService } from '../../services/caja-financial.service.js';
-import { cortesService, barberosService, serviciosService, authService } from '../../services/index.js';
+import { cortesService, authService } from '../../services/index.js';
 import { formatCOP, formatDateBogota } from '../../utils/formatters.js';
 import { emitDataMutation } from '../../utils/event-bus.js';
+import { Capabilities, can, whenCan } from '../../utils/access-control.js';
 
 // Estado local de filtros
 let currentFilters = {
@@ -34,7 +35,14 @@ export async function loadCortesData() {
 
 export function renderCortesPage() {
   const user = authService.getCurrentUser() || {};
-  const isBarbero = user.rol === 'barbero';
+  const canViewAllCash = can(Capabilities.CASHREGISTER_VIEW_ALL, user);
+  const canExportCash = can(Capabilities.CASHREGISTER_EXPORT, user);
+  const canFilterBarbers = can(Capabilities.BARBERS_FILTER, user);
+  const canViewPosSales = can(Capabilities.POS_SALES_VIEW_ALL, user);
+  const canAnnulCut = can(Capabilities.CUTS_ANNUL, user);
+  const canViewAuditAuthor = can(Capabilities.CUTS_AUDIT_VIEW, user);
+  const canAssignAnyBarber = can(Capabilities.CUTS_ASSIGN_ANY_BARBER, user);
+  const isBarbero = !canViewAllCash;
 
   const fs = financialState || {
     totales: {
@@ -92,14 +100,16 @@ export function renderCortesPage() {
             <span class="material-symbols-outlined text-[16px] text-[#6B645A]">calendar_today</span>
             <span>Hoy: ${fechaHoyLabel}</span>
           </div>
-          <button
-            type="button"
-            id="btn-export-csv"
-            class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] hover:bg-[#d5e3ff] font-sans font-semibold text-xs transition-colors shadow-xs"
-          >
-            <span class="material-symbols-outlined text-[18px]">download</span>
-            <span>Exportar Cierre (CSV)</span>
-          </button>
+          ${whenCan(Capabilities.CASHREGISTER_EXPORT, () => `
+            <button
+              type="button"
+              id="btn-export-csv"
+              class="min-h-[44px] inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#E4ECF5] text-[#1F3A5F] hover:bg-[#d5e3ff] font-sans font-semibold text-xs transition-colors shadow-xs"
+            >
+              <span class="material-symbols-outlined text-[18px]">download</span>
+              <span>Exportar Cierre (CSV)</span>
+            </button>
+          `, '', user)}
           <button
             type="button"
             id="btn-open-walkin-drawer"
@@ -132,7 +142,7 @@ export function renderCortesPage() {
             <div class="mt-4 pt-3 border-t border-[#D5CBB8]/80 flex flex-col gap-1.5 text-xs text-[#4F4A42]">
               <div class="flex items-center gap-1.5">
                 <span class="material-symbols-outlined text-[16px] text-[#1F3A5F]">info</span>
-                <span><strong>${fs.totales.totalOperaciones} operaciones</strong> (${fs.totales.totalCitas} Citas · ${fs.totales.totalWalkIns} Walk-in ${isBarbero ? '' : `· ${fs.totales.totalVentasProductos} Productos`})</span>
+                <span><strong>${fs.totales.totalOperaciones} operaciones</strong> (${fs.totales.totalCitas} Citas · ${fs.totales.totalWalkIns} Walk-in ${canViewPosSales ? `· ${fs.totales.totalVentasProductos} Productos` : ''})</span>
               </div>
               <div class="flex items-center justify-between text-[11px] text-[#6B645A]">
                 <span>${isBarbero ? `Mi Comisión Ganada: <strong class="font-mono text-[#1F3A5F]">${formatCOP(fs.totales.totalComisionesCop)}</strong>` : `Comisiones: <strong class="font-mono text-[#1F3A5F]">${formatCOP(fs.totales.totalComisionesCop)}</strong> · Margen Sede: <strong class="font-mono text-[#235D3A]">${formatCOP(fs.totales.margenSedeCop)}</strong>`}</span>
@@ -143,7 +153,7 @@ export function renderCortesPage() {
               </div>
               <div class="flex items-center gap-1.5 text-[#235D3A] font-semibold text-[11px] mt-1">
                 <span class="material-symbols-outlined text-[15px]">check_circle</span>
-                <span>Caja cuadrada con comprobantes digitales y arqueo de efectivo</span>
+                <span>${canViewAllCash ? 'Caja cuadrada con comprobantes digitales y arqueo de efectivo' : 'Resumen calculado sobre tus servicios cobrados hoy'}</span>
               </div>
             </div>
           </div>
@@ -154,7 +164,7 @@ export function renderCortesPage() {
               <span class="font-sans text-[11px] uppercase tracking-wider text-[#6B645A] font-semibold">
                 Desglose Exacto por Método de Pago (Suma 100% = ${formatCOP(totalIngresos)} COP)
               </span>
-              <span class="font-mono text-[11px] text-[#6B645A]">Auditoría DIAN</span>
+              <span class="font-mono text-[11px] text-[#6B645A]">${canViewAllCash ? 'Arqueo Consolidado Sede' : 'Mis Métodos de Cobro'}</span>
             </div>
 
             <!-- Mini Cards Grid de los 5 Métodos -->
@@ -203,12 +213,12 @@ export function renderCortesPage() {
               type="text"
               id="filter-cortes-search"
               value="${currentFilters.search}"
-              placeholder="Buscar por #ID, cliente o barbero..."
+              placeholder="${canFilterBarbers ? 'Buscar por código, cliente o barbero...' : 'Buscar por código, cliente o servicio...'}"
               class="w-full pl-9 pr-3 h-10 bg-white border border-[#8C8272] rounded-lg text-xs text-[#1C1C1C] placeholder-[#6B645A] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
             />
           </div>
 
-          ${isBarbero ? '' : `
+          ${canFilterBarbers ? `
           <!-- Selector de Barbero -->
           <div class="relative">
             <select
@@ -222,7 +232,7 @@ export function renderCortesPage() {
             </select>
             <span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[#6B645A] text-[18px] pointer-events-none">expand_more</span>
           </div>
-          `}
+          ` : ''}
 
           <!-- Selector de Método de Pago -->
           <div class="relative">
@@ -260,13 +270,13 @@ export function renderCortesPage() {
               data-origen="walk_in"
               class="px-2.5 py-1 rounded text-xs font-semibold ${(currentFilters.origen === 'walk_in' || currentFilters.origen === 'walk-in') ? 'bg-white text-[#1C1C1C] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
             >Walk-in</button>
-            ${isBarbero ? '' : `
+            ${canViewPosSales ? `
             <button
               type="button"
               data-origen="producto"
               class="px-2.5 py-1 rounded text-xs font-semibold ${currentFilters.origen === 'producto' ? 'bg-white text-[#1C1C1C] shadow-xs' : 'text-[#6B645A] hover:text-[#1C1C1C]'}"
             >Productos</button>
-            `}
+            ` : ''}
           </div>
 
           <!-- Estado Pills -->
@@ -306,22 +316,22 @@ export function renderCortesPage() {
             <thead>
               <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
                 <th class="py-3 px-4 font-semibold">ID / HORA</th>
-                <th class="py-3 px-4 font-semibold">BARBERO & SILLÓN</th>
+                ${canViewAllCash ? `<th class="py-3 px-4 font-semibold">BARBERO & SILLÓN</th>` : ''}
                 <th class="py-3 px-4 font-semibold">SERVICIOS / PRODUCTO</th>
                 <th class="py-3 px-4 font-semibold">ORIGEN</th>
                 <th class="py-3 px-4 font-semibold">MÉTODO DE PAGO</th>
                 <th class="py-3 px-4 font-semibold text-right">VALOR (COP)</th>
                 <th class="py-3 px-4 font-semibold text-center">ESTADO</th>
-                <th class="py-3 px-4 font-semibold text-right">ACCIÓN AUDITORÍA</th>
+                <th class="py-3 px-4 font-semibold text-right">${canAnnulCut ? 'ACCIÓN AUDITORÍA' : 'DETALLE'}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
               ${transacciones.length === 0 ? `
                 <tr>
-                  <td colspan="8" class="py-12 text-center text-[#6B645A]">
+                  <td colspan="${canViewAllCash ? 8 : 7}" class="py-12 text-center text-[#6B645A]">
                     <div class="flex flex-col items-center gap-2">
                       <span class="material-symbols-outlined text-[32px] text-[#8C8272]">receipt_long</span>
-                      <p class="font-medium text-sm">No se encontraron movimientos de caja con los filtros seleccionados.</p>
+                      <p class="font-medium text-sm">No se encontraron movimientos con los filtros seleccionados.</p>
                       <button type="button" id="btn-empty-reset" class="text-xs font-semibold text-[#1F3A5F] hover:underline">Restablecer filtros</button>
                     </div>
                   </td>
@@ -337,11 +347,13 @@ export function renderCortesPage() {
                       <div class="text-[11px] text-[#6B645A] font-mono mt-0.5">${tx.horaFormato || '02:00 PM'}</div>
                     </td>
 
-                    <!-- Barbero & Sillón -->
-                    <td class="py-3 px-4">
-                      <div class="font-sans font-semibold text-[#1C1C1C]">${tx.barberoNombre}</div>
-                      <div class="text-[11px] text-[#6B645A]">${tx.sillon || 'Sillón 01'}</div>
-                    </td>
+                    ${canViewAllCash ? `
+                      <!-- Barbero & Sillón -->
+                      <td class="py-3 px-4">
+                        <div class="font-sans font-semibold text-[#1C1C1C]">${tx.barberoNombre}</div>
+                        <div class="text-[11px] text-[#6B645A]">${tx.sillon || 'Sillón 01'}</div>
+                      </td>
+                    ` : ''}
 
                     <!-- Servicios / Producto & Cliente -->
                     <td class="py-3 px-4">
@@ -421,7 +433,7 @@ export function renderCortesPage() {
                           class="btn-ver-motivo text-xs text-[#1F3A5F] hover:underline font-semibold"
                           data-id="${tx.id}"
                           data-motivo="${tx.motivoAnulacion || 'Sin motivo registrado'}"
-                          data-autor="${tx.anuladoPor || 'Administrador'}"
+                          ${canViewAuditAuthor ? `data-autor="${tx.anuladoPor || 'Administrador'}"` : ''}
                           data-fecha="${tx.fechaAnulacion || ''}"
                         >
                           Ver Motivo
@@ -431,7 +443,7 @@ export function renderCortesPage() {
                           <span class="material-symbols-outlined text-[13px]">receipt</span>
                           <span>Venta POS</span>
                         </span>
-                      ` : isBarbero ? `
+                      ` : !canAnnulCut ? `
                         <span class="inline-flex items-center gap-1 text-[11px] text-[#235D3A] font-semibold">
                           <span class="material-symbols-outlined text-[13px]">check_circle</span>
                           <span>Cobrado</span>
@@ -497,23 +509,36 @@ export function renderCortesPage() {
 
         <!-- Drawer Body -->
         <div class="flex-1 overflow-y-auto p-5 flex flex-col gap-5">
-          <!-- 1. Barbero -->
+          <!-- 1. Barbero (preseleccionado y bloqueado para Barbero - RF-COR-01) -->
           <div class="flex flex-col gap-1.5">
-            <label class="font-sans font-semibold text-xs text-[#1C1C1C]">
+            <label for="walkin-barber-select" class="font-sans font-semibold text-xs text-[#1C1C1C]">
               Barbero que atiende <span class="text-[#8B1E1E]">*</span>
             </label>
             <div class="relative">
-              <select
-                id="walkin-barber-select"
-                class="w-full h-11 pl-3 pr-8 bg-white border border-[#8C8272] rounded-lg text-xs font-medium text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] appearance-none"
-              >
-                ${cachedBarberos.filter(b => b.activo !== false).map((b, idx) => `
-                  <option value="${b.id}" data-name="${b.nombre}" data-sillon="${b.sillon || `Sillón 0${idx+1}`}">
-                    ${b.nombre} (${b.sillon || `Sillón 0${idx+1}`})
+              ${canAssignAnyBarber ? `
+                <select
+                  id="walkin-barber-select"
+                  class="w-full h-11 pl-3 pr-8 bg-white border border-[#8C8272] rounded-lg text-xs font-medium text-[#1C1C1C] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F] appearance-none"
+                >
+                  ${cachedBarberos.filter(b => b.activo !== false).map((b, idx) => `
+                    <option value="${b.id}" data-name="${b.nombre}" data-sillon="${b.sillon || `Sillón 0${idx+1}`}" ${user.barberoId && b.id === user.barberoId ? 'selected' : ''}>
+                      ${b.nombre} (${b.sillon || `Sillón 0${idx+1}`})
+                    </option>
+                  `).join('')}
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-3 text-[#6B645A] pointer-events-none text-[18px]">expand_more</span>
+              ` : `
+                <select
+                  id="walkin-barber-select"
+                  disabled
+                  class="w-full h-11 pl-3 pr-8 bg-[#E8DFCE]/70 border border-[#8C8272] rounded-lg text-xs font-semibold text-[#4F4A42] cursor-not-allowed appearance-none"
+                >
+                  <option value="${user.barberoId || ''}" data-name="${user.nombreCompleto || 'Barbero'}" data-sillon="Mi Sillón" selected>
+                    ${user.nombreCompleto || 'Barbero'} (Perfil bloqueado)
                   </option>
-                `).join('')}
-              </select>
-              <span class="material-symbols-outlined absolute right-3 top-3 text-[#6B645A] pointer-events-none text-[18px]">expand_more</span>
+                </select>
+                <span class="material-symbols-outlined absolute right-3 top-3 text-[#6B645A] pointer-events-none text-[18px]">lock</span>
+              `}
             </div>
           </div>
 
@@ -665,6 +690,7 @@ export function renderCortesPage() {
       </aside>
     </div>
 
+    ${canAnnulCut ? `
     <!-- ========================================== -->
     <!-- MODAL DE ANULACIÓN AUDITABLE (CU-008)       -->
     <!-- ========================================== -->
@@ -742,6 +768,7 @@ export function renderCortesPage() {
         </div>
       </div>
     </dialog>
+    ` : ''}
 
     <!-- ========================================== -->
     <!-- MODAL DE VISUALIZACIÓN DE MOTIVO ANULADO   -->
@@ -765,8 +792,8 @@ export function renderCortesPage() {
         </div>
 
         <div class="text-[11px] text-[#6B645A] flex justify-between border-t border-[#D5CBB8] pt-2">
-          <span id="ver-motivo-autor">Autor: Carlos Mendoza</span>
-          <span id="ver-motivo-fecha">Fecha: 20 Nov 2026</span>
+          ${canViewAuditAuthor ? `<span id="ver-motivo-autor">Auditor: Administración</span>` : `<span>Anulado por administración</span>`}
+          <span id="ver-motivo-fecha"></span>
         </div>
 
         <div class="flex justify-end pt-2">
@@ -784,6 +811,10 @@ export function renderCortesPage() {
 }
 
 export function attachCortesListeners(onDataChange) {
+  const user = authService.getCurrentUser() || {};
+  const canAnnulCut = can(Capabilities.CUTS_ANNUL, user);
+  const canViewAuditAuthor = can(Capabilities.CUTS_AUDIT_VIEW, user);
+  const canExportCash = can(Capabilities.CASHREGISTER_EXPORT, user);
   // 1. Buscador con debounce
   const searchInput = document.getElementById('filter-cortes-search');
   if (searchInput) {
@@ -849,9 +880,9 @@ export function attachCortesListeners(onDataChange) {
   if (clearBtn) clearBtn.addEventListener('click', resetHandler);
   if (emptyResetBtn) emptyResetBtn.addEventListener('click', resetHandler);
 
-  // 7. Exportar CSV (CU-007)
+  // 7. Exportar CSV (CU-007, solo autorizado)
   const exportBtn = document.getElementById('btn-export-csv');
-  if (exportBtn) {
+  if (exportBtn && canExportCash) {
     exportBtn.addEventListener('click', () => {
       exportarCierreCSV(financialState?.transacciones || cachedCortes);
     });
@@ -965,72 +996,74 @@ export function attachCortesListeners(onDataChange) {
     });
   }
 
-  // 9. Anular Corte Modal (CU-008)
-  const dialogAnular = document.getElementById('dialog-anular-corte');
-  const anularBtns = document.querySelectorAll('.btn-anular-corte');
-  const cancelAnularBtn = document.getElementById('btn-cancelar-anulacion');
-  const confirmAnularBtn = document.getElementById('btn-confirmar-anulacion');
-  const motivoTextarea = document.getElementById('anular-motivo-input');
-  const charCounter = document.getElementById('anular-char-counter');
+  // 9. Anular Corte Modal (CU-008, solo con capacidad cuts.annul)
+  if (canAnnulCut) {
+    const dialogAnular = document.getElementById('dialog-anular-corte');
+    const anularBtns = document.querySelectorAll('.btn-anular-corte');
+    const cancelAnularBtn = document.getElementById('btn-cancelar-anulacion');
+    const confirmAnularBtn = document.getElementById('btn-confirmar-anulacion');
+    const motivoTextarea = document.getElementById('anular-motivo-input');
+    const charCounter = document.getElementById('anular-char-counter');
 
-  let activeCorteToAnular = null;
+    let activeCorteToAnular = null;
 
-  anularBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      activeCorteToAnular = btn.getAttribute('data-id');
-      const cliente = btn.getAttribute('data-cliente');
-      const precio = Number(btn.getAttribute('data-precio')) || 0;
-      const servicio = btn.getAttribute('data-servicio');
+    anularBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        activeCorteToAnular = btn.getAttribute('data-id');
+        const cliente = btn.getAttribute('data-cliente');
+        const precio = Number(btn.getAttribute('data-precio')) || 0;
+        const servicio = btn.getAttribute('data-servicio');
 
-      document.getElementById('anular-corte-id').textContent = `#${activeCorteToAnular}`;
-      document.getElementById('anular-corte-servicio').textContent = servicio;
-      document.getElementById('anular-corte-cliente').textContent = cliente;
-      document.getElementById('anular-corte-valor').textContent = formatCOP(precio);
+        document.getElementById('anular-corte-id').textContent = `#${activeCorteToAnular}`;
+        document.getElementById('anular-corte-servicio').textContent = servicio;
+        document.getElementById('anular-corte-cliente').textContent = cliente;
+        document.getElementById('anular-corte-valor').textContent = formatCOP(precio);
 
-      motivoTextarea.value = '';
-      charCounter.textContent = '0 / 10 caracteres requeridos';
-      confirmAnularBtn.disabled = true;
-
-      if (dialogAnular) dialogAnular.showModal();
-    });
-  });
-
-  if (motivoTextarea && charCounter && confirmAnularBtn) {
-    motivoTextarea.addEventListener('input', (e) => {
-      const len = e.target.value.trim().length;
-      charCounter.textContent = `${len} / 10 caracteres requeridos`;
-      confirmAnularBtn.disabled = len < 10;
-    });
-  }
-
-  if (cancelAnularBtn && dialogAnular) {
-    cancelAnularBtn.addEventListener('click', () => dialogAnular.close());
-  }
-
-  if (confirmAnularBtn) {
-    confirmAnularBtn.addEventListener('click', async () => {
-      if (!activeCorteToAnular) return;
-      const motivo = motivoTextarea.value.trim();
-
-      try {
+        motivoTextarea.value = '';
+        charCounter.textContent = '0 / 10 caracteres requeridos';
         confirmAnularBtn.disabled = true;
-        confirmAnularBtn.textContent = 'Anulando...';
 
-        await cortesService.anularCorte(activeCorteToAnular, {
-          motivo,
-          adminNombre: 'Carlos Mendoza'
-        });
-
-        emitDataMutation('cortes', 'delete');
-        dialogAnular.close();
-        await loadCortesData();
-        if (typeof onDataChange === 'function') onDataChange();
-      } catch (err) {
-        alert('Error al anular: ' + err.message);
-        confirmAnularBtn.disabled = false;
-        confirmAnularBtn.textContent = 'Confirmar Anulación';
-      }
+        if (dialogAnular) dialogAnular.showModal();
+      });
     });
+
+    if (motivoTextarea && charCounter && confirmAnularBtn) {
+      motivoTextarea.addEventListener('input', (e) => {
+        const len = e.target.value.trim().length;
+        charCounter.textContent = `${len} / 10 caracteres requeridos`;
+        confirmAnularBtn.disabled = len < 10;
+      });
+    }
+
+    if (cancelAnularBtn && dialogAnular) {
+      cancelAnularBtn.addEventListener('click', () => dialogAnular.close());
+    }
+
+    if (confirmAnularBtn) {
+      confirmAnularBtn.addEventListener('click', async () => {
+        if (!activeCorteToAnular) return;
+        const motivo = motivoTextarea.value.trim();
+
+        try {
+          confirmAnularBtn.disabled = true;
+          confirmAnularBtn.textContent = 'Anulando...';
+
+          await cortesService.anularCorte(activeCorteToAnular, {
+            motivo,
+            adminNombre: user.nombreCompleto || 'Administrador'
+          });
+
+          emitDataMutation('cortes', 'delete');
+          dialogAnular.close();
+          await loadCortesData();
+          if (typeof onDataChange === 'function') onDataChange();
+        } catch (err) {
+          alert('Error al anular: ' + err.message);
+          confirmAnularBtn.disabled = false;
+          confirmAnularBtn.textContent = 'Confirmar Anulación';
+        }
+      });
+    }
   }
 
   // 10. Ver Motivo de Corte Anulado
@@ -1047,8 +1080,11 @@ export function attachCortesListeners(onDataChange) {
 
       document.getElementById('ver-motivo-id').textContent = `#${id}`;
       document.getElementById('ver-motivo-texto').textContent = motivo;
-      document.getElementById('ver-motivo-autor').textContent = `Auditor: ${autor}`;
-      document.getElementById('ver-motivo-fecha').textContent = fecha ? `Fecha: ${fecha.substring(0, 10)}` : 'Fecha: 20 Nov 2026';
+      const autorEl = document.getElementById('ver-motivo-autor');
+      if (autorEl && canViewAuditAuthor) {
+        autorEl.textContent = `Auditor: ${autor || 'Administrador'}`;
+      }
+      document.getElementById('ver-motivo-fecha').textContent = fecha ? `Fecha: ${fecha.substring(0, 10)}` : '';
 
       if (dialogVerMotivo) dialogVerMotivo.showModal();
     });

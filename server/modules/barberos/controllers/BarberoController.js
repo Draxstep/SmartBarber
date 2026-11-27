@@ -14,8 +14,25 @@ export class BarberoController {
   list = async (req, res, next) => {
     try {
       const sedeId = req.query.sedeId || req.user?.sedeId;
-      const activosSolo = req.query.activosSolo === 'true' || req.user?.rol === 'barbero';
+      const isBarbero = req.user?.rol === 'barbero';
+      const activosSolo = req.query.activosSolo === 'true' || isBarbero;
       const barberos = await this.barberoService.listBarberos(sedeId, { activosSolo });
+
+      if (isBarbero) {
+        const redacted = barberos.map((b) => ({
+          barberoId: b.barberoId || b.id,
+          id: b.barberoId || b.id,
+          sedeId: b.sedeId,
+          nombreCompleto: b.nombreCompleto,
+          nombrePublico: b.nombrePublico,
+          sillon: b.sillon,
+          fotoUrl: b.fotoUrl,
+          biografiaBreve: b.biografiaBreve,
+          estado: b.estado
+        }));
+        return sendSuccess(res, redacted, 200);
+      }
+
       return sendSuccess(res, barberos, 200);
     } catch (error) {
       next(error);
@@ -178,6 +195,10 @@ export class BarberoController {
 
   eliminarBloqueo = async (req, res, next) => {
     try {
+      const barberoId = req.params.id;
+      if (req.user?.rol === 'barbero' && req.user.barberoId !== barberoId) {
+        throw new ForbiddenError('Solo puede eliminar bloqueos sobre su propia agenda.');
+      }
       const resultado = await this.barberoService.eliminarBloqueo(req.params.bloqueoId);
       return sendSuccess(res, resultado, 200);
     } catch (error) {

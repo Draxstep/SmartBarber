@@ -10,6 +10,7 @@ import { inventarioService } from './inventario.service.js';
 import { barberosService } from './barberos.service.js';
 import { serviciosService } from './servicios.service.js';
 import { authService } from './auth.service.js';
+import { Capabilities, can, isBarberoRole } from '../utils/access-control.js';
 
 export function normalizePaymentMethodKey(metodo) {
   const m = String(metodo || 'efectivo').toLowerCase().trim();
@@ -30,7 +31,9 @@ export const cajaFinancialService = {
    */
   async loadFinancialData(filters = {}) {
     const user = authService.getCurrentUser() || {};
-    const isBarbero = user.rol === 'barbero';
+    const isBarbero = isBarberoRole(user);
+    const canViewKardex = can(Capabilities.INVENTORY_KARDEX_READ, user);
+    const canListBarbers = can(Capabilities.BARBERS_LIST_READ, user);
     const today = getTodayBogota();
 
     const fInicio = filters.fechaInicio || filters.fecha || today;
@@ -45,20 +48,24 @@ export const cajaFinancialService = {
       fechaFin: fechaFinISO
     };
 
-    if (isBarbero) {
+    if (!can(Capabilities.CUTS_VIEW_ALL, user)) {
       requestFilters.barberoId = user.barberoId;
     }
 
-    // Cargar en paralelo cortes, movimientos de inventario, barberos y servicios
+    // Conditional Fetching por capacidad: no solicitar Kardex ni plantilla de barberos sin permiso
     const [cortesRes, kardexRes, barbRes, srvRes] = await Promise.all([
       cortesService.getHistorialCortes(requestFilters),
-      inventarioService.getMovimientosKardex({
-        tipo: 'salida',
-        fechaInicio: fechaInicioISO,
-        fechaFin: fechaFinISO
-      }),
-      barberosService.getBarberos(),
-      serviciosService.getServicios()
+      canViewKardex
+        ? inventarioService.getMovimientosKardex({
+            tipo: 'salida',
+            fechaInicio: fechaInicioISO,
+            fechaFin: fechaFinISO
+          })
+        : Promise.resolve({ ok: true, data: [] }),
+      canListBarbers
+        ? barberosService.getBarberos()
+        : Promise.resolve({ ok: true, data: [] }),
+      serviciosService.getServicios({ activo: true })
     ]);
 
     const cortes = cortesRes?.ok && Array.isArray(cortesRes.data) ? cortesRes.data : [];

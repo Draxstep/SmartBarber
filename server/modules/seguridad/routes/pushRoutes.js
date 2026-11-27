@@ -24,7 +24,7 @@ pushRouter.get('/clave-publica', handlePublicKey);
 // 2. Registrar suscripción de un dispositivo autenticado (POST /api/v1/push/subscribe y alias /suscribir)
 const handleSubscribe = async (req, res, next) => {
   try {
-    const { subscription, rol, sedeId } = req.body;
+    const { subscription } = req.body;
     if (!subscription) {
       return res.status(400).json({
         success: false,
@@ -32,8 +32,9 @@ const handleSubscribe = async (req, res, next) => {
       });
     }
 
-    const userRol = rol || req.user?.rol || 'administrador';
-    const userSedeId = sedeId || req.user?.sedeId || null;
+    // Derivar rol y sede exclusivamente del usuario autenticado (no confiar en req.body)
+    const userRol = req.user.rol;
+    const userSedeId = req.user.sedeId || null;
 
     const reg = await pushService.registrarSuscripcion(req.user.id, subscription, {
       rol: userRol,
@@ -63,7 +64,7 @@ const handleUnsubscribe = async (req, res, next) => {
       });
     }
 
-    await pushService.eliminarSuscripcion(endpoint);
+    await pushService.eliminarSuscripcion(endpoint, req.user.id);
     res.json({
       success: true,
       message: 'Suscripción eliminada correctamente.'

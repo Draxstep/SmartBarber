@@ -6,37 +6,84 @@
  */
 
 import { cortesService, barberosService, authService } from '../../services/index.js';
-import { formatCOP } from '../../utils/formatters.js';
+import { formatCOP, getTodayBogota } from '../../utils/formatters.js';
+import { Capabilities, can, whenCan } from '../../utils/access-control.js';
 
 let cachedLiquidacion = null;
 let cachedBarberos = [];
 let selectedBarberoFilter = 'all';
 let selectedPeriodo = 'semana'; // 'hoy' | '7dias' | 'semana' | 'quincena' | 'mes'
 
+function computePeriodoRange(periodo = 'semana') {
+  const todayStr = getTodayBogota();
+  const baseDate = new Date(`${todayStr}T12:00:00`);
+  const startDate = new Date(baseDate);
+
+  if (periodo === 'hoy') {
+    // mismo día
+  } else if (periodo === '7dias') {
+    startDate.setDate(baseDate.getDate() - 6);
+  } else if (periodo === 'quincena') {
+    startDate.setDate(baseDate.getDate() - 14);
+  } else if (periodo === 'mes') {
+    startDate.setDate(1);
+  } else {
+    // 'semana': lunes de la semana calendario actual
+    const day = baseDate.getDay();
+    const diffToMonday = day === 0 ? 6 : day - 1;
+    startDate.setDate(baseDate.getDate() - diffToMonday);
+  }
+
+  const fechaInicio = startDate.toISOString().split('T')[0];
+  const fechaFin = todayStr;
+
+  const fmtOpts = { day: 'numeric', month: 'short' };
+  const label = fechaInicio === fechaFin
+    ? `Hoy · ${baseDate.toLocaleDateString('es-CO', { day: 'numeric', month: 'short', year: 'numeric' })}`
+    : `${startDate.toLocaleDateString('es-CO', fmtOpts)} – ${baseDate.toLocaleDateString('es-CO', { ...fmtOpts, year: 'numeric' })}`;
+
+  return { fechaInicio, fechaFin, label };
+}
+
 export async function loadComisionesData() {
-  const today = new Date();
-  const past7Days = new Date(today);
-  past7Days.setDate(today.getDate() - 7);
+  const user = authService.getCurrentUser() || {};
+  const canFilterBarbers = can(Capabilities.BARBERS_FILTER, user);
+  const { fechaInicio, fechaFin } = computePeriodoRange(selectedPeriodo);
+  const barberoParam = canFilterBarbers ? selectedBarberoFilter : (user.barberoId || 'all');
 
-  const fechaInicio = past7Days.toISOString().split('T')[0];
-  const fechaFin = today.toISOString().split('T')[0];
-
-  const [liqRes, barbRes] = await Promise.all([
+  const [liqRes, barbRes, histRes] = await Promise.all([
     cortesService.getLiquidacionComisiones({
-      barberoId: selectedBarberoFilter,
+      barberoId: barberoParam,
       fechaInicio,
       fechaFin
     }),
-    barberosService.getBarberos()
+    canFilterBarbers ? barberosService.getBarberos() : Promise.resolve({ ok: true, data: [] }),
+    cortesService.getHistorialCortes({
+      barberoId: barberoParam,
+      fechaInicio,
+      fechaFin,
+      estado: 'activo'
+    }).catch(() => ({ ok: false, data: [] }))
   ]);
 
-  if (liqRes?.ok) cachedLiquidacion = liqRes.data;
-  if (barbRes?.ok) cachedBarberos = barbRes.data;
+  if (liqRes?.ok && liqRes.data) {
+    cachedLiquidacion = {
+      ...liqRes.data,
+      cortesDetalle: histRes?.ok && Array.isArray(histRes.data) ? histRes.data.filter(c => c.estado === 'activo') : []
+    };
+  }
+  if (canFilterBarbers && barbRes?.ok) {
+    cachedBarberos = barbRes.data;
+  }
 }
 
 export function renderComisionesPage() {
   const user = authService.getCurrentUser() || {};
-  const isBarbero = user.rol === 'barbero';
+  const canViewAll = can(Capabilities.COMMISSIONS_VIEW_ALL, user);
+  const canFilterBarbers = can(Capabilities.BARBERS_FILTER, user);
+  const canViewMargin = can(Capabilities.COMMISSIONS_VIEW_MARGIN, user);
+  const isBarbero = !canViewAll;
+  const { fechaInicio, fechaFin, label: periodoLabel } = computePeriodoRange(selectedPeriodo);
 
   const data = cachedLiquidacion || {
     totalCortes: 0,
@@ -49,6 +96,9 @@ export function renderComisionesPage() {
   const totalFacturado = data.totalRecaudado || 0;
   const totalComisiones = data.comisionTotal || 0;
   const margenSede = Math.max(0, totalFacturado - totalComisiones);
+  const avgCommissionPct = totalFacturado > 0
+    ? ((totalComisiones / totalFacturado) * 100).toFixed(1).replace(/\.0$/, '')
+    : (data.barberos?.[0]?.porcentajeComision || 50);
 
   return `
     <div class="flex flex-col gap-6 w-full animate-fadeIn">
@@ -64,9 +114,9 @@ export function renderComisionesPage() {
       <section class="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pb-1">
         <div class="space-y-1">
           <div class="flex items-center gap-2.5">
-            <span class="text-[#8B1E1E] font-mono text-xs font-bold uppercase tracking-wider">#LIQ-2026-W47</span>
+            <span class="text-[#8B1E1E] font-mono text-xs font-bold uppercase tracking-wider">LIQ-${fechaInicio.replace(/-/g, '')}</span>
             <span class="w-1.5 h-1.5 rounded-full bg-[#8C8272]"></span>
-            <span class="text-[#6B645A] text-xs">Semana 47 · Calendario Operativo</span>
+            <span class="text-[#6B645A] text-xs capitalize">${periodoLabel}</span>
           </div>
           <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
             ${isBarbero ? 'Mis Comisiones Devengadas' : 'Liquidación de Comisiones'}
@@ -81,16 +131,18 @@ export function renderComisionesPage() {
             class="min-h-[44px] px-4 rounded-lg bg-transparent text-[#1F3A5F] border-2 border-[#1F3A5F] font-sans font-semibold text-xs flex items-center gap-2 hover:bg-[#E4ECF5] transition-colors shadow-xs"
           >
             <span class="material-symbols-outlined text-[18px]">download</span>
-            <span>Exportar CSV</span>
+            <span>${canViewAll ? 'Exportar Liquidación (CSV)' : 'Exportar Mi Resumen (CSV)'}</span>
           </button>
-          <button
-            type="button"
-            onclick="window.print()"
-            class="min-h-[44px] px-4 rounded-lg bg-white border border-[#D5CBB8] text-[#1C1C1C] font-sans font-semibold text-xs flex items-center gap-2 hover:bg-[#FAF3E5] transition-colors shadow-xs"
-          >
-            <span class="material-symbols-outlined text-[18px]">print</span>
-            <span>Imprimir Reporte</span>
-          </button>
+          ${whenCan(Capabilities.COMMISSIONS_REPORT_PRINT, () => `
+            <button
+              type="button"
+              onclick="window.print()"
+              class="min-h-[44px] px-4 rounded-lg bg-white border border-[#D5CBB8] text-[#1C1C1C] font-sans font-semibold text-xs flex items-center gap-2 hover:bg-[#FAF3E5] transition-colors shadow-xs"
+            >
+              <span class="material-symbols-outlined text-[18px]">print</span>
+              <span>Imprimir Reporte</span>
+            </button>
+          `, '', user)}
         </div>
       </section>
 
@@ -101,7 +153,7 @@ export function renderComisionesPage() {
           <div class="flex flex-col sm:flex-row sm:items-center gap-3">
             <div class="flex items-center gap-2 bg-white border border-[#8C8272] px-3 py-2 rounded-lg text-xs">
               <span class="material-symbols-outlined text-[#6B645A] text-[18px]">calendar_today</span>
-              <span class="font-semibold text-[#1C1C1C]">Esta semana: 16 – 20 Nov 2026</span>
+              <span class="font-semibold text-[#1C1C1C] capitalize">${periodoLabel}</span>
             </div>
 
             <!-- Atajos tipo chip -->
@@ -134,7 +186,7 @@ export function renderComisionesPage() {
             </div>
           </div>
 
-          ${isBarbero ? '' : `
+          ${canFilterBarbers ? `
           <!-- Selector de Barbero -->
           <div class="flex items-center gap-2.5">
             <label class="text-xs font-semibold text-[#4F4A42] whitespace-nowrap uppercase tracking-wider" for="select-barbero-comision">
@@ -153,7 +205,7 @@ export function renderComisionesPage() {
               <span class="material-symbols-outlined absolute right-2.5 top-2.5 text-[#6B645A] pointer-events-none text-[18px]">unfold_more</span>
             </div>
           </div>
-          `}
+          ` : ''}
         </div>
 
         <!-- Banner Informativo de Auditoría -->
@@ -165,8 +217,8 @@ export function renderComisionesPage() {
         </div>
       </section>
 
-      <!-- 3 TARJETAS KPI -->
-      <section aria-label="Métricas consolidadas de liquidación" class="grid grid-cols-1 ${isBarbero ? 'md:grid-cols-2' : 'md:grid-cols-3'} gap-4">
+      <!-- TARJETAS KPI -->
+      <section aria-label="Métricas consolidadas de liquidación" class="grid grid-cols-1 ${canViewMargin ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-4">
         <!-- KPI 1 -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
@@ -198,12 +250,12 @@ export function renderComisionesPage() {
               ${formatCOP(totalComisiones)} <span class="text-xs font-normal text-[#6B645A]">COP</span>
             </div>
             <p class="mt-1 text-xs text-[#4F4A42]">
-              ${isBarbero ? 'Comisiones acumuladas del periodo' : 'Esquema promedio 50% por servicio'}
+              ${isBarbero ? `Esquema aplicado: ${avgCommissionPct}% sobre tus servicios` : `Tasa efectiva promedio: ${avgCommissionPct}%`}
             </p>
           </div>
         </div>
 
-        ${isBarbero ? '' : `
+        ${canViewMargin ? `
         <!-- KPI 3 (Exclusivo Administrador) -->
         <div class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl p-5 shadow-xs flex flex-col justify-between">
           <div class="flex items-center justify-between">
@@ -221,14 +273,15 @@ export function renderComisionesPage() {
             </p>
           </div>
         </div>
-        `}
+        ` : ''}
       </section>
 
-      <!-- TABLA RESUMEN POR BARBERO -->
+      ${canViewAll ? `
+      <!-- TABLA RESUMEN POR BARBERO (Solo Administrador) -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="p-4 bg-[#E8DFCE]/60 border-b border-[#D5CBB8] flex items-center justify-between">
           <h2 class="font-serif text-base font-bold text-[#1C1C1C]">Consolidado por Barbero</h2>
-          <span class="text-xs font-mono text-[#6B645A]">Semana 47 · Nov 2026</span>
+          <span class="text-xs font-mono text-[#6B645A] capitalize">${periodoLabel}</span>
         </div>
 
         <div class="overflow-x-auto">
@@ -257,7 +310,7 @@ export function renderComisionesPage() {
                   </td>
                   <td class="py-3 px-4">
                     <span class="px-2 py-0.5 rounded bg-[#E4ECF5] text-[#1F3A5F] text-[11px] font-semibold">
-                      ${b.sillon || 'Sillón 01'}
+                      ${b.sillon || 'Sillón'}
                     </span>
                   </td>
                   <td class="py-3 px-4 text-center font-mono font-semibold">
@@ -280,49 +333,56 @@ export function renderComisionesPage() {
                 <td colspan="2" class="py-3 px-4 uppercase font-semibold">TOTAL CONSOLIDADO</td>
                 <td class="py-3 px-4 text-center font-mono">${data.totalCortes}</td>
                 <td class="py-3 px-4 text-right font-mono">${formatCOP(totalFacturado)}</td>
-                <td class="py-3 px-4 text-center">50%</td>
+                <td class="py-3 px-4 text-center font-mono">${avgCommissionPct}%</td>
                 <td class="py-3 px-4 text-right font-mono text-sm text-[#1F3A5F]">${formatCOP(totalComisiones)}</td>
               </tr>
             </tfoot>
           </table>
         </div>
       </section>
+      ` : ''}
 
       <!-- TABLA DE DETALLE AUDITABLE DE CORTES LIQUIDADOS -->
       <section class="bg-[#FAF7F2] border border-[#D5CBB8] rounded-xl shadow-xs overflow-hidden flex flex-col">
         <div class="p-4 bg-[#E8DFCE]/60 border-b border-[#D5CBB8] flex items-center justify-between">
-          <h2 class="font-serif text-base font-bold text-[#1C1C1C]">Detalle de Cortes Liquidados</h2>
-          <span class="text-xs text-[#6B645A]">Solo registros activos con comprobante</span>
+          <h2 class="font-serif text-base font-bold text-[#1C1C1C]">${isBarbero ? 'Detalle de Mis Cortes Liquidados' : 'Detalle de Cortes Liquidados'}</h2>
+          <span class="text-xs text-[#6B645A]">Solo registros activos en periodo</span>
         </div>
 
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr class="bg-[#E8DFCE] text-[#4F4A42] font-sans text-[11px] uppercase tracking-wider">
-                <th class="py-3 px-4 font-semibold">ID / Fecha</th>
-                <th class="py-3 px-4 font-semibold">Barbero</th>
+                <th class="py-3 px-4 font-semibold">ID / Hora</th>
+                ${canViewAll ? `<th class="py-3 px-4 font-semibold">Barbero</th>` : ''}
                 <th class="py-3 px-4 font-semibold">Servicio Prestado</th>
                 <th class="py-3 px-4 font-semibold">Método Pago</th>
                 <th class="py-3 px-4 font-semibold text-right">Valor Corte</th>
-                <th class="py-3 px-4 font-semibold text-right">Comisión Barbero (50%)</th>
+                <th class="py-3 px-4 font-semibold text-right">Comisión Aplicada</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-[#D5CBB8]/50 text-xs text-[#1C1C1C]">
-              ${data.cortesDetalle.map(c => `
+              ${data.cortesDetalle.length === 0 ? `
+                <tr>
+                  <td colspan="${canViewAll ? 6 : 5}" class="py-8 text-center text-[#6B645A]">
+                    No se registran cortes liquidados en el periodo seleccionado.
+                  </td>
+                </tr>
+              ` : data.cortesDetalle.map(c => `
                 <tr class="hover:bg-[#FAF3E5] transition-colors bg-white">
                   <td class="py-3 px-4">
                     <span class="font-mono text-xs font-bold text-[#1F3A5F]">${c.codigoCita || 'CORTE'}</span>
-                    <span class="block text-[11px] text-[#6B645A]">${c.horaFormato || 'Hoy'}</span>
+                    <span class="block text-[11px] text-[#6B645A]">${c.horaFormato || ''}</span>
                   </td>
-                  <td class="py-3 px-4 font-semibold">${c.barberoNombre}</td>
+                  ${canViewAll ? `<td class="py-3 px-4 font-semibold">${c.barberoNombre}</td>` : ''}
                   <td class="py-3 px-4">${c.servicioNombre}</td>
                   <td class="py-3 px-4 capitalize">
                     <span class="inline-flex items-center gap-1 text-[11px] bg-[#E8DFCE]/70 px-2 py-0.5 rounded">
-                      ${c.metodoPago}
+                      ${String(c.metodoPago || '').replace('_', ' ')}
                     </span>
                   </td>
                   <td class="py-3 px-4 text-right font-mono font-semibold">${formatCOP(c.precio)}</td>
-                  <td class="py-3 px-4 text-right font-mono font-bold text-[#1F3A5F]">${formatCOP(c.comisionEstimada)}</td>
+                  <td class="py-3 px-4 text-right font-mono font-bold text-[#1F3A5F]">${formatCOP(c.comisionCalculadaCop ?? c.comisionEstimada ?? 0)}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -365,11 +425,12 @@ export function attachComisionesListeners(onDataChange) {
 
 function exportarComisionesCSV(liqData) {
   if (!liqData) return;
+  const { fechaInicio, fechaFin } = computePeriodoRange(selectedPeriodo);
   const headers = ['Barbero', 'Sillon', 'Total_Cortes', 'Facturado_Bruto_COP', 'Porcentaje_Comision', 'Comision_Total_COP'];
   
   const rows = (liqData.barberos || []).map(b => [
     `"${b.barberoNombre}"`,
-    `"${b.sillon || 'Sillón 01'}"`,
+    `"${b.sillon || 'Sillón'}"`,
     b.totalCortes,
     b.totalRecaudado,
     b.porcentajeComision || 50,
@@ -381,7 +442,7 @@ function exportarComisionesCSV(liqData) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.setAttribute('href', url);
-  link.setAttribute('download', `liquidacion_comisiones_smartbarber_semana_47.csv`);
+  link.setAttribute('download', `liquidacion_comisiones_smartbarber_${fechaInicio}_a_${fechaFin}.csv`);
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

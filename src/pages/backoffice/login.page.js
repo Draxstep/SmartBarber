@@ -66,7 +66,7 @@ export function renderLoginPage({ error = '' } = {}) {
 
             <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded bg-[#E4ECF5] text-[#1F3A5F] text-[11px] font-semibold uppercase tracking-wider w-fit">
               <span class="material-symbols-outlined text-[15px]">lock</span>
-              <span>Acceso Administrativo</span>
+              <span>Acceso de Personal</span>
             </div>
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Iniciar Sesión
@@ -97,8 +97,8 @@ export function renderLoginPage({ error = '' } = {}) {
                   id="login-email"
                   name="email"
                   required
-                  placeholder="admin@smartbarber.co"
-                  value="admin@smartbarber.co"
+                  autocomplete="email"
+                  placeholder="usuario@smartbarber.co"
                   class="h-11 pl-10 pr-3 w-full rounded-md bg-white border border-[#8C8272] text-sm text-[#1C1C1C] placeholder-[#6B645A] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
                 />
               </div>
@@ -115,8 +115,8 @@ export function renderLoginPage({ error = '' } = {}) {
                   id="login-password"
                   name="password"
                   required
+                  autocomplete="current-password"
                   placeholder="••••••••••••"
-                  value="Admin123456!"
                   class="h-11 pl-10 pr-3 w-full rounded-md bg-white border border-[#8C8272] text-sm text-[#1C1C1C] placeholder-[#6B645A] focus:outline-none focus:ring-2 focus:ring-[#1F3A5F]"
                 />
               </div>
@@ -133,26 +133,28 @@ export function renderLoginPage({ error = '' } = {}) {
             </button>
           </form>
 
-          <!-- Credenciales Rápidas para Demostración -->
-          <div class="p-4 rounded-xl bg-[#E8DFCE]/40 border border-[#D5CBB8] flex flex-col gap-2">
-            <span class="text-[11px] font-bold text-[#4F4A42] uppercase tracking-wider">Atajos de Demostración:</span>
-            <div class="flex flex-wrap gap-2">
-              <button
-                type="button"
-                id="btn-demo-admin"
-                class="px-2.5 py-1.5 rounded-md bg-white border border-[#8C8272] text-[11px] font-semibold text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
-              >
-                👤 Dueño: admin@smartbarber.co
-              </button>
-              <button
-                type="button"
-                id="btn-demo-barbero"
-                class="px-2.5 py-1.5 rounded-md bg-white border border-[#8C8272] text-[11px] font-semibold text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
-              >
-                💈 Barbero: barbero@smartbarber.co
-              </button>
+          ${import.meta.env?.DEV ? `
+            <!-- Credenciales Rápidas para Demostración (Solo Desarrollo) -->
+            <div class="p-4 rounded-xl bg-[#E8DFCE]/40 border border-[#D5CBB8] flex flex-col gap-2">
+              <span class="text-[11px] font-bold text-[#4F4A42] uppercase tracking-wider">Atajos de Demostración (DEV):</span>
+              <div class="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  id="btn-demo-admin"
+                  class="px-2.5 py-1.5 rounded-md bg-white border border-[#8C8272] text-[11px] font-semibold text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
+                >
+                  👤 Dueño: admin@smartbarber.co
+                </button>
+                <button
+                  type="button"
+                  id="btn-demo-barbero"
+                  class="px-2.5 py-1.5 rounded-md bg-white border border-[#8C8272] text-[11px] font-semibold text-[#1C1C1C] hover:bg-[#FAF7F2] transition-colors"
+                >
+                  💈 Barbero: barbero@smartbarber.co
+                </button>
+              </div>
             </div>
-          </div>
+          ` : ''}
 
           <!-- Volver al Portal Público -->
           <div class="pt-4 border-t border-[#D5CBB8] text-center">

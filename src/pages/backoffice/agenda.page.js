@@ -11,9 +11,12 @@ import { openDrawer } from '../../components/ui-drawer.js';
 import { renderPaymentMethodSelector, attachPaymentMethodSelectorListeners } from '../../components/payment-method-selector.js';
 import { renderStatusBadge } from '../../components/status-badge.js';
 import { renderKpiCard } from '../../components/kpi-card.js';
+import { Capabilities, can, getCurrentUserSafe, whenCan } from '../../utils/access-control.js';
 
 export function renderAgendaPage() {
-  const role = backofficeStore.getRole();
+  const user = getCurrentUserSafe();
+  const canViewAll = can(Capabilities.APPOINTMENTS_VIEW_ALL, user);
+  const canViewAlerts = can(Capabilities.INVENTORY_ALERTS_VIEW, user);
   const kpis = backofficeStore.getKpis();
   const visibleBarbers = backofficeStore.getVisibleBarbers();
   const visibleAppointments = backofficeStore.getVisibleAppointments();
@@ -45,8 +48,9 @@ export function renderAgendaPage() {
     { start: '19:30', label: '07:30 PM' }
   ];
 
-  // Configuración de grid según cantidad de sillones visibles (3 para admin, 1 para barbero)
-  const gridColsClass = role === 'barbero' ? 'grid-cols-[80px_1fr]' : 'grid-cols-[80px_repeat(3,1fr)]';
+  // Configuración dinámica de grid según cantidad de sillones visibles
+  const barberColumns = Math.max(1, visibleBarbers.length);
+  const gridTemplateStyle = `grid-template-columns: 80px repeat(${barberColumns}, minmax(200px, 1fr));`;
 
   const selectedDateStr = backofficeStore.selectedDate || getTodayBogota();
   const dateFormatted = new Date(`${selectedDateStr}T12:00:00`).toLocaleDateString('es-CO', {
@@ -55,6 +59,10 @@ export function renderAgendaPage() {
     month: 'short',
     year: 'numeric'
   });
+
+  const agendaGridTitle = canViewAll
+    ? `Línea de Tiempo Operativa (${visibleBarbers.length} Sillones)`
+    : `Mi Sillón de Trabajo · ${visibleBarbers[0]?.chair || 'Sillón 1'}`;
 
   return `
     <div class="flex flex-col gap-6">
@@ -65,8 +73,8 @@ export function renderAgendaPage() {
             <h1 class="font-serif text-2xl sm:text-3xl font-bold text-[#1C1C1C] tracking-tight">
               Agenda & Operación Diaria
             </h1>
-            <span class="px-2 py-0.5 rounded-full text-[11px] font-sans font-bold ${role === 'admin' ? 'bg-[#1F3A5F] text-white' : 'bg-[#8B1E1E] text-white'}">
-              ${role === 'admin' ? 'Vista Administrador' : 'Vista Barbero'}
+            <span class="px-2 py-0.5 rounded-full text-[11px] font-sans font-bold ${canViewAll ? 'bg-[#1F3A5F] text-white' : 'bg-[#8B1E1E] text-white'}">
+              ${canViewAll ? 'Vista Global · Sede' : 'Mi Turno'}
             </span>
           </div>
         </div>
@@ -100,20 +108,19 @@ export function renderAgendaPage() {
         </div>
       </div>
 
-      <!-- 4 TARJETAS KPI ADAPTABLES AL ROL -->
+      <!-- 4 TARJETAS KPI ADAPTABLES POR CAPACIDADES (PBAC) -->
       <section aria-label="Indicadores del día" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         ${renderKpiCard({
-          label: role === 'admin' ? 'Ingresos de Hoy' : 'Mis Ingresos de Hoy',
+          label: canViewAll ? 'Facturación Agenda Hoy' : 'Mis Ingresos de Hoy',
           value: formatCOP(kpis.ingresosHoy),
-          caption: `${kpis.cortesRealizados} cobros registrados en caja`,
+          caption: `${kpis.cortesRealizados} cobro(s) registrado(s) hoy`,
           icon: 'payments',
           iconBg: 'bg-[#E3EFE7]',
-          iconColor: 'text-[#235D3A]',
-          trend: { text: '+8%', isPositive: true }
+          iconColor: 'text-[#235D3A]'
         })}
 
         ${renderKpiCard({
-          label: role === 'admin' ? 'Turnos en Agenda' : 'Mis Turnos Programados',
+          label: canViewAll ? 'Turnos en Agenda (Global)' : 'Mis Turnos Programados',
           value: kpis.turnosHoy,
           caption: `${kpis.pendientesHoy} por atender el día de hoy`,
           icon: 'calendar_month',
@@ -121,8 +128,15 @@ export function renderAgendaPage() {
           iconColor: 'text-[#1F3A5F]'
         })}
 
-        ${renderKpiCard({
-          label: role === 'admin' ? 'Cortes Realizados' : 'Mis Cortes Completados',
+        ${canViewAll ? renderKpiCard({
+          label: 'Turnos Pendientes',
+          value: kpis.pendientesHoy,
+          caption: 'Por atender en sillones de la sede',
+          icon: 'pending_actions',
+          iconBg: 'bg-[#FAF7F2]',
+          iconColor: 'text-[#1C1C1C]'
+        }) : renderKpiCard({
+          label: 'Mis Cortes Completados',
           value: kpis.cortesRealizados,
           caption: 'Con registro de cobro exitoso',
           icon: 'content_cut',
@@ -130,21 +144,21 @@ export function renderAgendaPage() {
           iconColor: 'text-[#1C1C1C]'
         })}
 
-        ${role === 'admin' ? renderKpiCard({
+        ${whenCan(Capabilities.INVENTORY_ALERTS_VIEW, () => renderKpiCard({
           label: 'Alertas Inventario',
           value: kpis.alertasInventario,
-          caption: '2 stock bajo · 1 agotado',
+          caption: `${kpis.lowStockCount} stock bajo · ${kpis.outOfStockCount} agotado(s)`,
           icon: 'warning',
-          iconBg: 'bg-[#FDF1DC]',
-          iconColor: 'text-[#8A5300]'
-        }) : renderKpiCard({
+          iconBg: kpis.alertasInventario > 0 ? 'bg-[#FDF1DC]' : 'bg-[#FAF7F2]',
+          iconColor: kpis.alertasInventario > 0 ? 'text-[#8A5300]' : 'text-[#6B645A]'
+        }), () => renderKpiCard({
           label: 'Mi Comisión Estimada',
           value: formatCOP(kpis.comisionBarbero),
-          caption: '50% referencial sobre mis cortes',
+          caption: `${kpis.barberCommissionPct}% referencial sobre mis cortes`,
           icon: 'savings',
           iconBg: 'bg-[#E3EFE7]',
           iconColor: 'text-[#235D3A]'
-        })}
+        }), user)}
       </section>
 
       <!-- GRILLA OPERATIVA (CADA BLOQUE = 48PX) -->
@@ -153,28 +167,30 @@ export function renderAgendaPage() {
           <div class="flex items-center gap-2">
             <span class="material-symbols-outlined text-[20px] text-[#1F3A5F]">schedule</span>
             <h2 class="font-serif text-lg font-bold text-[#1C1C1C]">
-              ${role === 'admin' ? 'Línea de Tiempo Operativa (3 Sillones)' : 'Mi Sillón de Trabajo · Sillón 1'}
+              ${agendaGridTitle}
             </h2>
           </div>
         </div>
 
-        <!-- SILLONES HEADER -->
-        <div class="grid ${gridColsClass} gap-2 border-b border-[#D5CBB8] pb-2 font-sans font-semibold text-xs text-[#1C1C1C] text-center">
-          <div class="text-left text-[#6B645A]">Horario</div>
-          ${visibleBarbers.map(b => `
-            <div class="bg-white p-2 rounded-md border border-[#D5CBB8] flex items-center justify-center gap-2 shadow-2xs">
-              <span class="w-2.5 h-2.5 rounded-full bg-[#235D3A]"></span>
-              <span class="font-bold">${b.name}</span>
-              <span class="text-[#6B645A] font-normal">(${b.chair})</span>
+        <div class="overflow-x-auto">
+          <div class="min-w-[460px]">
+            <!-- SILLONES HEADER -->
+            <div class="grid gap-2 border-b border-[#D5CBB8] pb-2 font-sans font-semibold text-xs text-[#1C1C1C] text-center" style="${gridTemplateStyle}">
+              <div class="text-left text-[#6B645A]">Horario</div>
+              ${visibleBarbers.map(b => `
+                <div class="bg-white p-2 rounded-md border border-[#D5CBB8] flex items-center justify-center gap-2 shadow-2xs">
+                  <span class="w-2.5 h-2.5 rounded-full bg-[#235D3A]"></span>
+                  <span class="font-bold">${b.name}</span>
+                  <span class="text-[#6B645A] font-normal">(${b.chair})</span>
+                </div>
+              `).join('')}
             </div>
-          `).join('')}
-        </div>
 
-        <!-- TIMELINE GRID ROWS -->
-        <div class="divide-y divide-[#D5CBB8]/50 mt-1" id="agenda-timeline-grid">
-          ${timeRows.map(row => {
-            return `
-              <div class="grid ${gridColsClass} gap-2 min-h-[48px] items-stretch py-1 relative">
+            <!-- TIMELINE GRID ROWS -->
+            <div class="divide-y divide-[#D5CBB8]/50 mt-1" id="agenda-timeline-grid">
+              ${timeRows.map(row => {
+                return `
+                  <div class="grid gap-2 min-h-[48px] items-stretch py-1 relative" style="${gridTemplateStyle}">
                 <!-- Columna Hora -->
                 <div class="font-mono text-xs text-[#6B645A] font-semibold flex items-center tabular-nums">
                   ${row.label}
@@ -242,6 +258,8 @@ export function renderAgendaPage() {
               </div>
             `;
           }).join('')}
+            </div>
+          </div>
         </div>
       </section>
     </div>
@@ -249,6 +267,9 @@ export function renderAgendaPage() {
 }
 
 export function attachAgendaListeners(onUpdate) {
+  const user = getCurrentUserSafe();
+  const canViewAll = can(Capabilities.APPOINTMENTS_VIEW_ALL, user);
+
   // Clic en tarjeta de cita -> Abre Drawer o Modal de Detalle y Acciones
   const aptCards = document.querySelectorAll('.appointment-card');
   aptCards.forEach(card => {
@@ -256,6 +277,11 @@ export function attachAgendaListeners(onUpdate) {
       const aptId = card.getAttribute('data-appointment-id');
       const apt = backofficeStore.appointments.find(a => a.id === aptId);
       if (!apt) return;
+
+      const isOwnAppointment = Boolean(user?.barberoId && (apt.barberId === user.barberoId || apt.barberoId === user.barberoId));
+      const canOperateApt = canViewAll || isOwnAppointment;
+      const canComplete = canOperateApt && can(Capabilities.APPOINTMENTS_COMPLETE, user);
+      const canCancel = canOperateApt && can(Capabilities.APPOINTMENTS_CANCEL, user);
 
       const drawerPanel = openDrawer({
         title: apt.codigo ? `Cita ${apt.codigo} · ${apt.clientName}` : `Cita · ${apt.clientName}`,
@@ -269,6 +295,12 @@ export function attachAgendaListeners(onUpdate) {
                 <span class="text-[#6B645A]">Estado Actual:</span>
                 ${renderStatusBadge(apt.status)}
               </div>
+              ${canViewAll && apt.barberName ? `
+                <div class="flex items-center justify-between">
+                  <span class="text-[#6B645A]">Barbero a Cargo:</span>
+                  <span class="font-semibold text-[#1C1C1C]">${apt.barberName}</span>
+                </div>
+              ` : ''}
               <div class="flex items-center justify-between">
                 <span class="text-[#6B645A]">Horario:</span>
                 <span class="font-mono font-bold text-[#1C1C1C]">${apt.timeStart} - ${apt.timeEnd}</span>
@@ -287,7 +319,7 @@ export function attachAgendaListeners(onUpdate) {
             <div class="flex flex-col gap-2">
               <span class="font-sans text-xs uppercase tracking-wider text-[#6B645A] font-bold">Acciones Operacionales</span>
 
-              ${apt.status !== 'completada' ? `
+              ${canComplete && apt.status !== 'completada' ? `
                 <button
                   type="button"
                   id="drawer-btn-complete-pay"
@@ -296,14 +328,14 @@ export function attachAgendaListeners(onUpdate) {
                   <span class="material-symbols-outlined text-[18px]">payments</span>
                   <span>Marcar como Completada & Cobrar</span>
                 </button>
-              ` : `
+              ` : apt.status === 'completada' ? `
                 <div class="p-3 rounded-lg bg-[#E3EFE7] border border-[#235D3A]/30 text-xs text-[#235D3A] flex items-center gap-2">
                   <span class="material-symbols-outlined text-[18px]">verified</span>
                   <span>Corte completado y cobrado (${apt.paymentMethod ? apt.paymentMethod.toUpperCase() : 'EFECTIVO'}).</span>
                 </div>
-              `}
+              ` : ''}
 
-              ${apt.status !== 'no_asistio' && apt.status !== 'completada' ? `
+              ${canOperateApt && apt.status !== 'no_asistio' && apt.status !== 'completada' ? `
                 <button
                   type="button"
                   id="drawer-btn-mark-noshow"
@@ -314,7 +346,7 @@ export function attachAgendaListeners(onUpdate) {
                 </button>
               ` : ''}
 
-              ${apt.status !== 'cancelada' && apt.status !== 'completada' ? `
+              ${canCancel && apt.status !== 'cancelada' && apt.status !== 'completada' ? `
                 <button
                   type="button"
                   id="drawer-btn-cancel-apt"
@@ -424,34 +456,53 @@ export function attachAgendaListeners(onUpdate) {
 }
 
 function openWalkinModal(onUpdate, defaultChair = 0, defaultTime = '10:00') {
-  openDialog({
+  const user = getCurrentUserSafe();
+  const canAssignAnyBarber = can(Capabilities.CUTS_ASSIGN_ANY_BARBER, user);
+  const visibleBarbers = backofficeStore.getVisibleBarbers();
+  const catalogServices = backofficeStore.services || [];
+
+  const preselectedBarberId = canAssignAnyBarber
+    ? (visibleBarbers[defaultChair]?.id || user?.barberoId || visibleBarbers[0]?.id || '')
+    : (user?.barberoId || visibleBarbers[0]?.id || '');
+
+  const dialogEl = openDialog({
     title: '+ Registrar Corte Walk-in (Mostrador)',
     contentHtml: `
       <form id="form-walkin" class="flex flex-col gap-4">
-        <!-- 1. Sillón / Barbero -->
+        <!-- 1. Sillón / Barbero (bloqueado a perfil propio para Barbero - RF-COR-01) -->
         <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Sillón / Barbero</label>
-          <select id="walkin-chair" class="h-10 px-3 rounded-md bg-white border border-[#8C8272] text-xs font-semibold text-[#1C1C1C]">
-            <option value="0" ${defaultChair === 0 ? 'selected' : ''}>Sillón 1 - Mateo Restrepo</option>
-            <option value="1" ${defaultChair === 1 ? 'selected' : ''}>Sillón 2 - Alejandro Morales</option>
-            <option value="2" ${defaultChair === 2 ? 'selected' : ''}>Sillón 3 - Carlos Mario Peña</option>
+          <label for="walkin-chair" class="font-sans font-semibold text-xs text-[#1C1C1C]">Sillón / Barbero</label>
+          <select
+            id="walkin-chair"
+            ${canAssignAnyBarber ? '' : 'disabled'}
+            class="h-10 px-3 rounded-md border border-[#8C8272] text-xs font-semibold text-[#1C1C1C] ${canAssignAnyBarber ? 'bg-white' : 'bg-[#E8DFCE]/70 text-[#4F4A42] cursor-not-allowed'}"
+          >
+            ${visibleBarbers.map((b, idx) => `
+              <option value="${b.id}" data-chair-index="${b.chairIndex ?? idx}" ${b.id === preselectedBarberId ? 'selected' : ''}>
+                ${b.chair || `Sillón ${idx + 1}`} - ${b.name}
+              </option>
+            `).join('')}
           </select>
+          ${!canAssignAnyBarber ? `<span class="text-[10px] text-[#6B645A]">Perfil preseleccionado y bloqueado según usuario autenticado (RF-COR-01).</span>` : ''}
         </div>
 
-        <!-- 2. Servicio -->
+        <!-- 2. Servicio (catálogo real activo) -->
         <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Servicio Realizado</label>
+          <label for="walkin-service" class="font-sans font-semibold text-xs text-[#1C1C1C]">Servicio Realizado</label>
           <select id="walkin-service" class="h-10 px-3 rounded-md bg-white border border-[#8C8272] text-xs font-semibold text-[#1C1C1C]">
-            <option value="Corte Clásico:25000:30">Corte Clásico Tradicional · $ 25.000 COP (30 min)</option>
-            <option value="Combo Real:40000:60">Combo Real (Corte + Barba) · $ 40.000 COP (60 min)</option>
-            <option value="Perfilado Barba:20000:30">Perfilado & Ritual de Barba · $ 20.000 COP (30 min)</option>
-            <option value="Afeitado al Ras:22000:30">Afeitado Clásico al Ras · $ 22.000 COP (30 min)</option>
+            ${catalogServices.length > 0 ? catalogServices.map(s => `
+              <option value="${s.id}" data-name="${s.nombre}" data-price="${s.precio}" data-duration="${s.duracionMinutos || 30}">
+                ${s.nombre} · ${formatCOP(s.precio)} (${s.duracionMinutos || 30} min)
+              </option>
+            `).join('') : `
+              <option value="" data-name="Corte Clásico" data-price="25000" data-duration="30">Corte Clásico Tradicional · $ 25.000 COP (30 min)</option>
+            `}
           </select>
         </div>
 
         <!-- 3. Nombre Cliente -->
         <div class="flex flex-col gap-1">
-          <label class="font-sans font-semibold text-xs text-[#1C1C1C]">Nombre del Cliente</label>
+          <label for="walkin-client-name" class="font-sans font-semibold text-xs text-[#1C1C1C]">Nombre del Cliente</label>
           <input
             type="text"
             id="walkin-client-name"
@@ -468,18 +519,27 @@ function openWalkinModal(onUpdate, defaultChair = 0, defaultTime = '10:00') {
     cancelText: 'Cancelar',
     confirmVariant: 'accent',
     onConfirm: async () => {
-      const chairIndex = parseInt(document.getElementById('walkin-chair').value, 10) || 0;
-      const srvRaw = document.getElementById('walkin-service').value.split(':');
-      const serviceName = srvRaw[0];
-      const price = parseInt(srvRaw[1], 10) || 25000;
-      const durationMinutes = parseInt(srvRaw[2], 10) || 30;
+      const chairSelectEl = document.getElementById('walkin-chair');
+      const selectedBarberOpt = chairSelectEl?.options[chairSelectEl.selectedIndex];
+      const barberId = chairSelectEl?.value || preselectedBarberId;
+      const chairIndex = parseInt(selectedBarberOpt?.getAttribute('data-chair-index'), 10) || 0;
+
+      const srvSelectEl = document.getElementById('walkin-service');
+      const selectedSrvOpt = srvSelectEl?.options[srvSelectEl.selectedIndex];
+      const serviceId = srvSelectEl?.value || null;
+      const serviceName = selectedSrvOpt?.getAttribute('data-name') || 'Corte Clásico';
+      const price = parseInt(selectedSrvOpt?.getAttribute('data-price'), 10) || 25000;
+      const durationMinutes = parseInt(selectedSrvOpt?.getAttribute('data-duration'), 10) || 30;
+
       const clientName = document.getElementById('walkin-client-name').value.trim() || 'Cliente Mostrador';
       const paymentInput = document.getElementById('walkin_metodo_pago');
       const paymentMethod = paymentInput ? paymentInput.value : 'efectivo';
 
       await backofficeStore.addWalkinCut({
+        barberId,
         chairIndex,
         clientName,
+        serviceId,
         serviceName,
         price,
         durationMinutes,
@@ -492,8 +552,5 @@ function openWalkinModal(onUpdate, defaultChair = 0, defaultTime = '10:00') {
     }
   });
 
-  setTimeout(() => {
-    const dialogEl = document.querySelector('dialog.ui-modal');
-    if (dialogEl) attachPaymentMethodSelectorListeners(dialogEl);
-  }, 50);
+  if (dialogEl) attachPaymentMethodSelectorListeners(dialogEl);
 }

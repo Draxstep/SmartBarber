@@ -14,6 +14,7 @@ import {
 } from '../../services/index.js';
 import { emitDataMutation } from '../../utils/event-bus.js';
 import { getTodayBogota } from '../../utils/formatters.js';
+import { Capabilities, can, normalizeRole } from '../../utils/access-control.js';
 
 class BackofficeStateStore {
   constructor() {
@@ -22,6 +23,7 @@ class BackofficeStateStore {
     this.barbers = [];
     this.appointments = [];
     this.products = [];
+    this.services = [];
     this.inventorySearchQuery = '';
     this.inventoryStatusFilter = 'all';
     this.isInitialized = false;
@@ -55,14 +57,17 @@ class BackofficeStateStore {
       return;
     }
 
-    this.currentRole = user.rol;
+    this.currentRole = normalizeRole(user.rol) || 'barbero';
     if (user.barberoId) {
       this.activeBarber = {
         id: user.barberoId,
         name: user.nombreCompleto || 'Barbero',
         chair: 'Sillón 1',
-        chairIndex: 0
+        chairIndex: 0,
+        comisionPorcentaje: 50
       };
+    } else {
+      this.activeBarber = null;
     }
 
     await this.loadAgendaData();
@@ -75,6 +80,7 @@ class BackofficeStateStore {
     this.barbers = [];
     this.appointments = [];
     this.products = [];
+    this.services = [];
     this.inventorySearchQuery = '';
     this.inventoryStatusFilter = 'all';
     this.selectedDate = getTodayBogota();
@@ -87,34 +93,67 @@ class BackofficeStateStore {
       return [];
     }
 
+    const user = authService.getCurrentUser();
     const targetDate = fecha || this.selectedDate || getTodayBogota();
     this.selectedDate = targetDate;
 
+    const canListBarbers = can(Capabilities.BARBERS_LIST_READ, user);
+    const canViewAlerts = can(Capabilities.INVENTORY_ALERTS_VIEW, user);
+    const canManageOwnBarber = can(Capabilities.BARBER_PROFILE_MANAGE_OWN, user);
+
     try {
-      const [barbRes, citasRes, invRes] = await Promise.all([
-        this.barbers.length === 0 ? barberosService.getBarberos() : Promise.resolve({ ok: true, data: this.barbers }),
+      const [barbRes, citasRes, invRes, srvRes, miPerfilRes] = await Promise.all([
+        canListBarbers && this.barbers.length === 0
+          ? barberosService.getBarberos()
+          : Promise.resolve({ ok: true, data: this.barbers }),
         citasService.getCitasDelDia(targetDate),
-        this.products.length === 0 ? inventarioService.getProductos() : Promise.resolve({ ok: true, data: this.products })
+        canViewAlerts && this.products.length === 0
+          ? inventarioService.getProductos()
+          : Promise.resolve({ ok: true, data: this.products }),
+        this.services.length === 0
+          ? serviciosService.getServicios({ activo: true }).catch(() => ({ ok: false, data: [] }))
+          : Promise.resolve({ ok: true, data: this.services }),
+        !canListBarbers && canManageOwnBarber && !this.activeBarber?.sillonLoaded
+          ? barberosService.getMiPerfil().catch(() => ({ ok: false }))
+          : Promise.resolve({ ok: false })
       ]);
 
-      if (barbRes?.ok && Array.isArray(barbRes.data) && this.barbers.length === 0) {
+      if (canListBarbers && barbRes?.ok && Array.isArray(barbRes.data) && this.barbers.length === 0) {
         this.barbers = barbRes.data.map((b, idx) => ({
           id: b.id,
           name: b.nombre,
           chair: b.sillon || `Sillón ${idx + 1}`,
-          chairIndex: idx
+          chairIndex: idx,
+          comisionPorcentaje: Number(b.porcentajeComision ?? b.comisionPorcentaje ?? 50)
         }));
-        if (!this.activeBarber && this.barbers[0]) {
-          this.activeBarber = this.barbers[0];
+        if (user?.barberoId) {
+          const own = this.barbers.find(b => b.id === user.barberoId);
+          if (own) this.activeBarber = own;
         }
+      }
+
+      if (miPerfilRes?.ok && miPerfilRes.data?.barbero && user?.barberoId) {
+        const b = miPerfilRes.data.barbero;
+        this.activeBarber = {
+          id: b.barberoId || user.barberoId,
+          name: b.nombrePublico || b.nombreCompleto || user.nombreCompleto || 'Barbero',
+          chair: b.sillon || 'Sillón 1',
+          chairIndex: 0,
+          comisionPorcentaje: Number(b.porcentajeComision ?? 50),
+          sillonLoaded: true
+        };
       }
 
       if (citasRes?.ok && Array.isArray(citasRes.data)) {
         this.appointments = citasRes.data;
       }
 
-      if (invRes?.ok && Array.isArray(invRes.data) && this.products.length === 0) {
+      if (canViewAlerts && invRes?.ok && Array.isArray(invRes.data) && this.products.length === 0) {
         this.products = invRes.data;
+      }
+
+      if (srvRes?.ok && Array.isArray(srvRes.data) && this.services.length === 0) {
+        this.services = srvRes.data.filter(s => s.activo !== false);
       }
     } catch (err) {
       console.warn('⚠️ Error al cargar agenda:', err.message);
@@ -123,29 +162,25 @@ class BackofficeStateStore {
   }
 
   setRole(role) {
-    this.currentRole = role;
+    this.currentRole = normalizeRole(role) || 'barbero';
   }
 
   getRole() {
     const user = authService.getCurrentUser();
-    return user?.rol || this.currentRole || 'administrador';
+    return normalizeRole(user?.rol || this.currentRole || 'administrador') || 'administrador';
   }
 
   getVisibleBarbers() {
-    const role = this.getRole();
-    if (role === 'barbero' && this.activeBarber) {
-      return [this.activeBarber];
+    const user = authService.getCurrentUser();
+    if (!can(Capabilities.APPOINTMENTS_VIEW_ALL, user)) {
+      return this.activeBarber ? [this.activeBarber] : [];
     }
-    return this.barbers.length > 0 ? this.barbers : [
-      { id: 'b-default-1', name: 'Carlos Mendoza', chair: 'Sillón 1', chairIndex: 0 },
-      { id: 'b-default-2', name: 'Alejandro Torres', chair: 'Sillón 2', chairIndex: 1 }
-    ];
+    return this.barbers;
   }
 
   getVisibleAppointments() {
-    const role = this.getRole();
     const user = authService.getCurrentUser();
-    if (role === 'barbero' && user?.barberoId) {
+    if (!can(Capabilities.APPOINTMENTS_VIEW_ALL, user) && user?.barberoId) {
       return this.appointments.filter(a => a.barberId === user.barberoId || a.barberoId === user.barberoId);
     }
     return this.appointments;
@@ -189,15 +224,26 @@ class BackofficeStateStore {
     return apt;
   }
 
-  async addWalkinCut({ chairIndex = 0, clientName = 'Cliente Mostrador', serviceName = 'Corte Clásico', price = 25000, durationMinutes = 30, paymentMethod = 'efectivo', timeStart = '10:00' }) {
-    const barber = this.barbers[chairIndex] || this.barbers[0] || this.activeBarber;
+  async addWalkinCut({ barberId = null, chairIndex = 0, clientName = 'Cliente Mostrador', serviceId = null, serviceName = 'Corte Clásico', price = 25000, durationMinutes = 30, paymentMethod = 'efectivo', timeStart = '10:00' }) {
+    const user = authService.getCurrentUser();
+    const canAssignAny = can(Capabilities.CUTS_ASSIGN_ANY_BARBER, user);
+
+    let barber = this.activeBarber;
+    if (canAssignAny) {
+      barber = (barberId ? this.barbers.find(b => b.id === barberId) : null)
+        || this.barbers[chairIndex]
+        || this.barbers[0]
+        || this.activeBarber;
+    }
 
     // Resolver servicioId si no viene
-    let finalServicioId = null;
+    let finalServicioId = serviceId || null;
     try {
-      const srvRes = await serviciosService.getServicios();
-      const found = srvRes.data?.find(s => s.nombre.toLowerCase().includes(serviceName.toLowerCase()) || s.id === serviceName);
-      finalServicioId = found?.id || srvRes.data?.[0]?.id;
+      const catalog = this.services.length > 0 ? this.services : (await serviciosService.getServicios({ activo: true })).data;
+      if (!finalServicioId && Array.isArray(catalog)) {
+        const found = catalog.find(s => s.nombre.toLowerCase().includes(serviceName.toLowerCase()) || s.id === serviceName);
+        finalServicioId = found?.id || catalog[0]?.id;
+      }
     } catch (_) {}
 
     const res = await cortesService.registrarCorte({
@@ -255,7 +301,8 @@ class BackofficeStateStore {
     // Calcular comisiones exactas según porcentaje del barbero o snapshots (RN-12)
     const user = authService.getCurrentUser();
     const activeBarb = this.barbers.find(b => b.id === user?.barberoId) || this.activeBarber;
-    const comisionRate = (activeBarb?.comisionPorcentaje ?? 50) / 100;
+    const barberCommissionPct = Number(activeBarb?.comisionPorcentaje ?? 50);
+    const comisionRate = barberCommissionPct / 100;
     const comisionTotal = completed.reduce((sum, a) => {
       if (a.comisionCalculadaCop !== undefined && a.comisionCalculadaCop !== null) {
         return sum + Number(a.comisionCalculadaCop);
@@ -269,6 +316,9 @@ class BackofficeStateStore {
       pendientesHoy: pending.length,
       cortesRealizados: completed.length,
       alertasInventario: lowStock.length + outOfStock.length,
+      lowStockCount: lowStock.length,
+      outOfStockCount: outOfStock.length,
+      barberCommissionPct,
       comisionBarbero: comisionTotal
     };
   }

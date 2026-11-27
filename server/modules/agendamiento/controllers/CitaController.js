@@ -5,7 +5,7 @@
 import { CitaService } from '../services/CitaService.js';
 import { CitaPgRepository } from '../repositories/CitaPgRepository.js';
 import { sendSuccess } from '../../../shared/utils/response.js';
-import { NotFoundError } from '../../../shared/errors/domainErrors.js';
+import { NotFoundError, ForbiddenError } from '../../../shared/errors/domainErrors.js';
 
 export class CitaController {
   constructor(citaService = null, citaRepo = null) {
@@ -37,6 +37,9 @@ export class CitaController {
       const cita = await this.citaRepo.findById(req.params.id);
       if (!cita) {
         throw new NotFoundError('Cita', req.params.id);
+      }
+      if (req.user?.rol === 'barbero' && cita.barberoId !== req.user.barberoId) {
+        throw new ForbiddenError('Solo puede consultar citas asignadas a su perfil.');
       }
       return sendSuccess(res, cita, 200);
     } catch (error) {
