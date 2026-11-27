@@ -8,19 +8,37 @@
     <meta name="description" content="SmartBarber: Tradición y Oficio de la Barbería Clásica en Bogotá. Agendamiento ágil en bloques de 30 minutos." />
     <link rel="manifest" href="/manifest.json" />
 
-    <!-- Google Fonts Preconnect & Inter, Playfair Display, JetBrains Mono -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Google Fonts Preconnect & Carga No-Bloqueante CORS (sin respuestas opacas en SW) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin="anonymous" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
       rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
     />
 
-    <!-- Material Symbols Outlined -->
+    <!-- Material Symbols Outlined (estático acotado, no bloqueante, CORS) -->
     <link
       rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200"
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+      crossorigin="anonymous"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap"
+        crossorigin="anonymous"
+      />
+      <link
+        rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap"
+        crossorigin="anonymous"
+      />
+    </noscript>
 
     <!-- Stylesheet -->
     <link rel="stylesheet" href="/src/styles/main.css" />
@@ -29,7 +47,25 @@
   </head>
   <body class="bg-[#F2EBDD] text-[#1C1C1C] min-h-screen font-sans selection:bg-[#8B1E1E] selection:text-white">
     <div id="app">
-      <!-- Inyectado dinámicamente por VanillaJS -->
+      <!-- App Shell inicial para FCP/LCP instantáneo antes de hidratar catálogo -->
+      <div class="min-h-screen bg-[#F2EBDD] text-[#1C1C1C] flex flex-col font-sans">
+        <header class="sticky top-0 w-full z-50 bg-[#1C1C1C] border-b-2 border-[#8B1E1E]">
+          <div class="max-w-[1120px] mx-auto h-16 px-4 sm:px-6 flex items-center justify-between">
+            <span class="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#F2EBDD]">SmartBarber</span>
+            <a href="#booking-wizard" class="inline-flex items-center justify-center min-h-[44px] px-4 py-2 rounded-md bg-[#F2EBDD] text-[#1C1C1C] font-semibold text-sm">Agendar Cita</a>
+          </div>
+        </header>
+        <section class="bg-[#1C1C1C] text-[#F2EBDD] py-12 sm:py-16 px-4 border-b-4 border-[#8B1E1E]">
+          <div class="max-w-[1120px] mx-auto flex flex-col items-center text-center">
+            <h1 class="font-serif text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight max-w-2xl leading-tight mb-4">
+              El Oficio de la Barbería en su Máxima Expresión
+            </h1>
+            <p class="font-sans text-sm sm:text-base text-[#BDB4A5] max-w-lg mb-8 leading-relaxed">
+              Puntualidad en bloques de 30 minutos, navaja de acero quirúrgico y atención personalizada en el corazón de Bogotá.
+            </p>
+          </div>
+        </section>
+      </div>
     </div>
 
     <!-- Script Principal del Portal Público -->

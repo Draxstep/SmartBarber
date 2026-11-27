@@ -23,6 +23,9 @@ export async function registrarServiceWorker() {
         await Promise.all(registrations.map((reg) => reg.unregister()));
         console.info("🧹 Service Worker previo desregistrado en modo desarrollo.");
       }
+      if (typeof indexedDB !== "undefined" && typeof indexedDB.deleteDatabase === "function") {
+        indexedDB.deleteDatabase("SmartBarberDB");
+      }
     } catch (_) {}
     return null;
   }

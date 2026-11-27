@@ -28,6 +28,10 @@ export function renderLandingPage({ services = [], barbers = [], isLoading = fal
               <img
                 src="${b.foto}"
                 alt="${b.nombre}"
+                width="80"
+                height="80"
+                loading="lazy"
+                decoding="async"
                 class="w-20 h-20 rounded-full object-cover border-2 border-[#1F3A5F] mb-3 shadow-xs"
               />
               <h3 class="font-sans font-bold text-base text-[#1C1C1C]">${b.nombre}</h3>

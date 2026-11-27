@@ -61,6 +61,15 @@ export const authService = {
       try {
         await limpiarDatosLocales();
       } catch (_) {}
+      try {
+        httpClient.invalidateServiceWorkerApiCache();
+        if (typeof caches !== 'undefined') {
+          await Promise.all([
+            caches.delete('smartbarber-api-v2'),
+            caches.delete('smartbarber-api')
+          ]);
+        }
+      } catch (_) {}
     }
   },
 

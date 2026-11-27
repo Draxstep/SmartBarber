@@ -132,7 +132,7 @@ export const cameraService = {
    * @param {'image/webp'|'image/jpeg'} [options.format='image/webp']
    * @returns {{ ok: boolean, dataUrl: string, width: number, height: number, sizeBytes: number }}
    */
-  capturePhoto(videoElement, { maxWidth = 800, maxHeight = 800, quality = 0.85, format = 'image/webp' } = {}) {
+  capturePhoto(videoElement, { maxWidth = 480, maxHeight = 480, quality = 0.80, format = 'image/webp' } = {}) {
     if (!videoElement || !videoElement.videoWidth) {
       throw new Error('El flujo de video no está listo para capturar.');
     }
@@ -187,7 +187,7 @@ export const cameraService = {
    * @param {Object} [options]
    * @returns {Promise<{ ok: boolean, dataUrl: string, width: number, height: number, sizeBytes: number }>}
    */
-  async processImageFile(file, { maxWidth = 800, maxHeight = 800, quality = 0.85 } = {}) {
+  async processImageFile(file, { maxWidth = 480, maxHeight = 480, quality = 0.80 } = {}) {
     if (!file) throw new Error('No se seleccionó ningún archivo de imagen.');
 
     const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
@@ -229,8 +229,8 @@ export const cameraService = {
 
         let sizeBytes = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
 
-        // Si excede 2MB (2,097,152 bytes), recomprimir con menor calidad
-        if (sizeBytes > 2 * 1024 * 1024) {
+        // Si excede 512 KB, recomprimir con menor calidad para respetar Cache Budget
+        if (sizeBytes > 512 * 1024) {
           dataUrl = canvas.toDataURL('image/jpeg', 0.65);
           sizeBytes = Math.round((dataUrl.length - dataUrl.indexOf(',') - 1) * 0.75);
         }

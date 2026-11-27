@@ -257,7 +257,7 @@ export function attachAgendaListeners(onUpdate) {
       const apt = backofficeStore.appointments.find(a => a.id === aptId);
       if (!apt) return;
 
-      openDrawer({
+      const drawerPanel = openDrawer({
         title: apt.codigo ? `Cita ${apt.codigo} · ${apt.clientName}` : `Cita · ${apt.clientName}`,
         subtitle: `${apt.serviceName} · ${formatDurationBlocks(apt.durationMinutes)}`,
         position: 'right',
@@ -329,64 +329,57 @@ export function attachAgendaListeners(onUpdate) {
         `
       });
 
-      // Listeners dentro del drawer
-      setTimeout(() => {
-        const btnPay = document.getElementById('drawer-btn-complete-pay');
-        if (btnPay) {
-          btnPay.addEventListener('click', () => {
-            // Abrir modal de cobro con los 5 métodos de pago
-            openDialog({
-              title: `Cobro en Caja: ${apt.serviceName}`,
-              subtitle: `Cliente: ${apt.clientName} · Total: ${formatCOP(apt.price)}`,
-              contentHtml: `
-                <div class="flex flex-col gap-4">
-                  ${renderPaymentMethodSelector({ selectedMethod: 'efectivo', name: 'pago_caja_metodo' })}
-                </div>
-              `,
-              confirmText: 'Registrar Cobro',
-              cancelText: 'Volver',
-              confirmVariant: 'primary',
-              onConfirm: async () => {
-                const methodInput = document.getElementById('pago_caja_metodo');
-                const selectedMethod = methodInput ? methodInput.value : 'efectivo';
-                await backofficeStore.completeAppointment(apt.id, selectedMethod);
-                onUpdate();
-                return true;
-              }
-            });
-
-            setTimeout(() => {
-              const dialogEl = document.querySelector('dialog.ui-modal');
-              if (dialogEl) attachPaymentMethodSelectorListeners(dialogEl);
-            }, 50);
+      // Listeners síncronos sobre el nodo retornado por openDrawer
+      const btnPay = drawerPanel.querySelector('#drawer-btn-complete-pay');
+      if (btnPay) {
+        btnPay.addEventListener('click', () => {
+          const dialogEl = openDialog({
+            title: `Cobro en Caja: ${apt.serviceName}`,
+            subtitle: `Cliente: ${apt.clientName} · Total: ${formatCOP(apt.price)}`,
+            contentHtml: `
+              <div class="flex flex-col gap-4">
+                ${renderPaymentMethodSelector({ selectedMethod: 'efectivo', name: 'pago_caja_metodo' })}
+              </div>
+            `,
+            confirmText: 'Registrar Cobro',
+            cancelText: 'Volver',
+            confirmVariant: 'primary',
+            onConfirm: async () => {
+              const methodInput = document.getElementById('pago_caja_metodo');
+              const selectedMethod = methodInput ? methodInput.value : 'efectivo';
+              await backofficeStore.completeAppointment(apt.id, selectedMethod);
+              onUpdate();
+              return true;
+            }
           });
-        }
+          if (dialogEl) attachPaymentMethodSelectorListeners(dialogEl);
+        });
+      }
 
-        const btnNoShow = document.getElementById('drawer-btn-mark-noshow');
-        if (btnNoShow) {
-          btnNoShow.addEventListener('click', async () => {
-            await backofficeStore.markNoShow(apt.id);
-            onUpdate();
-          });
-        }
+      const btnNoShow = drawerPanel.querySelector('#drawer-btn-mark-noshow');
+      if (btnNoShow) {
+        btnNoShow.addEventListener('click', async () => {
+          await backofficeStore.markNoShow(apt.id);
+          onUpdate();
+        });
+      }
 
-        const btnCancel = document.getElementById('drawer-btn-cancel-apt');
-        if (btnCancel) {
-          btnCancel.addEventListener('click', () => {
-            openDialog({
-              title: `¿Anular cita de ${apt.clientName}?`,
-              contentHtml: `<p class="text-xs text-[#B3261E]">Esta acción cancela la cita${apt.codigo ? ` <strong>${apt.codigo}</strong>` : ''} de ${apt.clientName}.</p>`,
-              confirmText: 'Sí, Anular',
-              confirmVariant: 'danger',
-              onConfirm: async () => {
-                await backofficeStore.cancelAppointment(apt.id);
-                onUpdate();
-                return true;
-              }
-            });
+      const btnCancel = drawerPanel.querySelector('#drawer-btn-cancel-apt');
+      if (btnCancel) {
+        btnCancel.addEventListener('click', () => {
+          openDialog({
+            title: `¿Anular cita de ${apt.clientName}?`,
+            contentHtml: `<p class="text-xs text-[#B3261E]">Esta acción cancela la cita${apt.codigo ? ` <strong>${apt.codigo}</strong>` : ''} de ${apt.clientName}.</p>`,
+            confirmText: 'Sí, Anular',
+            confirmVariant: 'danger',
+            onConfirm: async () => {
+              await backofficeStore.cancelAppointment(apt.id);
+              onUpdate();
+              return true;
+            }
           });
-        }
-      }, 80);
+        });
+      }
     });
   });
 

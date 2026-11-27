@@ -7,114 +7,135 @@
 
 import { renderBackofficeSidebar } from '../../components/backoffice-sidebar.js';
 import { renderBackofficeHeader } from '../../components/backoffice-header.js';
-import { renderDashboardPage, loadDashboardData, attachDashboardListeners } from './dashboard.page.js';
-import { renderAgendaPage, attachAgendaListeners } from './agenda.page.js';
-import { renderInventoryPage, loadInventoryKardexData, attachInventoryListeners } from './inventory.page.js';
-import { renderCortesPage, loadCortesData, attachCortesListeners } from './cortes.page.js';
-import { renderBarberosPage, loadBarberosData, attachBarberosListeners } from './barberos.page.js';
-import { renderServiciosPage, loadServiciosData, attachServiciosListeners } from './servicios.page.js';
-import { renderComisionesPage, loadComisionesData, attachComisionesListeners } from './comisiones.page.js';
-import { renderConfiguracionPage, attachConfiguracionListeners } from './configuracion.page.js';
-import { renderPerfilPage, loadPerfilData, attachPerfilListeners } from './perfil.page.js';
 import { renderLoginPage, attachLoginListeners } from './login.page.js';
 import { renderForbiddenPage, renderNotFoundPage } from './error.page.js';
-import { authService, inventarioService, sedesService, cameraService } from '../../services/index.js';
+import { authService, inventarioService, cameraService } from '../../services/index.js';
 import { openDialog } from '../../components/ui-dialog.js';
 import { backofficeStore } from './backoffice-state.js';
-import { onDataMutation, AppEvent } from '../../utils/event-bus.js';
+import { onDataMutation } from '../../utils/event-bus.js';
 
 // Módulos PWA Offline-First
 import { registrarServiceWorker, inicializarEventosConectividad } from '../../pwa/sw-register.js';
 import { inicializarInstaladorPWA, sincronizarBotonInstalacion } from '../../pwa/install-prompt.js';
-import { suscribirAPush, tieneSuscripcionActiva, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones, soportaNotificacionesPush } from '../../pwa/notificaciones.js';
+import { suscribirAPush, desuscribirDePush, enviarNotificacionPrueba, obtenerEstadoNotificaciones } from '../../pwa/notificaciones.js';
 import { obtenerEstadoOutbox, descartarCambio, pedirSincronizacion } from '../../pwa/sync.js';
 import { abrirBaseDeDatos, limpiarDatosLocales } from '../../pwa/db.js';
 
 const appRoot = document.getElementById('app');
+const routeModuleCache = new Map();
+
+async function loadRouteModule(routeConfig) {
+  if (routeModuleCache.has(routeConfig.id)) {
+    return routeModuleCache.get(routeConfig.id);
+  }
+  const mod = await routeConfig.loadModule();
+  routeModuleCache.set(routeConfig.id, mod);
+  return mod;
+}
 
 /**
- * Registro Declarativo de Vistas del Backoffice (Open-Closed Principle / SOLID)
- * Cada módulo define de forma cohesiva sus permisos RBAC, precarga de datos, renderizado y eventos.
+ * Registro Declarativo de Vistas del Backoffice con Code-Splitting (Open-Closed Principle / SOLID)
+ * Cada módulo se carga bajo demanda mediante dynamic import() y define sus permisos RBAC, loader y eventos.
  */
 export const BACKOFFICE_ROUTES = {
   dashboard: {
     id: 'dashboard',
     title: 'Dashboard Ejecutivo',
     roles: ['administrador'],
-    loader: async () => await loadDashboardData(),
-    render: () => renderDashboardPage(),
-    attachListeners: (refresh) => attachDashboardListeners(refresh)
+    loadModule: () => import('./dashboard.page.js'),
+    loader: async (user, mod) => await mod.loadDashboardData(),
+    render: (user, mod) => mod.renderDashboardPage(),
+    attachListeners: (refresh, user, mod) => mod.attachDashboardListeners(refresh)
   },
   agenda: {
     id: 'agenda',
     title: 'Agenda y Turnos',
     roles: ['administrador', 'barbero'],
+    loadModule: () => import('./agenda.page.js'),
     loader: async () => await backofficeStore.loadAgendaData(),
-    render: () => renderAgendaPage(),
-    attachListeners: (refresh) => attachAgendaListeners(refresh)
+    render: (user, mod) => mod.renderAgendaPage(),
+    attachListeners: (refresh, user, mod) => mod.attachAgendaListeners(refresh)
   },
   cortes: {
     id: 'cortes',
     title: 'Historial y Caja',
     roles: ['administrador', 'barbero'],
-    loader: async () => await loadCortesData(),
-    render: () => renderCortesPage(),
-    attachListeners: (refresh) => attachCortesListeners(refresh)
+    loadModule: () => import('./cortes.page.js'),
+    loader: async (user, mod) => await mod.loadCortesData(),
+    render: (user, mod) => mod.renderCortesPage(),
+    attachListeners: (refresh, user, mod) => mod.attachCortesListeners(refresh)
   },
   barberos: {
     id: 'barberos',
     title: 'Barberos y Horarios',
     roles: ['administrador'],
-    loader: async () => await loadBarberosData(),
-    render: () => renderBarberosPage(),
-    attachListeners: (refresh) => attachBarberosListeners(refresh)
+    loadModule: () => import('./barberos.page.js'),
+    loader: async (user, mod) => await mod.loadBarberosData(),
+    render: (user, mod) => mod.renderBarberosPage(),
+    attachListeners: (refresh, user, mod) => mod.attachBarberosListeners(refresh)
   },
   servicios: {
     id: 'servicios',
     title: 'Servicios y Tarifas',
     roles: ['administrador'],
-    loader: async () => await loadServiciosData(),
-    render: () => renderServiciosPage(),
-    attachListeners: (refresh) => attachServiciosListeners(refresh)
+    loadModule: () => import('./servicios.page.js'),
+    loader: async (user, mod) => await mod.loadServiciosData(),
+    render: (user, mod) => mod.renderServiciosPage(),
+    attachListeners: (refresh, user, mod) => mod.attachServiciosListeners(refresh)
   },
   inventario: {
     id: 'inventario',
     title: 'Inventario & Ventas',
     roles: ['administrador', 'barbero'],
-    loader: async (user) => await loadInventoryKardexData(user.rol),
-    render: (user) => renderInventoryPage({ userRole: user.rol }),
-    attachListeners: (refresh, user) => attachInventoryListeners(refresh, user.rol)
+    loadModule: () => import('./inventory.page.js'),
+    loader: async (user, mod) => await mod.loadInventoryKardexData(user.rol),
+    render: (user, mod) => mod.renderInventoryPage({ userRole: user.rol }),
+    attachListeners: (refresh, user, mod) => mod.attachInventoryListeners(refresh, user.rol)
   },
   comisiones: {
     id: 'comisiones',
     title: 'Liquidación Comisiones',
     roles: ['administrador', 'barbero'],
-    loader: async () => await loadComisionesData(),
-    render: () => renderComisionesPage(),
-    attachListeners: (refresh, user) => attachComisionesListeners(refresh)
+    loadModule: () => import('./comisiones.page.js'),
+    loader: async (user, mod) => await mod.loadComisionesData(),
+    render: (user, mod) => mod.renderComisionesPage(),
+    attachListeners: (refresh, user, mod) => mod.attachComisionesListeners(refresh)
   },
   configuracion: {
     id: 'configuracion',
     title: 'Configuración',
     roles: ['administrador'],
+    loadModule: () => import('./configuracion.page.js'),
     loader: async () => {},
-    render: () => renderConfiguracionPage(),
-    attachListeners: () => attachConfiguracionListeners()
+    render: (user, mod) => mod.renderConfiguracionPage(),
+    attachListeners: (refresh, user, mod) => mod.attachConfiguracionListeners()
   },
   perfil: {
     id: 'perfil',
     title: 'Mi Perfil',
     roles: ['administrador', 'barbero'],
-    loader: async () => await loadPerfilData(),
-    render: () => renderPerfilPage(),
-    attachListeners: (refresh) => attachPerfilListeners(refresh)
+    loadModule: () => import('./perfil.page.js'),
+    loader: async (user, mod) => await mod.loadPerfilData(),
+    render: (user, mod) => mod.renderPerfilPage(),
+    attachListeners: (refresh, user, mod) => mod.attachPerfilListeners(refresh)
   }
 };
 
-const VALID_ROUTES = Object.keys(BACKOFFICE_ROUTES);
-
 let sedeActivaNombre = 'SmartBarber Studio · Bogotá';
 let totalAlertasInventario = 0;
+let alertasCargadas = false;
+let mountedShellUserKey = null;
+let renderSequence = 0;
+let refreshScheduled = false;
+
+function scheduleBackofficeRefresh() {
+  if (refreshScheduled) return;
+  refreshScheduled = true;
+  queueMicrotask(() => {
+    refreshScheduled = false;
+    renderBackoffice();
+  });
+}
 
 function getActiveRoute(user = null) {
   const hash = window.location.hash.toLowerCase().replace('#', '').trim();
@@ -126,6 +147,7 @@ function getActiveRoute(user = null) {
 
 export async function renderBackoffice() {
   if (!appRoot) return;
+  const seq = ++renderSequence;
 
   // Liberación preventiva obligatoria de hardware (cámara) al navegar entre vistas
   try {
@@ -135,9 +157,11 @@ export async function renderBackoffice() {
   // 1. Guard de Autenticación Estricto
   const currentUser = authService.getCurrentUser();
   if (!currentUser || !authService.isAuthenticated()) {
+    mountedShellUserKey = null;
+    alertasCargadas = false;
+    totalAlertasInventario = 0;
     appRoot.innerHTML = renderLoginPage();
     attachLoginListeners(async (user) => {
-      // Inicializar base de datos local y estado del Backoffice tras autenticar
       await abrirBaseDeDatos().catch(() => {});
       await backofficeStore.ensureInitialized(true);
       window.location.hash = '#agenda';
@@ -147,6 +171,7 @@ export async function renderBackoffice() {
   }
 
   await backofficeStore.ensureInitialized();
+  if (seq !== renderSequence) return;
 
   const currentRoute = getActiveRoute(currentUser);
   const currentRole = currentUser.rol || 'barbero';
@@ -155,20 +180,19 @@ export async function renderBackoffice() {
   // 2. Guard de Ruta Desconocida (404)
   if (!routeConfig) {
     renderWithLayout(currentRoute, currentUser, renderNotFoundPage({ route: currentRoute }));
-    attachBackofficeCommonListeners();
     return;
   }
 
   // 3. Guard de Permisos RBAC Declarativo (403)
   if (!routeConfig.roles.includes(currentRole)) {
     renderWithLayout(currentRoute, currentUser, renderForbiddenPage({ role: currentRole, requestedRoute: currentRoute }));
-    attachBackofficeCommonListeners();
     return;
   }
 
-  // 4. Cargar alertas de reposición si es Administrador
+  // 4. Cargar alertas de reposición una sola vez por sesión (se invalida al mutar inventario)
   try {
-    if (totalAlertasInventario === 0 && currentRole === 'administrador' && navigator.onLine) {
+    if (!alertasCargadas && currentRole === 'administrador' && navigator.onLine) {
+      alertasCargadas = true;
       const alertasRes = await inventarioService.getAlertas();
       if (alertasRes?.data) {
         totalAlertasInventario = alertasRes.data.totalAlertas || 0;
@@ -176,27 +200,62 @@ export async function renderBackoffice() {
     }
   } catch (_) {}
 
-  // 5. Pre-carga de datos desacoplada según el descriptor de ruta
+  // 5. Carga diferida del módulo de vista + pre-carga de datos
+  const routeModule = await loadRouteModule(routeConfig);
+  if (seq !== renderSequence) return;
+
   try {
     if (routeConfig.loader) {
-      await routeConfig.loader(currentUser);
+      await routeConfig.loader(currentUser, routeModule);
     }
   } catch (err) {
     console.warn(`⚠️ Precarga de datos para '${currentRoute}' delegada a caché/offline:`, err.message);
   }
+  if (seq !== renderSequence) return;
 
-  // 6. Renderizar Layout con la vista activa y listeners
-  const viewHtml = routeConfig.render(currentUser);
+  // 6. Actualizar únicamente #backoffice-main-content si el App Shell ya está montado
+  const viewHtml = routeConfig.render(currentUser, routeModule);
   renderWithLayout(currentRoute, currentUser, viewHtml);
-  attachBackofficeCommonListeners();
   if (routeConfig.attachListeners) {
-    routeConfig.attachListeners(() => renderBackoffice(), currentUser);
+    routeConfig.attachListeners(() => scheduleBackofficeRefresh(), currentUser, routeModule);
   }
   actualizarPillConectividad();
   sincronizarBotonInstalacion();
 }
 
+function actualizarSidebarActiva(activeRoute) {
+  const sidebar = document.getElementById('backoffice-sidebar');
+  if (!sidebar) return;
+
+  sidebar.querySelectorAll('a[data-route]').forEach((link) => {
+    const isActive = link.getAttribute('data-route') === activeRoute;
+    link.setAttribute('aria-current', isActive ? 'page' : 'false');
+    link.className = `flex items-center justify-between h-[44px] px-3 rounded-lg transition-all duration-150 font-sans text-sm font-medium ${
+      isActive
+        ? 'bg-[#2A2A2A] text-[#F2EBDD] border-l-[3px] border-[#7BA3D4] font-semibold'
+        : 'text-[#BDB4A5] hover:bg-[#2A2A2A] hover:text-[#F2EBDD]'
+    }`;
+    const icon = link.querySelector('.material-symbols-outlined');
+    if (icon) {
+      icon.classList.toggle('text-[#7BA3D4]', isActive);
+      icon.classList.toggle('text-[#BDB4A5]', !isActive);
+    }
+  });
+}
+
 function renderWithLayout(activeRoute, user, contentHtml) {
+  const userKey = `${user.id || user.correo}:${user.rol || 'barbero'}`;
+  const mainContainer = document.getElementById('backoffice-main-content');
+
+  // App Shell persistente: evita destruir Sidebar, Header y <dialog> al navegar entre vistas
+  if (mountedShellUserKey === userKey && mainContainer) {
+    mainContainer.innerHTML = contentHtml;
+    actualizarSidebarActiva(activeRoute);
+    return;
+  }
+
+  mountedShellUserKey = userKey;
+
   const userInitials = (user.nombreCompleto || user.nombre || user.correo || 'AD')
     .split(' ')
     .map((w) => w[0])
@@ -234,7 +293,7 @@ function renderWithLayout(activeRoute, user, contentHtml) {
         })}
 
         <!-- Main Content -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
+        <main id="backoffice-main-content" class="flex-1 p-4 sm:p-6 lg:p-8 max-w-[1600px] w-full mx-auto">
           ${contentHtml}
         </main>
       </div>
@@ -264,6 +323,8 @@ function renderWithLayout(activeRoute, user, contentHtml) {
       </dialog>
     </div>
   `;
+
+  attachBackofficeCommonListeners();
 }
 
 /**
@@ -405,6 +466,9 @@ function attachBackofficeCommonListeners() {
     logoutBtn.addEventListener('click', async () => {
       await authService.logout();
       backofficeStore.reset();
+      mountedShellUserKey = null;
+      alertasCargadas = false;
+      totalAlertasInventario = 0;
       await limpiarDatosLocales().catch(() => {});
       window.location.hash = '';
       renderBackoffice();
@@ -609,14 +673,16 @@ function attachBackofficeCommonListeners() {
 // Escuchadores globales de eventos PWA y Reactividad en Vivo
 window.addEventListener('smartbarber:outbox-updated', async () => {
   await actualizarPillConectividad();
-  // Al sincronizar operaciones offline pendientes, refrescar la vista activa
-  renderBackoffice();
+  scheduleBackofficeRefresh();
 });
 window.addEventListener('smartbarber:connectivity-changed', actualizarPillConectividad);
 window.addEventListener('hashchange', renderBackoffice);
 
 // Suscripción al bus de mutación de datos para actualización reactiva instantánea
 onDataMutation(async (detail) => {
+  if (detail.entity === 'inventario') {
+    alertasCargadas = false;
+  }
   const user = authService.getCurrentUser();
   const currentRoute = getActiveRoute(user);
   if (
@@ -624,7 +690,7 @@ onDataMutation(async (detail) => {
     (detail.entity === 'cortes' && (currentRoute === 'cortes' || currentRoute === 'agenda')) ||
     (detail.entity === 'inventario' && (currentRoute === 'inventario' || currentRoute === 'agenda' || currentRoute === 'cortes'))
   ) {
-    renderBackoffice();
+    scheduleBackofficeRefresh();
   }
 });
 

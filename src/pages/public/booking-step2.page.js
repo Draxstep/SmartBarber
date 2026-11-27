@@ -45,6 +45,10 @@ export function renderBookingStep2() {
                 <img
                   src="${barber.foto}"
                   alt="${barber.nombre}"
+                  width="48"
+                  height="48"
+                  loading="lazy"
+                  decoding="async"
                   class="w-12 h-12 rounded-full object-cover border-2 border-[#1F3A5F] shrink-0 shadow-2xs"
                 />
                 <div class="flex flex-col min-w-0">

@@ -37,23 +37,84 @@ export async function loadBarberosData() {
   }
 }
 
-export function renderBarberosPage() {
-  const selectedBarber = cachedBarberos.find(b => b.id === selectedBarberId) || cachedBarberos[0] || {};
-
-  // Filtrado de la lista maestra
-  let filteredBarbers = [...cachedBarberos];
+function getFilteredBarbersList() {
+  let list = [...cachedBarberos];
   if (listFilter === 'activos') {
-    filteredBarbers = filteredBarbers.filter(b => b.activo !== false);
+    list = list.filter(b => b.activo !== false);
   }
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
-    filteredBarbers = filteredBarbers.filter(b =>
+    list = list.filter(b =>
       b.nombre.toLowerCase().includes(q) ||
       (b.especialidad && b.especialidad.toLowerCase().includes(q)) ||
       (b.sillon && b.sillon.toLowerCase().includes(q))
     );
   }
+  return list;
+}
 
+function renderBarberListItems(filteredBarbers) {
+  return filteredBarbers.map(barb => {
+    const isSelected = barb.id === selectedBarberId;
+    const isActivo = barb.activo !== false;
+    return `
+      <article
+        role="option"
+        tabindex="0"
+        data-barber-id="${barb.id}"
+        aria-selected="${isSelected ? 'true' : 'false'}"
+        class="barber-card-item flex flex-col gap-2 p-3.5 rounded-xl cursor-pointer transition-all duration-150 focus:outline-none border ${
+          isSelected
+            ? 'bg-[#E4ECF5] border-[#1F3A5F] ring-2 ring-[#1F3A5F]/20 shadow-xs'
+            : isActivo
+              ? 'bg-white border-[#D5CBB8] hover:bg-[#FAF3E5]'
+              : 'bg-[#FAF3E5] opacity-75 border-[#D5CBB8] hover:opacity-100'
+        }"
+      >
+        <div class="flex items-center gap-3">
+          <div class="relative shrink-0">
+            <img
+              src="${barb.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80&fm=webp'}"
+              alt="${barb.nombre}"
+              width="44"
+              height="44"
+              loading="lazy"
+              decoding="async"
+              class="w-11 h-11 rounded-full object-cover border border-[#8C8272] ${isActivo ? '' : 'grayscale'}"
+            />
+            <span
+              class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${isActivo ? 'bg-[#235D3A]' : 'bg-[#8C8272]'} border-2 border-white"
+              title="${isActivo ? 'En turno activo' : 'Inactivo'}"
+            ></span>
+          </div>
+          <div class="flex flex-col min-w-0">
+            <span class="font-sans font-semibold text-xs text-[#1C1C1C] truncate">${barb.nombre}</span>
+            <span class="text-[11px] text-[#4F4A42] truncate">${barb.sillon || 'Sillón'} · ${barb.especialidad?.split('·')[0] || 'Barbero'}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1 border-t border-[#D5CBB8]/50">
+          ${isActivo ? `
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] text-[11px] font-semibold">
+              <span class="material-symbols-outlined text-[13px]">check_circle</span>
+              <span>Activo</span>
+            </span>
+          ` : `
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8DFCE] text-[#4F4A42] text-[11px] font-semibold">
+              <span class="material-symbols-outlined text-[13px]">do_not_disturb_on</span>
+              <span>Inactivo</span>
+            </span>
+          `}
+          <span class="font-mono text-xs text-[#4F4A42] font-medium">Comisión: ${barb.comisionPorcentaje || 50}%</span>
+        </div>
+      </article>
+    `;
+  }).join('');
+}
+
+export function renderBarberosPage() {
+  const selectedBarber = cachedBarberos.find(b => b.id === selectedBarberId) || cachedBarberos[0] || {};
+  const filteredBarbers = getFilteredBarbersList();
   const activeCount = cachedBarberos.filter(b => b.activo !== false).length;
 
   return `
@@ -126,59 +187,8 @@ export function renderBarberosPage() {
           </div>
 
           <!-- Tarjetas de Barberos -->
-          <div class="flex flex-col gap-2.5 mt-1" role="listbox">
-            ${filteredBarbers.map(barb => {
-              const isSelected = barb.id === selectedBarberId;
-              const isActivo = barb.activo !== false;
-              return `
-                <article
-                  role="option"
-                  tabindex="0"
-                  data-barber-id="${barb.id}"
-                  aria-selected="${isSelected ? 'true' : 'false'}"
-                  class="barber-card-item flex flex-col gap-2 p-3.5 rounded-xl cursor-pointer transition-all duration-150 focus:outline-none border ${
-                    isSelected
-                      ? 'bg-[#E4ECF5] border-[#1F3A5F] ring-2 ring-[#1F3A5F]/20 shadow-xs'
-                      : isActivo
-                        ? 'bg-white border-[#D5CBB8] hover:bg-[#FAF3E5]'
-                        : 'bg-[#FAF3E5] opacity-75 border-[#D5CBB8] hover:opacity-100'
-                  }"
-                >
-                  <div class="flex items-center gap-3">
-                    <div class="relative shrink-0">
-                      <img
-                        src="${barb.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'}"
-                        alt="${barb.nombre}"
-                        class="w-11 h-11 rounded-full object-cover border border-[#8C8272] ${isActivo ? '' : 'grayscale'}"
-                      />
-                      <span
-                        class="absolute bottom-0 right-0 w-3 h-3 rounded-full ${isActivo ? 'bg-[#235D3A]' : 'bg-[#8C8272]'} border-2 border-white"
-                        title="${isActivo ? 'En turno activo' : 'Inactivo'}"
-                      ></span>
-                    </div>
-                    <div class="flex flex-col min-w-0">
-                      <span class="font-sans font-semibold text-xs text-[#1C1C1C] truncate">${barb.nombre}</span>
-                      <span class="text-[11px] text-[#4F4A42] truncate">${barb.sillon || 'Sillón'} · ${barb.especialidad?.split('·')[0] || 'Barbero'}</span>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center justify-between pt-1 border-t border-[#D5CBB8]/50">
-                    ${isActivo ? `
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E3EFE7] text-[#235D3A] text-[11px] font-semibold">
-                        <span class="material-symbols-outlined text-[13px]">check_circle</span>
-                        <span>Activo</span>
-                      </span>
-                    ` : `
-                      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#E8DFCE] text-[#4F4A42] text-[11px] font-semibold">
-                        <span class="material-symbols-outlined text-[13px]">do_not_disturb_on</span>
-                        <span>Inactivo</span>
-                      </span>
-                    `}
-                    <span class="font-mono text-xs text-[#4F4A42] font-medium">Comisión: ${barb.comisionPorcentaje || 50}%</span>
-                  </div>
-                </article>
-              `;
-            }).join('')}
+          <div id="barbers-list-container" class="flex flex-col gap-2.5 mt-1" role="listbox">
+            ${renderBarberListItems(filteredBarbers)}
           </div>
         </aside>
 
@@ -189,8 +199,11 @@ export function renderBarberosPage() {
             <div class="flex items-start gap-4">
               <div class="relative shrink-0">
                 <img
-                  src="${selectedBarber.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80'}"
+                  src="${selectedBarber.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80&fm=webp'}"
                   alt="${selectedBarber.nombre}"
+                  width="64"
+                  height="64"
+                  decoding="async"
                   class="w-16 h-16 rounded-full object-cover border-2 border-[#D5CBB8] ${selectedBarber.activo !== false ? '' : 'grayscale'}"
                 />
                 <span
@@ -1018,10 +1031,12 @@ export function attachBarberosListeners(onDataChange) {
   let newBarbPhotoBase64 = null;
   let editBarbPhotoBase64 = null;
 
-  // 1. Selección de barbero en lista maestra
-  const barberCards = document.querySelectorAll('.barber-card-item');
-  barberCards.forEach(card => {
-    card.addEventListener('click', async () => {
+  // 1. Selección de barbero en lista maestra (delegación)
+  const listContainer = document.getElementById('barbers-list-container');
+  if (listContainer) {
+    listContainer.addEventListener('click', async (e) => {
+      const card = e.target.closest?.('.barber-card-item');
+      if (!card) return;
       cameraService.stopAllCameras();
       const id = card.getAttribute('data-barber-id');
       if (id && id !== selectedBarberId) {
@@ -1030,35 +1045,56 @@ export function attachBarberosListeners(onDataChange) {
         if (typeof onDataChange === 'function') onDataChange();
       }
     });
-  });
+  }
 
-  // 2. Buscador de barberos
+  const updateBarbersListGranular = () => {
+    if (listContainer) {
+      listContainer.innerHTML = renderBarberListItems(getFilteredBarbersList());
+    }
+  };
+
+  // 2. Buscador de barberos (granular, cero re-fetch y conserva foco)
   const searchInput = document.getElementById('barber-search-input');
   if (searchInput) {
     let timeout;
     searchInput.addEventListener('input', (e) => {
       clearTimeout(timeout);
-      timeout = setTimeout(async () => {
+      timeout = setTimeout(() => {
         searchQuery = e.target.value.trim();
-        if (typeof onDataChange === 'function') onDataChange();
-      }, 200);
+        updateBarbersListGranular();
+      }, 180);
     });
   }
 
-  // 3. Filtro Todos / Activos
+  // 3. Filtro Todos / Activos (granular)
   const btnAll = document.getElementById('btn-filter-barbers-all');
   const btnActive = document.getElementById('btn-filter-barbers-active');
+
+  const syncFilterButtons = () => {
+    if (btnAll) {
+      btnAll.className = `flex-1 py-1.5 px-2 text-center rounded text-xs transition-colors ${
+        listFilter === 'todos' ? 'bg-[#FAF7F2] text-[#1C1C1C] font-bold shadow-xs' : 'text-[#4F4A42] hover:text-[#1C1C1C]'
+      }`;
+    }
+    if (btnActive) {
+      btnActive.className = `flex-1 py-1.5 px-2 text-center rounded text-xs transition-all ${
+        listFilter === 'activos' ? 'bg-[#FAF7F2] text-[#1C1C1C] font-bold shadow-xs' : 'text-[#4F4A42] hover:text-[#1C1C1C]'
+      }`;
+    }
+  };
 
   if (btnAll) {
     btnAll.addEventListener('click', () => {
       listFilter = 'todos';
-      if (typeof onDataChange === 'function') onDataChange();
+      syncFilterButtons();
+      updateBarbersListGranular();
     });
   }
   if (btnActive) {
     btnActive.addEventListener('click', () => {
       listFilter = 'activos';
-      if (typeof onDataChange === 'function') onDataChange();
+      syncFilterButtons();
+      updateBarbersListGranular();
     });
   }
 

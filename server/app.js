@@ -4,6 +4,7 @@
  */
 import express from 'express';
 import cors from 'cors';
+import compression from 'compression';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
@@ -19,6 +20,9 @@ const distPath = path.resolve(__dirname, '../dist');
 
 export const app = express();
 
+// Compresión HTTP (Gzip/Brotli según negociación del cliente)
+app.use(compression());
+
 // Middlewares base de seguridad y parsing
 app.use(
   cors({
@@ -29,12 +33,20 @@ app.use(
 app.use(express.json({ limit: '5mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Servir directorio de archivos subidos (avatares de barberos, etc.)
+// Servir directorio de archivos subidos (avatares de barberos, etc.) con caché controlada
 const uploadsPath = path.resolve(__dirname, '../public/uploads');
 if (!fs.existsSync(uploadsPath)) {
   fs.mkdirSync(uploadsPath, { recursive: true });
 }
-app.use('/uploads', express.static(uploadsPath));
+app.use(
+  '/uploads',
+  express.static(uploadsPath, {
+    maxAge: '7d',
+    setHeaders: (res) => {
+      res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+    }
+  })
+);
 
 // Endpoint de salud del sistema (RNF-13)
 app.get('/api/health', async (req, res) => {
@@ -72,8 +84,22 @@ if (fs.existsSync(distPath)) {
     next();
   });
 
-  // 2. Archivos estáticos de dist (JS, CSS, imágenes, manifiesto, iconos, librerías)
-  app.use(express.static(distPath, { index: false }));
+  // 2. Archivos estáticos de dist con políticas diferenciadas de caché HTTP
+  app.use(
+    express.static(distPath, {
+      index: false,
+      setHeaders: (res, filePath) => {
+        const normalized = filePath.replace(/\\/g, '/');
+        if (normalized.includes('/assets/')) {
+          res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        } else if (normalized.includes('/icons/') || normalized.includes('/lib/')) {
+          res.setHeader('Cache-Control', 'public, max-age=604800, stale-while-revalidate=86400');
+        } else if (normalized.endsWith('.html') || normalized.endsWith('manifest.json')) {
+          res.setHeader('Cache-Control', 'no-cache');
+        }
+      }
+    })
+  );
 
   // 3. Rutas directas a las vistas HTML
   app.get('/backoffice', (req, res) => res.sendFile(path.join(distPath, 'backoffice.html')));
@@ -83,9 +109,12 @@ if (fs.existsSync(distPath)) {
   app.get('/offline.html', (req, res) => res.sendFile(path.join(distPath, 'offline.html')));
   app.get('/', (req, res) => res.sendFile(path.join(distPath, 'index.html')));
 
-  // 4. Fallback SPA para rutas que no correspondan a la API
+  // 4. Fallback SPA exclusivamente para rutas de navegación (nunca para assets o archivos faltantes)
+  const STATIC_PREFIXES = ['/api', '/assets/', '/uploads/', '/icons/', '/lib/', '/js/'];
   app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api')) {
+    const hasFileExtension = /\.[a-z0-9]{1,8}$/i.test(req.path);
+    const isStaticPath = STATIC_PREFIXES.some((prefix) => req.path.startsWith(prefix));
+    if (isStaticPath || hasFileExtension || !req.accepts('html')) {
       return next();
     }
     if (req.path.startsWith('/backoffice')) {

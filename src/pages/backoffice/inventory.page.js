@@ -15,6 +15,150 @@ import { openDialog } from '../../components/ui-dialog.js';
 
 let cachedKardexMovements = [];
 
+function renderInventoryRows(products, isBarbero) {
+  if (products.length === 0) {
+    return `
+      <tr>
+        <td colspan="${isBarbero ? 7 : 8}" class="py-12 text-center text-[#6B645A]">
+          <div class="flex flex-col items-center gap-2">
+            <span class="material-symbols-outlined text-[32px] text-[#8C8272]">inventory_2</span>
+            <p class="font-medium text-sm">No se encontraron productos con el filtro aplicado.</p>
+            <button id="btn-reset-inv-filter" type="button" class="text-xs font-semibold text-[#1F3A5F] hover:underline">
+              Limpiar búsqueda y filtros
+            </button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+
+  return products.map(p => {
+    const stock = p.stockActual ?? 0;
+    const min = p.stockMinimo ?? 0;
+    const isArchived = p.estado === 'inactivo';
+    let statusBadge;
+    if (isArchived) {
+      statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8DFCE] text-[#6B645A] border border-[#D5CBB8]">Archivado</span>`;
+    } else if (stock === 0) {
+      statusBadge = renderStatusBadge('agotado', { customLabel: 'Agotado', size: 'sm' });
+    } else if (stock <= min) {
+      statusBadge = renderStatusBadge('stock_bajo', { customLabel: 'Bajo', size: 'sm' });
+    } else {
+      statusBadge = renderStatusBadge('disponible', { customLabel: 'Óptimo', size: 'sm' });
+    }
+
+    return `
+      <tr class="hover:bg-[#FAF3E5] transition-colors ${isArchived ? 'bg-[#FAF7F2]/60 opacity-80' : 'bg-white'}">
+        <td class="py-3 px-4 font-mono font-bold text-xs ${isArchived ? 'text-[#8C8272]' : 'text-[#1F3A5F]'}">
+          ${p.sku}
+        </td>
+        <td class="py-3 px-4">
+          <div class="font-sans font-bold text-xs text-[#1C1C1C]">${p.nombre}</div>
+          ${!isBarbero ? `
+            <div class="text-[10px] text-[#6B645A] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
+          ` : ''}
+        </td>
+        <td class="py-3 px-4 text-[#4F4A42]">
+          <span class="bg-[#E8DFCE]/50 px-2 py-0.5 rounded text-[11px] font-medium border border-[#D5CBB8]/40">
+            ${p.categoria}
+          </span>
+        </td>
+        <td class="py-3 px-4 text-center font-mono font-bold text-sm ${isArchived ? 'text-[#8C8272]' : stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
+          ${stock}
+        </td>
+        ${!isBarbero ? `
+          <td class="py-3 px-4 text-center font-mono text-xs text-[#6B645A]">
+            ${min}
+          </td>
+        ` : ''}
+        <td class="py-3 px-4 text-right font-mono font-bold text-xs text-[#1C1C1C] tabular-nums">
+          ${formatCOP(p.precioVenta)}
+        </td>
+        <td class="py-3 px-4 text-center">
+          ${statusBadge}
+        </td>
+        <td class="py-3 px-4 text-right">
+          ${isBarbero ? `
+            ${stock > 0 ? `
+              <button
+                type="button"
+                data-quick-sell="${p.sku}"
+                class="min-h-[36px] px-3 py-1 rounded-md bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs"
+                title="Vender ${p.nombre}"
+              >
+                <span class="material-symbols-outlined text-[15px]">point_of_sale</span>
+                <span>Vender</span>
+              </button>
+            ` : `
+              <span class="text-[11px] text-[#B3261E] font-medium font-sans">Agotado</span>
+            `}
+          ` : `
+            <div class="inline-flex items-center justify-end gap-1">
+              ${isArchived ? `
+                <button
+                  type="button"
+                  data-reactivate-product="${p.productoId || p.id}"
+                  class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                  title="Reactivar producto"
+                  aria-label="Reactivar producto ${p.nombre}"
+                >
+                  <span class="material-symbols-outlined text-[18px]">unarchive</span>
+                </button>
+                <button
+                  type="button"
+                  data-edit-product="${p.productoId || p.id}"
+                  class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
+                  title="Editar producto"
+                  aria-label="Editar producto ${p.nombre}"
+                >
+                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                </button>
+              ` : `
+                <button
+                  type="button"
+                  data-quick-entry="${p.sku}"
+                  class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
+                  title="Entrada de reposición"
+                  aria-label="Entrada de reposición para ${p.nombre}"
+                >
+                  <span class="material-symbols-outlined text-[18px]">add_circle</span>
+                </button>
+                <button
+                  type="button"
+                  data-quick-exit="${p.sku}"
+                  class="p-1.5 rounded-md text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
+                  title="Descontar stock / Venta"
+                  aria-label="Descontar stock para ${p.nombre}"
+                >
+                  <span class="material-symbols-outlined text-[18px]">remove_circle</span>
+                </button>
+                <button
+                  type="button"
+                  data-edit-product="${p.productoId || p.id}"
+                  class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
+                  title="Editar ficha del producto"
+                  aria-label="Editar ficha de ${p.nombre}"
+                >
+                  <span class="material-symbols-outlined text-[18px]">edit</span>
+                </button>
+                <button
+                  type="button"
+                  data-deactivate-product="${p.productoId || p.id}"
+                  class="p-1.5 rounded-md text-[#8C8272] hover:text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
+                  title="Archivar producto (Desactivar)"
+                  aria-label="Archivar producto ${p.nombre}"
+                >
+                  <span class="material-symbols-outlined text-[18px]">archive</span>
+                </button>
+              `}
+            </div>
+          `}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
 export async function loadInventoryKardexData(userRole = 'administrador') {
   try {
     const isBarbero = userRole === 'barbero';
@@ -249,150 +393,14 @@ export function renderInventoryPage(options = {}) {
                 <th class="py-3 px-4 font-semibold text-right min-w-[140px]">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
-              ${products.length === 0 ? `
-                <tr>
-                  <td colspan="${isBarbero ? 7 : 8}" class="py-12 text-center text-[#6B645A]">
-                    <div class="flex flex-col items-center gap-2">
-                      <span class="material-symbols-outlined text-[32px] text-[#8C8272]">inventory_2</span>
-                      <p class="font-medium text-sm">No se encontraron productos con el filtro aplicado.</p>
-                      <button id="btn-reset-inv-filter" type="button" class="text-xs font-semibold text-[#1F3A5F] hover:underline">
-                        Limpiar búsqueda y filtros
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ` : products.map(p => {
-                const stock = p.stockActual ?? 0;
-                const min = p.stockMinimo ?? 0;
-                const isArchived = p.estado === 'inactivo';
-                let statusBadge;
-                if (isArchived) {
-                  statusBadge = `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#E8DFCE] text-[#6B645A] border border-[#D5CBB8]">Archivado</span>`;
-                } else if (stock === 0) {
-                  statusBadge = renderStatusBadge('agotado', { customLabel: 'Agotado', size: 'sm' });
-                } else if (stock <= min) {
-                  statusBadge = renderStatusBadge('stock_bajo', { customLabel: 'Bajo', size: 'sm' });
-                } else {
-                  statusBadge = renderStatusBadge('disponible', { customLabel: 'Óptimo', size: 'sm' });
-                }
-
-                return `
-                  <tr class="hover:bg-[#FAF3E5] transition-colors ${isArchived ? 'bg-[#FAF7F2]/60 opacity-80' : 'bg-white'}">
-                    <td class="py-3 px-4 font-mono font-bold text-xs ${isArchived ? 'text-[#8C8272]' : 'text-[#1F3A5F]'}">
-                      ${p.sku}
-                    </td>
-                    <td class="py-3 px-4">
-                      <div class="font-sans font-bold text-xs text-[#1C1C1C]">${p.nombre}</div>
-                      ${!isBarbero ? `
-                        <div class="text-[10px] text-[#6B645A] font-mono mt-0.5">Costo: ${formatCOP(p.costoUnitario || 0)}</div>
-                      ` : ''}
-                    </td>
-                    <td class="py-3 px-4 text-[#4F4A42]">
-                      <span class="bg-[#E8DFCE]/50 px-2 py-0.5 rounded text-[11px] font-medium border border-[#D5CBB8]/40">
-                        ${p.categoria}
-                      </span>
-                    </td>
-                    <td class="py-3 px-4 text-center font-mono font-bold text-sm ${isArchived ? 'text-[#8C8272]' : stock === 0 ? 'text-[#B3261E]' : stock <= min ? 'text-[#8A5300]' : 'text-[#1C1C1C]'}">
-                      ${stock}
-                    </td>
-                    ${!isBarbero ? `
-                      <td class="py-3 px-4 text-center font-mono text-xs text-[#6B645A]">
-                        ${min}
-                      </td>
-                    ` : ''}
-                    <td class="py-3 px-4 text-right font-mono font-bold text-xs text-[#1C1C1C] tabular-nums">
-                      ${formatCOP(p.precioVenta)}
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                      ${statusBadge}
-                    </td>
-                    <td class="py-3 px-4 text-right">
-                      ${isBarbero ? `
-                        ${stock > 0 ? `
-                          <button
-                            type="button"
-                            data-quick-sell="${p.sku}"
-                            class="min-h-[36px] px-3 py-1 rounded-md bg-[#235D3A] hover:bg-[#1a472c] text-white font-semibold text-xs transition-all inline-flex items-center gap-1 active:scale-95 shadow-xs"
-                            title="Vender ${p.nombre}"
-                          >
-                            <span class="material-symbols-outlined text-[15px]">point_of_sale</span>
-                            <span>Vender</span>
-                          </button>
-                        ` : `
-                          <span class="text-[11px] text-[#B3261E] font-medium font-sans">Agotado</span>
-                        `}
-                      ` : `
-                        <div class="inline-flex items-center justify-end gap-1">
-                          ${isArchived ? `
-                            <button
-                              type="button"
-                              data-reactivate-product="${p.productoId || p.id}"
-                              class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
-                              title="Reactivar producto"
-                              aria-label="Reactivar producto ${p.nombre}"
-                            >
-                              <span class="material-symbols-outlined text-[18px]">unarchive</span>
-                            </button>
-                            <button
-                              type="button"
-                              data-edit-product="${p.productoId || p.id}"
-                              class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
-                              title="Editar producto"
-                              aria-label="Editar producto ${p.nombre}"
-                            >
-                              <span class="material-symbols-outlined text-[18px]">edit</span>
-                            </button>
-                          ` : `
-                            <button
-                              type="button"
-                              data-quick-entry="${p.sku}"
-                              class="p-1.5 rounded-md text-[#235D3A] hover:bg-[#E3EFE7] transition-colors"
-                              title="Entrada de reposición"
-                              aria-label="Entrada de reposición para ${p.nombre}"
-                            >
-                              <span class="material-symbols-outlined text-[18px]">add_circle</span>
-                            </button>
-                            <button
-                              type="button"
-                              data-quick-exit="${p.sku}"
-                              class="p-1.5 rounded-md text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
-                              title="Descontar stock / Venta"
-                              aria-label="Descontar stock para ${p.nombre}"
-                            >
-                              <span class="material-symbols-outlined text-[18px]">remove_circle</span>
-                            </button>
-                            <button
-                              type="button"
-                              data-edit-product="${p.productoId || p.id}"
-                              class="p-1.5 rounded-md text-[#1F3A5F] hover:bg-[#E4ECF5] transition-colors"
-                              title="Editar ficha del producto"
-                              aria-label="Editar ficha de ${p.nombre}"
-                            >
-                              <span class="material-symbols-outlined text-[18px]">edit</span>
-                            </button>
-                            <button
-                              type="button"
-                              data-deactivate-product="${p.productoId || p.id}"
-                              class="p-1.5 rounded-md text-[#8C8272] hover:text-[#8B1E1E] hover:bg-[#FCE8E6] transition-colors"
-                              title="Archivar producto (Desactivar)"
-                              aria-label="Archivar producto ${p.nombre}"
-                            >
-                              <span class="material-symbols-outlined text-[18px]">archive</span>
-                            </button>
-                          `}
-                        </div>
-                      `}
-                    </td>
-                  </tr>
-                `;
-              }).join('')}
+            <tbody id="inv-table-body" class="divide-y divide-[#D5CBB8]/40 text-xs text-[#1C1C1C]">
+              ${renderInventoryRows(products, isBarbero)}
             </tbody>
           </table>
         </div>
 
         <div class="bg-[#E8DFCE] px-4 py-3 flex items-center justify-between text-xs text-[#4F4A42]">
-          <span>Mostrando <strong>${products.length}</strong> de <strong>${currentFilter === 'archivado' ? archivedProducts.length : activeProducts.length}</strong> referencias ${currentFilter === 'archivado' ? 'archivadas' : 'activas'}</span>
+          <span id="inv-footer-summary">Mostrando <strong>${products.length}</strong> de <strong>${currentFilter === 'archivado' ? archivedProducts.length : activeProducts.length}</strong> referencias ${currentFilter === 'archivado' ? 'archivadas' : 'activas'}</span>
           ${!isBarbero ? `<span class="font-mono text-[11px] text-[#6B645A]">Valoración total activa: ${formatCOP(totalValueCOP)}</span>` : ''}
         </div>
       </section>
@@ -514,7 +522,25 @@ export function renderInventoryPage(options = {}) {
 export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
   const isBarbero = userRole === 'barbero';
 
-  // Búsqueda reactiva
+  const updateInventoryTableGranular = () => {
+    const tbody = document.getElementById('inv-table-body');
+    const summaryEl = document.getElementById('inv-footer-summary');
+    const filtered = backofficeStore.getFilteredProducts();
+    const allProds = backofficeStore.products;
+    const currentFilter = backofficeStore.inventoryStatusFilter;
+    const totalScope = currentFilter === 'archivado'
+      ? allProds.filter(p => p.estado === 'inactivo').length
+      : allProds.filter(p => p.estado !== 'inactivo').length;
+
+    if (tbody) {
+      tbody.innerHTML = renderInventoryRows(filtered, isBarbero);
+    }
+    if (summaryEl) {
+      summaryEl.innerHTML = `Mostrando <strong>${filtered.length}</strong> de <strong>${totalScope}</strong> referencias ${currentFilter === 'archivado' ? 'archivadas' : 'activas'}`;
+    }
+  };
+
+  // Búsqueda reactiva granular (cero re-fetch y conserva foco en el input)
   const searchInput = document.getElementById('inv-search-input');
   if (searchInput) {
     let timeout;
@@ -522,18 +548,24 @@ export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
       clearTimeout(timeout);
       timeout = setTimeout(() => {
         backofficeStore.inventorySearchQuery = e.target.value.trim();
-        onUpdate();
-      }, 250);
+        updateInventoryTableGranular();
+      }, 180);
     });
   }
 
-  // Filtros de estado (Pills)
+  // Filtros de estado (Pills) con actualización granular
   const filterBtns = document.querySelectorAll('.inv-filter-btn');
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const filter = btn.getAttribute('data-inv-filter');
       backofficeStore.inventoryStatusFilter = filter;
-      onUpdate();
+      filterBtns.forEach(b => {
+        const active = b.getAttribute('data-inv-filter') === filter;
+        b.className = `inv-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+          active ? 'bg-[#1F3A5F] text-white shadow-2xs' : 'bg-white border border-[#D5CBB8] text-[#4F4A42] hover:bg-[#FAF3E5]'
+        }`;
+      });
+      updateInventoryTableGranular();
     });
   });
 
@@ -549,16 +581,71 @@ export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
     btnConsumo.addEventListener('click', () => openStockExitModal(onUpdate, '', 'consumo_interno', userRole));
   }
 
-  // Venta rápida desde la fila de tabla (Barbero)
-  const sellBtns = document.querySelectorAll('button[data-quick-sell]');
-  sellBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sku = btn.getAttribute('data-quick-sell');
-      openStockExitModal(onUpdate, sku, 'venta_publico', userRole);
-    });
-  });
+  // Delegación única sobre #inv-table-body para acciones de fila y reset
+  const tableBody = document.getElementById('inv-table-body');
+  if (tableBody) {
+    tableBody.addEventListener('click', (e) => {
+      const resetBtn = e.target.closest?.('#btn-reset-inv-filter');
+      if (resetBtn) {
+        backofficeStore.inventorySearchQuery = '';
+        backofficeStore.inventoryStatusFilter = 'all';
+        if (searchInput) searchInput.value = '';
+        filterBtns.forEach(b => {
+          const active = b.getAttribute('data-inv-filter') === 'all';
+          b.className = `inv-filter-btn px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            active ? 'bg-[#1F3A5F] text-white shadow-2xs' : 'bg-white border border-[#D5CBB8] text-[#4F4A42] hover:bg-[#FAF3E5]'
+          }`;
+        });
+        updateInventoryTableGranular();
+        return;
+      }
 
-  // Acciones exclusivas del Administrador
+      const sellBtn = e.target.closest?.('button[data-quick-sell]');
+      if (sellBtn) {
+        openStockExitModal(onUpdate, sellBtn.getAttribute('data-quick-sell'), 'venta_publico', userRole);
+        return;
+      }
+
+      if (isBarbero) return;
+
+      const entryBtn = e.target.closest?.('button[data-quick-entry]');
+      if (entryBtn) {
+        openStockEntryModal(onUpdate, entryBtn.getAttribute('data-quick-entry'));
+        return;
+      }
+
+      const exitBtn = e.target.closest?.('button[data-quick-exit]');
+      if (exitBtn) {
+        openStockExitModal(onUpdate, exitBtn.getAttribute('data-quick-exit'), 'venta_publico', userRole);
+        return;
+      }
+
+      const editBtn = e.target.closest?.('button[data-edit-product]');
+      if (editBtn) {
+        const prodId = editBtn.getAttribute('data-edit-product');
+        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
+        if (product) openEditarProductoModal(product, onUpdate);
+        return;
+      }
+
+      const deactBtn = e.target.closest?.('button[data-deactivate-product]');
+      if (deactBtn) {
+        const prodId = deactBtn.getAttribute('data-deactivate-product');
+        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
+        if (product) confirmarDesactivarProducto(product, onUpdate);
+        return;
+      }
+
+      const reactBtn = e.target.closest?.('button[data-reactivate-product]');
+      if (reactBtn) {
+        const prodId = reactBtn.getAttribute('data-reactivate-product');
+        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
+        if (product) confirmarReactivarProducto(product, onUpdate);
+      }
+    });
+  }
+
+  // Acciones exclusivas del Administrador (cabecera y Kardex)
   if (!isBarbero) {
     const btnEntrada = document.getElementById('btn-inv-entrada');
     if (btnEntrada) {
@@ -594,59 +681,6 @@ export function attachInventoryListeners(onUpdate, userRole = 'administrador') {
         exportarKardexCSV(cachedKardexMovements);
       });
     }
-
-    const entryBtns = document.querySelectorAll('button[data-quick-entry]');
-    entryBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sku = btn.getAttribute('data-quick-entry');
-        openStockEntryModal(onUpdate, sku);
-      });
-    });
-
-    const exitBtns = document.querySelectorAll('button[data-quick-exit]');
-    exitBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const sku = btn.getAttribute('data-quick-exit');
-        openStockExitModal(onUpdate, sku, 'venta_publico', userRole);
-      });
-    });
-
-    const editBtns = document.querySelectorAll('button[data-edit-product]');
-    editBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const prodId = btn.getAttribute('data-edit-product');
-        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
-        if (product) openEditarProductoModal(product, onUpdate);
-      });
-    });
-
-    const deactivateBtns = document.querySelectorAll('button[data-deactivate-product]');
-    deactivateBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const prodId = btn.getAttribute('data-deactivate-product');
-        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
-        if (product) confirmarDesactivarProducto(product, onUpdate);
-      });
-    });
-
-    const reactivateBtns = document.querySelectorAll('button[data-reactivate-product]');
-    reactivateBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const prodId = btn.getAttribute('data-reactivate-product');
-        const product = backofficeStore.products.find(p => (p.productoId === prodId || p.id === prodId));
-        if (product) confirmarReactivarProducto(product, onUpdate);
-      });
-    });
-  }
-
-  // Restablecer filtros desde estado vacío
-  const btnReset = document.getElementById('btn-reset-inv-filter');
-  if (btnReset) {
-    btnReset.addEventListener('click', () => {
-      backofficeStore.inventorySearchQuery = '';
-      backofficeStore.inventoryStatusFilter = 'all';
-      onUpdate();
-    });
   }
 }
 

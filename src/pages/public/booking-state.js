@@ -56,7 +56,7 @@ class BookingStateStore {
             nombre: 'Cualquier barbero disponible',
             especialidad: 'Asignación automática más ágil',
             experiencia: 'Primer sillón disponible',
-            foto: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=120&auto=format&fit=crop&q=80'
+            foto: 'https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=120&auto=format&fit=crop&q=80&fm=webp'
           },
           ...barbRes.data
         ];

@@ -11,7 +11,7 @@ function normalizeBarbero(b, index = 0) {
   if (!b) return null;
   const id = b.barberoId || b.id;
   const nombre = b.nombrePublico || b.nombreCompleto || b.nombre;
-  const foto = b.fotoUrl || b.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80';
+  const foto = b.fotoUrl || b.foto || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80&fm=webp';
   const activo = b.estado ? b.estado === 'activo' : (b.activo ?? true);
 
   return {

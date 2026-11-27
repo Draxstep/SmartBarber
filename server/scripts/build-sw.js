@@ -26,15 +26,17 @@ async function buildServiceWorker() {
       'index.html',
       'backoffice.html',
       'offline.html',
-      'styleguide.html',
       'manifest.json',
       'assets/*.{css,js}',
       'icons/*.png'
     ],
     globIgnores: [
       'lib/**/*',
+      'js/**/*',
       'sw.js',
       'sw-propio.js',
+      'styleguide.html',
+      'assets/styleguide-*.js',
       'workbox-*.js'
     ],
     swSrc: path.join(rootDir, 'public/sw-propio.js'),

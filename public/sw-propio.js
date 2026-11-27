@@ -7,29 +7,106 @@ const { precacheAndRoute, cleanupOutdatedCaches } = workbox.precaching;
 const { registerRoute, setCatchHandler } = workbox.routing;
 const { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } = workbox.strategies;
 const { ExpirationPlugin } = workbox.expiration;
+const { CacheableResponsePlugin } = workbox.cacheableResponse;
+
+const CACHE_NAMES = {
+  IMAGENES: "smartbarber-imagenes-v2",
+  FUENTES: "smartbarber-fuentes-v2",
+  API: "smartbarber-api-v2",
+};
+
+const LEGACY_RUNTIME_CACHES = [
+  "smartbarber-imagenes",
+  "smartbarber-fuentes",
+  "smartbarber-api",
+];
+
+/**
+ * Plugin de presupuesto y validación estricta de caché (Cache Budget & MIME Safety):
+ * - Rechaza respuestas opacas (status 0 -> padding ~7MB en Chromium)
+ * - Valida Content-Type para evitar envenenamiento con HTML 200
+ * - Aplica límite máximo de bytes por entrada
+ */
+function createBudgetedCachePlugin({ allowedMimePrefixes = [], maxBytes = 512 * 1024 } = {}) {
+  return {
+    cacheWillUpdate: async ({ response }) => {
+      if (!response || response.status !== 200 || response.type === "opaque") {
+        return null;
+      }
+
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+      if (
+        allowedMimePrefixes.length > 0 &&
+        !allowedMimePrefixes.some((prefix) => contentType.startsWith(prefix))
+      ) {
+        return null;
+      }
+
+      const contentLengthHeader = response.headers.get("content-length");
+      if (contentLengthHeader) {
+        const bytes = Number(contentLengthHeader);
+        if (!Number.isNaN(bytes) && bytes > maxBytes) {
+          return null;
+        }
+      }
+
+      return response;
+    },
+  };
+}
 
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
 const isSameOrigin = (url) => url.origin === self.location.origin;
 
-// 1. Imágenes e íconos estáticos -> CacheFirst (LCP < 2.5s en 4G, RNF-01)
+// 1. Imágenes e íconos estáticos -> CacheFirst acotado (<= 512 KB/imagen, solo image/*)
 registerRoute(
   ({ url }) =>
     isSameOrigin(url) &&
     (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/uploads/barberos/")),
   new CacheFirst({
-    cacheName: "smartbarber-imagenes",
-    plugins: [new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 })],
+    cacheName: CACHE_NAMES.IMAGENES,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      createBudgetedCachePlugin({ allowedMimePrefixes: ["image/"], maxBytes: 512 * 1024 }),
+      new ExpirationPlugin({
+        maxEntries: 25,
+        maxAgeSeconds: 60 * 60 * 24 * 7,
+        purgeOnQuotaError: true,
+      }),
+    ],
   })
 );
 
-// 2. Fuentes de Google (Playfair Display, Inter, JetBrains Mono) -> StaleWhileRevalidate
+// 2. Fuentes de Google: CSS (StaleWhileRevalidate) y archivos .woff2 inmutables (CacheFirst), cero respuestas opacas
 registerRoute(
-  ({ url }) => url.origin === "https://fonts.googleapis.com" || url.origin === "https://fonts.gstatic.com",
+  ({ url }) => url.origin === "https://fonts.googleapis.com",
   new StaleWhileRevalidate({
-    cacheName: "smartbarber-fuentes",
-    plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 })],
+    cacheName: CACHE_NAMES.FUENTES,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({
+        maxEntries: 4,
+        maxAgeSeconds: 60 * 60 * 24 * 7,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  })
+);
+
+registerRoute(
+  ({ url }) => url.origin === "https://fonts.gstatic.com",
+  new CacheFirst({
+    cacheName: CACHE_NAMES.FUENTES,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({
+        maxEntries: 15,
+        maxAgeSeconds: 60 * 60 * 24 * 365,
+        purgeOnQuotaError: true,
+      }),
+    ],
   })
 );
 
@@ -43,7 +120,7 @@ registerRoute(
   new NetworkOnly()
 );
 
-// 4. Datos públicos Landing y lecturas GET del Backoffice -> NetworkFirst con fallback a caché
+// 4. Datos públicos Landing y lecturas GET del Backoffice -> NetworkFirst acotado (<= 256 KB, solo JSON)
 registerRoute(
   ({ url, request }) =>
     isSameOrigin(url) &&
@@ -53,9 +130,17 @@ registerRoute(
       url.pathname.startsWith("/api/v1/public/") ||
       url.pathname.startsWith("/api/v1/")),
   new NetworkFirst({
-    cacheName: "smartbarber-api",
+    cacheName: CACHE_NAMES.API,
     networkTimeoutSeconds: 4,
-    plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 })],
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      createBudgetedCachePlugin({ allowedMimePrefixes: ["application/json"], maxBytes: 256 * 1024 }),
+      new ExpirationPlugin({
+        maxEntries: 25,
+        maxAgeSeconds: 60 * 60 * 6,
+        purgeOnQuotaError: true,
+      }),
+    ],
   })
 );
 
@@ -92,7 +177,7 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "INVALIDATE_API_CACHE") {
     const pattern = event.data.pattern || "";
     event.waitUntil(
-      caches.open("smartbarber-api").then(async (cache) => {
+      caches.open(CACHE_NAMES.API).then(async (cache) => {
         const requests = await cache.keys();
         return Promise.all(
           requests.map((req) => {
@@ -107,7 +192,18 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Purgar cachés runtime legadas (incluidas respuestas opacas previas) y DB obsoleta
+      await Promise.all(LEGACY_RUNTIME_CACHES.map((name) => caches.delete(name)));
+      if (typeof indexedDB !== "undefined" && typeof indexedDB.deleteDatabase === "function") {
+        try {
+          indexedDB.deleteDatabase("SmartBarberDB");
+        } catch (_) {}
+      }
+      await self.clients.claim();
+    })()
+  );
 });
 
 // ============================================================================

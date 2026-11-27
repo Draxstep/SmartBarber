@@ -6,6 +6,8 @@
 
 let activeDrawer = null;
 let lastFocusedElement = null;
+let drawerFocusTimer = null;
+let drawerCleanupTimer = null;
 
 /**
  * Abre un panel deslizante (drawer).
@@ -121,7 +123,8 @@ export function openDrawer({
   activeDrawer.handleKeydown = handleKeydown;
 
   // Auto focus first interactive
-  setTimeout(() => {
+  clearTimeout(drawerFocusTimer);
+  drawerFocusTimer = setTimeout(() => {
     const firstInteractive = panel.querySelector('button, input, select');
     if (firstInteractive) firstInteractive.focus();
   }, 100);
@@ -135,6 +138,10 @@ export function openDrawer({
 export function closeDrawer() {
   if (!activeDrawer) return;
 
+  clearTimeout(drawerFocusTimer);
+  clearTimeout(drawerCleanupTimer);
+  drawerFocusTimer = null;
+
   const { backdrop, panel, onClose, handleKeydown } = activeDrawer;
 
   if (handleKeydown) {
@@ -144,9 +151,10 @@ export function closeDrawer() {
   backdrop.classList.remove('active');
   panel.classList.remove('active');
 
-  setTimeout(() => {
+  drawerCleanupTimer = setTimeout(() => {
     if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
     if (panel.parentNode) panel.parentNode.removeChild(panel);
+    drawerCleanupTimer = null;
   }, 280);
 
   if (typeof onClose === 'function') {

@@ -14,8 +14,10 @@ export function renderLoginPage({ error = '' } = {}) {
         <!-- Overlay sutil -->
         <div class="absolute inset-0 bg-gradient-to-t from-black via-[#1C1C1C]/90 to-[#1C1C1C]/80 z-10"></div>
         <img
-          src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=1200&auto=format&fit=crop&q=80"
+          src="https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=960&auto=format&fit=crop&q=75&fm=webp"
           alt="Barbería Tradicional"
+          loading="lazy"
+          decoding="async"
           class="absolute inset-0 w-full h-full object-cover object-center opacity-30 select-none pointer-events-none"
         />
 

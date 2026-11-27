@@ -7,29 +7,106 @@ const { precacheAndRoute, cleanupOutdatedCaches } = workbox.precaching;
 const { registerRoute, setCatchHandler } = workbox.routing;
 const { CacheFirst, NetworkFirst, NetworkOnly, StaleWhileRevalidate } = workbox.strategies;
 const { ExpirationPlugin } = workbox.expiration;
+const { CacheableResponsePlugin } = workbox.cacheableResponse;
+
+const CACHE_NAMES = {
+  IMAGENES: "smartbarber-imagenes-v2",
+  FUENTES: "smartbarber-fuentes-v2",
+  API: "smartbarber-api-v2",
+};
+
+const LEGACY_RUNTIME_CACHES = [
+  "smartbarber-imagenes",
+  "smartbarber-fuentes",
+  "smartbarber-api",
+];
+
+/**
+ * Plugin de presupuesto y validación estricta de caché (Cache Budget & MIME Safety):
+ * - Rechaza respuestas opacas (status 0 -> padding ~7MB en Chromium)
+ * - Valida Content-Type para evitar envenenamiento con HTML 200
+ * - Aplica límite máximo de bytes por entrada
+ */
+function createBudgetedCachePlugin({ allowedMimePrefixes = [], maxBytes = 512 * 1024 } = {}) {
+  return {
+    cacheWillUpdate: async ({ response }) => {
+      if (!response || response.status !== 200 || response.type === "opaque") {
+        return null;
+      }
+
+      const contentType = (response.headers.get("content-type") || "").toLowerCase();
+      if (
+        allowedMimePrefixes.length > 0 &&
+        !allowedMimePrefixes.some((prefix) => contentType.startsWith(prefix))
+      ) {
+        return null;
+      }
+
+      const contentLengthHeader = response.headers.get("content-length");
+      if (contentLengthHeader) {
+        const bytes = Number(contentLengthHeader);
+        if (!Number.isNaN(bytes) && bytes > maxBytes) {
+          return null;
+        }
+      }
+
+      return response;
+    },
+  };
+}
 
 cleanupOutdatedCaches();
-precacheAndRoute([{"revision":"690cca8f5eae5c2556bd340b1e1cb13a","url":"index.html"},{"revision":"52e33a74964363dab4ddaf820084cdcf","url":"backoffice.html"},{"revision":"255b94e36df3c246a4cb2a6e7359dddb","url":"offline.html"},{"revision":"e19b88249bfa466b73f19502f4429c87","url":"styleguide.html"},{"revision":"533693f93ee02c9aab40385831d3966f","url":"manifest.json"},{"revision":"5966c4e2ee0d6ce5f77a25c9691d2482","url":"assets/ui-dialog-SHD3U8Uv.css"},{"revision":"1e86c8c5428e522a24a00343a9f753cd","url":"assets/ui-dialog-CBBicmRh.js"},{"revision":"98cd3927a79f64ea5cd587c2dd315a69","url":"assets/styleguide-CvPewh-P.js"},{"revision":"e9dabe013743d4304e7da1cd450f7137","url":"assets/status-badge-CKGoXOPm.js"},{"revision":"21d5f32a290699c13931ae09bbf27805","url":"assets/install-prompt-BnHrRkDm.js"},{"revision":"d32520fce5ccb47e15ea75078e634486","url":"assets/index-CJHaGsCI.js"},{"revision":"63b475f0f4b7a21383737f15cefb56dd","url":"assets/booking-stepper-BRpuA3Wr.js"},{"revision":"1adc041006af3dab5ca602e0a37f645c","url":"assets/backoffice-o7uvuh2-.js"},{"revision":"4836ea148892c29f1730baa234c62fa9","url":"icons/launchericon-96x96.png"},{"revision":"e0e18106be09696cfc5480335f7de5a4","url":"icons/launchericon-72x72.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/launchericon-512x512.png"},{"revision":"63c48d1c5d163f4011b8b19f12589241","url":"icons/launchericon-48x48.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/launchericon-192x192.png"},{"revision":"50d689b81a1a1a22442665adda270877","url":"icons/launchericon-144x144.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/icon-512-maskable.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/icon-192.png"}]);
+precacheAndRoute([{"revision":"2c1338f922a4e6cea35464039e733f3e","url":"index.html"},{"revision":"65aa8f678078fd8b71bf4ecf60cb72a5","url":"backoffice.html"},{"revision":"6be0d148b3bea9cdca132df1687a456f","url":"offline.html"},{"revision":"533693f93ee02c9aab40385831d3966f","url":"manifest.json"},{"revision":"5966c4e2ee0d6ce5f77a25c9691d2482","url":"assets/ui-dialog-SHD3U8Uv.css"},{"revision":"1e86c8c5428e522a24a00343a9f753cd","url":"assets/ui-dialog-CBBicmRh.js"},{"revision":"21a8dfac5d88228dcb2dcb0dfede6689","url":"assets/status-badge-DqcH-nbp.js"},{"revision":"6410da0f98d0750e3ecb286619096dae","url":"assets/servicios.page-By80MBYY.js"},{"revision":"f55f8682d2c016e5c2876e6c463afe85","url":"assets/perfil.page-C6BpSXgW.js"},{"revision":"69145203225159db9d08960eea03145f","url":"assets/payment-method-selector-Dto3tvmO.js"},{"revision":"70ba8e1cbeeb02be5b687cbbff5541d2","url":"assets/kpi-card-CBQ3Wgtz.js"},{"revision":"2277e9a08387ebb00544ba278d918adf","url":"assets/inventory.page-9-nYOAEv.js"},{"revision":"73967757eea525948092aa994fdded9c","url":"assets/install-prompt-BRnHEe6M.js"},{"revision":"6057d489f2604645d069ac07276c823e","url":"assets/index-fWcLYcaR.js"},{"revision":"03c230930f62566586cff4d02697a9d4","url":"assets/dashboard.page-D7btOeqJ.js"},{"revision":"f62a0a6a0b29fab802172d190a3393da","url":"assets/cortes.page-BUTsU0dk.js"},{"revision":"9bc5dcd71eee847cfdfd7167575d1f79","url":"assets/configuracion.page-5LifcQjB.js"},{"revision":"def9d1ff35f03e48c751c931c0f2b3eb","url":"assets/comisiones.page-ClVXIIRD.js"},{"revision":"63b475f0f4b7a21383737f15cefb56dd","url":"assets/booking-stepper-BRpuA3Wr.js"},{"revision":"76848f2631fefca25f964ef4f149454b","url":"assets/barberos.page-M4KBy5Wf.js"},{"revision":"a0f1700bf9fd065c123e5ab199d178f4","url":"assets/backoffice-D75m2doU.js"},{"revision":"4c95a244ea1cf7735af679c651d2d9d7","url":"assets/agenda.page-CnBXHZ4E.js"},{"revision":"4836ea148892c29f1730baa234c62fa9","url":"icons/launchericon-96x96.png"},{"revision":"63c48d1c5d163f4011b8b19f12589241","url":"icons/launchericon-48x48.png"},{"revision":"50d689b81a1a1a22442665adda270877","url":"icons/launchericon-144x144.png"},{"revision":"42959a3e0244843d1adc7550888e7366","url":"icons/icon-512-maskable.png"},{"revision":"6981daf1e4a024a8ddf56f9a58fff3ed","url":"icons/icon-192.png"}]);
 
 const isSameOrigin = (url) => url.origin === self.location.origin;
 
-// 1. Imágenes e íconos estáticos -> CacheFirst (LCP < 2.5s en 4G, RNF-01)
+// 1. Imágenes e íconos estáticos -> CacheFirst acotado (<= 512 KB/imagen, solo image/*)
 registerRoute(
   ({ url }) =>
     isSameOrigin(url) &&
     (url.pathname.startsWith("/icons/") || url.pathname.startsWith("/uploads/barberos/")),
   new CacheFirst({
-    cacheName: "smartbarber-imagenes",
-    plugins: [new ExpirationPlugin({ maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 })],
+    cacheName: CACHE_NAMES.IMAGENES,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      createBudgetedCachePlugin({ allowedMimePrefixes: ["image/"], maxBytes: 512 * 1024 }),
+      new ExpirationPlugin({
+        maxEntries: 25,
+        maxAgeSeconds: 60 * 60 * 24 * 7,
+        purgeOnQuotaError: true,
+      }),
+    ],
   })
 );
 
-// 2. Fuentes de Google (Playfair Display, Inter, JetBrains Mono) -> StaleWhileRevalidate
+// 2. Fuentes de Google: CSS (StaleWhileRevalidate) y archivos .woff2 inmutables (CacheFirst), cero respuestas opacas
 registerRoute(
-  ({ url }) => url.origin === "https://fonts.googleapis.com" || url.origin === "https://fonts.gstatic.com",
+  ({ url }) => url.origin === "https://fonts.googleapis.com",
   new StaleWhileRevalidate({
-    cacheName: "smartbarber-fuentes",
-    plugins: [new ExpirationPlugin({ maxEntries: 20, maxAgeSeconds: 60 * 60 * 24 * 365 })],
+    cacheName: CACHE_NAMES.FUENTES,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({
+        maxEntries: 4,
+        maxAgeSeconds: 60 * 60 * 24 * 7,
+        purgeOnQuotaError: true,
+      }),
+    ],
+  })
+);
+
+registerRoute(
+  ({ url }) => url.origin === "https://fonts.gstatic.com",
+  new CacheFirst({
+    cacheName: CACHE_NAMES.FUENTES,
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      new ExpirationPlugin({
+        maxEntries: 15,
+        maxAgeSeconds: 60 * 60 * 24 * 365,
+        purgeOnQuotaError: true,
+      }),
+    ],
   })
 );
 
@@ -43,7 +120,7 @@ registerRoute(
   new NetworkOnly()
 );
 
-// 4. Datos públicos Landing y lecturas GET del Backoffice -> NetworkFirst con fallback a caché
+// 4. Datos públicos Landing y lecturas GET del Backoffice -> NetworkFirst acotado (<= 256 KB, solo JSON)
 registerRoute(
   ({ url, request }) =>
     isSameOrigin(url) &&
@@ -53,9 +130,17 @@ registerRoute(
       url.pathname.startsWith("/api/v1/public/") ||
       url.pathname.startsWith("/api/v1/")),
   new NetworkFirst({
-    cacheName: "smartbarber-api",
+    cacheName: CACHE_NAMES.API,
     networkTimeoutSeconds: 4,
-    plugins: [new ExpirationPlugin({ maxEntries: 60, maxAgeSeconds: 60 * 60 * 24 })],
+    plugins: [
+      new CacheableResponsePlugin({ statuses: [200] }),
+      createBudgetedCachePlugin({ allowedMimePrefixes: ["application/json"], maxBytes: 256 * 1024 }),
+      new ExpirationPlugin({
+        maxEntries: 25,
+        maxAgeSeconds: 60 * 60 * 6,
+        purgeOnQuotaError: true,
+      }),
+    ],
   })
 );
 
@@ -92,7 +177,7 @@ self.addEventListener("message", (event) => {
   if (event.data && event.data.type === "INVALIDATE_API_CACHE") {
     const pattern = event.data.pattern || "";
     event.waitUntil(
-      caches.open("smartbarber-api").then(async (cache) => {
+      caches.open(CACHE_NAMES.API).then(async (cache) => {
         const requests = await cache.keys();
         return Promise.all(
           requests.map((req) => {
@@ -107,7 +192,18 @@ self.addEventListener("message", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
-  event.waitUntil(self.clients.claim());
+  event.waitUntil(
+    (async () => {
+      // Purgar cachés runtime legadas (incluidas respuestas opacas previas) y DB obsoleta
+      await Promise.all(LEGACY_RUNTIME_CACHES.map((name) => caches.delete(name)));
+      if (typeof indexedDB !== "undefined" && typeof indexedDB.deleteDatabase === "function") {
+        try {
+          indexedDB.deleteDatabase("SmartBarberDB");
+        } catch (_) {}
+      }
+      await self.clients.claim();
+    })()
+  );
 });
 
 // ============================================================================
