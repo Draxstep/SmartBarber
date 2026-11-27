@@ -4,11 +4,13 @@
  */
 import { Barbero } from '../domain/Barbero.js';
 import { BloqueoHorario } from '../domain/BloqueoHorario.js';
+import { buildDefaultWeeklyHorarios } from '../domain/defaultHorarios.js';
 import { BarberoPgRepository } from '../repositories/BarberoPgRepository.js';
 import { RegistroCortePgRepository } from '../../cortes/repositories/RegistroCortePgRepository.js';
 import { UsuarioPgRepository } from '../../seguridad/repositories/UsuarioPgRepository.js';
 import { NotFoundError, ValidationError, ForbiddenError } from '../../../shared/errors/domainErrors.js';
 import { getDatabasePool } from '../../../shared/database/connection.js';
+import { runTransaction } from '../../../shared/database/transaction.js';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
@@ -40,6 +42,10 @@ export class BarberoService {
       }
     }
 
+    const initialHorarios = Array.isArray(data.horarios) && data.horarios.length > 0
+      ? data.horarios
+      : buildDefaultWeeklyHorarios();
+
     if (data.crearUsuario) {
       const pool = getDatabasePool();
       const client = await pool.connect();
@@ -70,6 +76,7 @@ export class BarberoService {
         };
         const nuevo = new Barbero(barberoData);
         const guardado = await this.barberoRepo.save(nuevo, { client });
+        await this.barberoRepo.saveHorarios(guardado.barberoId || guardado.id, initialHorarios, { client });
         await client.query('COMMIT');
         return guardado;
       } catch (err) {
@@ -81,7 +88,19 @@ export class BarberoService {
     }
 
     const nuevo = new Barbero(data);
-    return await this.barberoRepo.save(nuevo);
+    if (this.barberoRepo?.pool) {
+      return await runTransaction(async (client) => {
+        const guardado = await this.barberoRepo.save(nuevo, { client });
+        await this.barberoRepo.saveHorarios(guardado.barberoId || guardado.id, initialHorarios, { client });
+        return guardado;
+      });
+    }
+
+    const guardado = await this.barberoRepo.save(nuevo);
+    if (typeof this.barberoRepo.saveHorarios === 'function') {
+      await this.barberoRepo.saveHorarios(guardado.barberoId || guardado.id, initialHorarios);
+    }
+    return guardado;
   }
 
   async updateBarbero(id, data) {

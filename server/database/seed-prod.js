@@ -14,6 +14,7 @@
 import { fileURLToPath } from 'url';
 import { getDatabasePool, closeDatabasePool } from '../shared/database/connection.js';
 import { runTransaction } from '../shared/database/transaction.js';
+import { buildDefaultWeeklyHorarios } from '../modules/barberos/domain/defaultHorarios.js';
 
 export async function runProductionSeed() {
   console.log('🚀 Iniciando sembrado limpio de producción (SmartBarber RDS Go-Live)...');
@@ -114,26 +115,15 @@ export async function runProductionSeed() {
     console.log(`✅ [PROD] Barberos activos vinculados: Carlos (${barbero1Id}), Alejo (${barbero2Id})`);
 
     // 4. Plantillas de Horarios Semanales (Lunes a Sábado en franjas estándar)
+    const prodHorarios = buildDefaultWeeklyHorarios({ t1Start: '08:00:00' });
     for (const bId of [barbero1Id, barbero2Id]) {
-      for (let dia = 1; dia <= 6; dia++) {
+      for (const h of prodHorarios) {
         await client.query(`
           INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
-          VALUES ($1, $2, 1, false, '08:00:00', '13:00:00')
+          VALUES ($1, $2, $3, $4, $5, $6)
           ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
-        `, [bId, dia]);
-
-        await client.query(`
-          INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
-          VALUES ($1, $2, 2, false, '14:00:00', '19:00:00')
-          ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
-        `, [bId, dia]);
+        `, [bId, h.diaSemana, h.numeroFranja, h.esDescanso, h.horaInicio, h.horaFin]);
       }
-      // Domingo descanso
-      await client.query(`
-        INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
-        VALUES ($1, 7, 1, true, NULL, NULL)
-        ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
-      `, [bId]);
     }
     console.log('✅ [PROD] Plantillas de horarios semanales aplicadas.');
 

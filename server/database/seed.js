@@ -5,6 +5,7 @@
 import { fileURLToPath } from 'url';
 import { getDatabasePool, closeDatabasePool } from '../shared/database/connection.js';
 import { runTransaction } from '../shared/database/transaction.js';
+import { buildDefaultWeeklyHorarios } from '../modules/barberos/domain/defaultHorarios.js';
 
 export async function runSeed() {
   console.log('🌱 Iniciando sembrado de datos base en PostgreSQL RDS...');
@@ -155,27 +156,18 @@ export async function runSeed() {
 
     console.log(`✅ Barberos iniciales registrados: Carlos (${barbero1Id}) y Alejo (${barbero2Id})`);
 
-    // 4. Horarios semanales para Carlos (Lunes a Sábado 09:00 - 13:00 y 14:00 - 19:00, Domingo descanso)
-    for (let dia = 1; dia <= 6; dia++) {
-      await client.query(`
-        INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
-        VALUES ($1, $2, 1, false, '09:00:00', '13:00:00')
-        ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
-      `, [barbero1Id, dia]);
-
-      await client.query(`
-        INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
-        VALUES ($1, $2, 2, false, '14:00:00', '19:00:00')
-        ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
-      `, [barbero1Id, dia]);
+    // 4. Horarios semanales por defecto para todos los barberos iniciales (L-S 09:00-13:00 / 14:00-19:00, D descanso)
+    const defaultHorarios = buildDefaultWeeklyHorarios();
+    for (const bId of [barbero1Id, barbero2Id]) {
+      for (const h of defaultHorarios) {
+        await client.query(`
+          INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
+        `, [bId, h.diaSemana, h.numeroFranja, h.esDescanso, h.horaInicio, h.horaFin]);
+      }
     }
-
-    // Domingo descanso para Carlos
-    await client.query(`
-      INSERT INTO horarios_barberos (barbero_id, dia_semana, numero_franja, es_descanso, hora_inicio, hora_fin)
-      VALUES ($1, 7, 1, true, NULL, NULL)
-      ON CONFLICT (barbero_id, dia_semana, numero_franja) DO NOTHING;
-    `, [barbero1Id]);
+    console.log('✅ Horarios semanales aplicados para Carlos y Alejo.');
 
     // 5. Catálogo de Servicios Inicial
     const servicios = [
